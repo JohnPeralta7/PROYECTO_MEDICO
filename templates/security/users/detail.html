@@ -1,0 +1,335 @@
+{% extends 'home.html' %} 
+<title>{% block title %}{{ title|default:"Detalle de Usuario" }}{% endblock %}</title>
+{% load static %}
+{% block content %}
+
+<!-- Header de la página con diseño moderno -->
+<div class="bg-gradient-to-br from-blue-600 to-indigo-700 mb-8 rounded-2xl shadow-xl overflow-hidden">
+    <!-- Elementos decorativos de fondo -->
+    <div class="absolute inset-0 overflow-hidden opacity-20">
+        <div class="absolute -right-20 -top-20 w-64 h-64 rounded-full bg-blue-400 filter blur-xl"></div>
+        <div class="absolute right-20 bottom-10 w-48 h-48 rounded-full bg-purple-400 filter blur-xl"></div>
+        <div class="absolute left-20 bottom-10 w-48 h-48 rounded-full bg-indigo-400 filter blur-xl"></div>
+    </div>
+    
+    <div class="max-w-7xl mx-auto px-6 py-10 relative z-10">
+        <!-- Detalles del usuario -->
+        <div class="flex flex-col md:flex-row items-center justify-between">
+            <div class="flex items-center mb-6 md:mb-0">
+                <div class="w-20 h-20 rounded-full bg-white/15 backdrop-blur-md flex items-center justify-center mr-5 shadow-lg overflow-hidden">
+                    {% if user.image %}
+                    <img src="{{ user.get_image }}" alt="{{ user.get_full_name }}" class="w-full h-full object-cover">
+                    {% else %}
+                    <i class="fas fa-user text-white text-3xl"></i>
+                    {% endif %}
+                </div>
+                <div>
+                    <h1 class="text-2xl md:text-4xl font-extrabold text-white tracking-tight">
+                        {{ user.get_full_name }}
+                    </h1>
+                    <p class="text-blue-100 mt-2 flex items-center">
+                        <i class="fas fa-at mr-2"></i>
+                        {{ user.username }}
+                        {% if user.is_active %}
+                        <span class="ml-3 bg-green-500/20 backdrop-blur-sm text-white px-2 py-0.5 rounded-full text-xs font-medium flex items-center">
+                            <span class="w-2 h-2 bg-green-400 rounded-full mr-1"></span>
+                            Activo
+                        </span>
+                        {% else %}
+                        <span class="ml-3 bg-red-500/20 backdrop-blur-sm text-white px-2 py-0.5 rounded-full text-xs font-medium flex items-center">
+                            <span class="w-2 h-2 bg-red-400 rounded-full mr-1"></span>
+                            Inactivo
+                        </span>
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+            <div class="flex space-x-3">
+                {% if permissions.change_user %}
+                <a href="{% url 'security:user_update' user.id %}" 
+                   class="group inline-flex items-center px-5 py-3 bg-white/15 backdrop-blur-md text-white rounded-xl hover:bg-white/25 transition-all duration-300 shadow-lg">
+                    <i class="fas fa-edit mr-2 group-hover:scale-110 transition-transform"></i>
+                    <span>Editar usuario</span>
+                </a>
+                {% endif %}
+                <a href="{% url 'security:user_list' %}" 
+                   class="group inline-flex items-center px-5 py-3 bg-white/15 backdrop-blur-md text-white rounded-xl hover:bg-white/25 transition-all duration-300 shadow-lg">
+                    <i class="fas fa-arrow-left mr-3 group-hover:-translate-x-1 transition-transform duration-300"></i>
+                    <span>Volver al listado</span>
+                </a>
+            </div>
+        </div>
+        
+        <!-- Insignias de rol -->
+        <div class="mt-6 flex flex-wrap gap-3">
+            {% if user.is_superuser %}
+            <div class="badge bg-yellow-500/20 backdrop-blur-sm text-white px-3 py-1 rounded-lg text-sm flex items-center">
+                <i class="fas fa-crown text-yellow-300 mr-2"></i>
+                <span>Superusuario</span>
+            </div>
+            {% endif %}
+            
+            {% if user.is_staff %}
+            <div class="badge bg-blue-500/20 backdrop-blur-sm text-white px-3 py-1 rounded-lg text-sm flex items-center">
+                <i class="fas fa-user-cog text-blue-300 mr-2"></i>
+                <span>Staff</span>
+            </div>
+            {% endif %}
+            
+            {% for group in user.groups.all %}
+            <div class="badge bg-purple-500/20 backdrop-blur-sm text-white px-3 py-1 rounded-lg text-sm flex items-center">
+                <i class="fas fa-users text-purple-300 mr-2"></i>
+                <span>{{ group.name }}</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Vista principal con información del usuario -->
+<div class="max-w-7xl mx-auto px-4">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Panel de información personal -->
+        <div class="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
+            <div class="bg-gradient-to-br from-blue-600 to-indigo-700 px-6 py-4 flex items-center">
+                <div class="bg-white/15 backdrop-blur-md p-2 rounded-lg mr-3">
+                    <i class="fas fa-user text-white"></i>
+                </div>
+                <h2 class="text-xl font-bold text-white">Información Personal</h2>
+            </div>
+            
+            <div class="p-6 divide-y divide-gray-100">
+                <div class="py-4 flex">
+                    <div class="w-1/3 text-gray-500">Nombre completo</div>
+                    <div class="w-2/3 font-medium">{{ user.get_full_name }}</div>
+                </div>
+                <div class="py-4 flex">
+                    <div class="w-1/3 text-gray-500">Nombre de usuario</div>
+                    <div class="w-2/3 font-medium">{{ user.username }}</div>
+                </div>
+                <div class="py-4 flex">
+                    <div class="w-1/3 text-gray-500">Email</div>
+                    <div class="w-2/3 font-medium">{{ user.email }}</div>
+                </div>
+                <div class="py-4 flex">
+                    <div class="w-1/3 text-gray-500">DNI/Cédula</div>
+                    <div class="w-2/3 font-medium">{{ user.dni|default:"No especificado" }}</div>
+                </div>
+                <div class="py-4 flex">
+                    <div class="w-1/3 text-gray-500">Teléfono</div>
+                    <div class="w-2/3 font-medium">{{ user.phone|default:"No especificado" }}</div>
+                </div>
+                <div class="py-4 flex">
+                    <div class="w-1/3 text-gray-500">Dirección</div>
+                    <div class="w-2/3 font-medium">{{ user.direction|default:"No especificada" }}</div>
+                </div>
+                <div class="py-4 flex">
+                    <div class="w-1/3 text-gray-500">Estado</div>
+                    <div class="w-2/3">
+                        {% if user.is_active %}
+                        <span class="px-2 py-1 bg-green-100 text-green-800 rounded-lg text-xs font-medium">
+                            Activo
+                        </span>
+                        {% else %}
+                        <span class="px-2 py-1 bg-red-100 text-red-800 rounded-lg text-xs font-medium">
+                            Inactivo
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Panel de permisos y grupos -->
+        <div class="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
+            <div class="bg-gradient-to-br from-purple-600 to-indigo-700 px-6 py-4 flex items-center">
+                <div class="bg-white/15 backdrop-blur-md p-2 rounded-lg mr-3">
+                    <i class="fas fa-users-cog text-white"></i>
+                </div>
+                <h2 class="text-xl font-bold text-white">Grupos y Permisos</h2>
+            </div>
+            
+            <div class="p-6">
+                <h3 class="font-semibold text-gray-800 mb-3">Grupos asignados</h3>
+                <div class="mb-6">
+                    {% for group in user.groups.all %}
+                    <div class="mb-2 bg-purple-50 text-purple-800 px-3 py-2 rounded-lg flex items-center">
+                        <i class="fas fa-users text-purple-500 mr-2"></i>
+                        <span>{{ group.name }}</span>
+                    </div>
+                    {% empty %}
+                    <div class="text-gray-500 italic">No pertenece a ningún grupo</div>
+                    {% endfor %}
+                </div>
+                
+                <h3 class="font-semibold text-gray-800 mb-3 mt-6">Permisos específicos</h3>
+                <div class="space-y-1 max-h-64 overflow-y-auto pr-2 custom-scrollbar">
+                    {% for perm in user.user_permissions.all %}
+                    <div class="bg-blue-50 text-blue-800 px-3 py-2 rounded-lg text-sm flex items-center mb-2">
+                        <i class="fas fa-check-circle text-blue-500 mr-2"></i>
+                        <span>{{ perm.name }}</span>
+                    </div>
+                    {% empty %}
+                    <div class="text-gray-500 italic">No tiene permisos específicos asignados</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Panel de información de sistema -->
+        <div class="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
+            <div class="bg-gradient-to-br from-gray-700 to-gray-900 px-6 py-4 flex items-center">
+                <div class="bg-white/15 backdrop-blur-md p-2 rounded-lg mr-3">
+                    <i class="fas fa-cogs text-white"></i>
+                </div>
+                <h2 class="text-xl font-bold text-white">Información de Sistema</h2>
+            </div>
+            
+            <div class="p-6 divide-y divide-gray-100">
+                <div class="py-4 flex">
+                    <div class="w-1/3 text-gray-500">ID de usuario</div>
+                    <div class="w-2/3 font-medium">{{ user.id }}</div>
+                </div>
+                <div class="py-4 flex">
+                    <div class="w-1/3 text-gray-500">Es superusuario</div>
+                    <div class="w-2/3">
+                        {% if user.is_superuser %}
+                        <span class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-lg text-xs font-medium">
+                            Sí
+                        </span>
+                        {% else %}
+                        <span class="px-2 py-1 bg-gray-100 text-gray-800 rounded-lg text-xs font-medium">
+                            No
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="py-4 flex">
+                    <div class="w-1/3 text-gray-500">Es staff</div>
+                    <div class="w-2/3">
+                        {% if user.is_staff %}
+                        <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-lg text-xs font-medium">
+                            Sí
+                        </span>
+                        {% else %}
+                        <span class="px-2 py-1 bg-gray-100 text-gray-800 rounded-lg text-xs font-medium">
+                            No
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="py-4 flex">
+                    <div class="w-1/3 text-gray-500">Último acceso</div>
+                    <div class="w-2/3 font-medium">{{ user.last_login|default:"Nunca" }}</div>
+                </div>
+                <div class="py-4 flex">
+                    <div class="w-1/3 text-gray-500">Cuenta creada</div>
+                    <div class="w-2/3 font-medium">{{ user.date_joined|date:"d/m/Y H:i" }}</div>
+                </div>
+            </div>
+            
+            {% if permissions.delete_user %}
+            <div class="p-6 border-t border-gray-100">
+                <a href="#" 
+                   onclick="openDeleteModal('{{ user.id }}', '{{ user.get_full_name }}')"
+                   class="w-full bg-red-50 hover:bg-red-100 transition-colors text-red-700 py-3 px-4 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-trash-alt mr-2"></i>
+                    <span>Eliminar usuario</span>
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Incluir el modal de eliminación -->
+{% include 'fragments/delete.html' %}
+
+<script>
+    // Función para abrir el modal de eliminación
+    function openDeleteModal(id, name) {
+        // Configurar el modal de eliminación
+        const deleteForm = document.getElementById('deleteForm');
+        deleteForm.action = `{% url 'security:user_delete' 0 %}`.replace('0', id);
+        
+        // Actualizar mensaje con animación
+        const descriptionElement = document.getElementById('Description');
+        descriptionElement.innerHTML = `¿Estás seguro que deseas eliminar el usuario <span class="font-semibold">"${name}"</span>?`;
+        descriptionElement.innerHTML += `<p class="text-sm mt-2 text-gray-600">Esta acción no se puede deshacer y el usuario perderá el acceso al sistema.</p>`;
+        
+        // Mostrar el modal con animación
+        const deleteModal = document.getElementById('deleteModal');
+        deleteModal.classList.remove('hidden');
+        
+        // Animar entrada del modal
+        setTimeout(() => {
+            const modalContent = deleteModal.querySelector('.modal-content');
+            if (modalContent) {
+                modalContent.classList.add('scale-100', 'opacity-100');
+                modalContent.classList.remove('scale-95', 'opacity-0');
+            }
+        }, 10);
+    }
+    
+    // Función para cerrar el modal de eliminación
+    function closeModal() {
+        // Animar salida del modal
+        const deleteModal = document.getElementById('deleteModal');
+        const modalContent = deleteModal.querySelector('.modal-content');
+        
+        if (modalContent) {
+            modalContent.classList.add('scale-95', 'opacity-0');
+            modalContent.classList.remove('scale-100', 'opacity-100');
+            
+            // Esperar a que termine la animación antes de ocultar
+            setTimeout(() => {
+                deleteModal.classList.add('hidden');
+            }, 200);
+        } else {
+            deleteModal.classList.add('hidden');
+        }
+    }
+</script>
+
+<style>
+    /* Estilo personalizado para scrollbar */
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 6px;
+    }
+    
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: #f1f5f9;
+        border-radius: 10px;
+    }
+    
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 10px;
+    }
+    
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+    }
+    
+    /* Animaciones para badges */
+    .badge {
+        animation: fadeIn 0.5s ease-out forwards;
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    
+    @keyframes fadeIn {
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .badge:nth-child(1) { animation-delay: 0.1s; }
+    .badge:nth-child(2) { animation-delay: 0.2s; }
+    .badge:nth-child(3) { animation-delay: 0.3s; }
+    .badge:nth-child(4) { animation-delay: 0.4s; }
+    .badge:nth-child(5) { animation-delay: 0.5s; }
+</style>
+
+{% endblock %}

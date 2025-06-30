@@ -1,0 +1,177 @@
+{% extends 'home.html' %}
+{% load static %}
+{% block title %}{{ title|default:"Gestionar Permisos de Grupo" }}{% endblock %}
+{% block content %}
+
+<!-- Header de la página con diseño moderno -->
+<div class="bg-gradient-to-br from-purple-600 to-indigo-700 mb-8 rounded-2xl shadow-xl overflow-hidden">
+    <!-- Elementos decorativos de fondo -->
+    <div class="absolute inset-0 overflow-hidden opacity-20">
+        <div class="absolute -right-20 -top-20 w-64 h-64 rounded-full bg-blue-400 filter blur-xl"></div>
+        <div class="absolute right-20 bottom-10 w-48 h-48 rounded-full bg-purple-400 filter blur-xl"></div>
+        <div class="absolute left-20 bottom-10 w-48 h-48 rounded-full bg-pink-400 filter blur-xl"></div>
+    </div>
+    
+    <div class="max-w-7xl mx-auto px-6 py-10 relative z-10">
+        <!-- Detalles del formulario -->
+        <div class="flex flex-col md:flex-row items-center justify-between">
+            <div class="flex items-center mb-6 md:mb-0">
+                <div class="bg-white/15 backdrop-blur-md p-4 rounded-2xl mr-5 shadow-lg transform transition-all duration-300 hover:scale-105 hover:bg-white/20">
+                    <i class="fas fa-shield-alt text-white text-2xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-2xl md:text-4xl font-extrabold text-white tracking-tight">
+                        {{ title1|default:"Asignación de Permisos" }}
+                    </h1>
+                    <p class="text-blue-100 mt-2 text-lg">
+                        {% if object %}
+                            Actualiza los permisos del grupo en el módulo
+                        {% else %}
+                            Asigna permisos a un grupo para un módulo específico
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+            <div>
+                <a href="{{ back_url|default:'javascript:history.back()' }}" 
+                   class="group inline-flex items-center px-5 py-3 bg-white/15 backdrop-blur-md text-white rounded-xl hover:bg-white/25 transition-all duration-300 shadow-lg">
+                    <i class="fas fa-arrow-left mr-3 group-hover:-translate-x-1 transition-transform duration-300"></i>
+                    <span>Volver al listado</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="max-w-4xl mx-auto px-4">
+    {% if not form %}
+    <div style="color: red; font-weight: bold; background: #fff3f3; padding: 1em; border: 2px solid red;">
+        ¡El formulario no está disponible en el contexto!<br>
+        Verifica permisos y la vista.
+    </div>
+    {% endif %}
+
+    <!-- Mensajes de error del formulario -->
+    {% if form.non_field_errors %}
+    <div class="mb-8 bg-gradient-to-r from-red-50 to-pink-50 border-l-4 border-red-500 p-6 rounded-xl shadow-lg animate-appear">
+        <div class="flex items-start">
+            <div class="flex-shrink-0">
+                <i class="fas fa-exclamation-triangle text-red-500 text-xl"></i>
+            </div>
+            <div class="ml-4">
+                <h3 class="text-lg font-medium text-red-800">Se han encontrado errores en el formulario</h3>
+                <div class="mt-2 text-sm text-red-700 space-y-1">
+                    {% for error in form.non_field_errors %}
+                    <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Formulario principal -->
+    <form method="post" class="bg-white shadow-xl rounded-3xl overflow-hidden border border-gray-100">
+        {% csrf_token %}
+        <div class="bg-gray-50 px-8 py-6 border-b border-gray-100">
+            <h2 class="text-2xl font-bold text-gray-800">
+                {% if object %}Actualizar asignación{% else %}Nueva asignación{% endif %}
+            </h2>
+            <p class="text-gray-500 mt-2">
+                Complete todos los campos requeridos marcados con <span class="text-red-500">*</span>
+            </p>
+        </div>
+        <div class="p-8 space-y-6">
+            <!-- Grupo -->
+            <div>
+                <label for="{{ form.group.id_for_label }}" class="block mb-2 text-sm font-medium text-gray-700">
+                    Grupo <span class="text-red-500">*</span>
+                    {% if form.group.errors %}
+                    <span class="text-sm text-red-600 font-normal">- {{ form.group.errors.0 }}</span>
+                    {% endif %}
+                </label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    </div>
+                    {{ form.group }}
+                </div>
+                <p class="mt-1 text-sm text-gray-500">Seleccione el grupo al que desea otorgar permisos</p>
+            </div>
+            
+            <!-- Módulo -->
+            <div>
+                <label for="{{ form.module.id_for_label }}" class="block mb-2 text-sm font-medium text-gray-700">
+                    Módulo <span class="text-red-500">*</span>
+                    {% if form.module.errors %}
+                    <span class="text-sm text-red-600 font-normal">- {{ form.module.errors.0 }}</span>
+                    {% endif %}
+                </label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    </div>
+                    {{ form.module }}
+                </div>
+                <p class="mt-1 text-sm text-gray-500">Seleccione el módulo para el que desea otorgar permisos al grupo</p>
+            </div>
+            
+            <!-- Permisos -->
+            <div>
+                <label for="{{ form.permissions.id_for_label }}" class="block mb-2 text-sm font-medium text-gray-700">
+                    Permisos <span class="text-red-500">*</span>
+                    {% if form.permissions.errors %}
+                    <span class="text-sm text-red-600 font-normal">- {{ form.permissions.errors.0 }}</span>
+                    {% endif %}
+                </label>
+                {{ form.permissions }}
+                <p class="mt-1 text-sm text-gray-500">Mantenga presionada la tecla Ctrl para seleccionar múltiples permisos</p>
+            </div>
+        </div>
+        <div class="bg-gray-50 px-8 py-6 flex flex-col sm:flex-row justify-between items-center space-y-3 sm:space-y-0">
+            <a href="{{ back_url|default:'javascript:history.back()' }}" class="w-full sm:w-auto px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg font-medium flex items-center justify-center transition-all duration-300">
+                <i class="fas fa-times mr-2"></i>
+                <span>Cancelar</span>
+            </a>
+            <button type="submit" class="w-full sm:w-auto px-8 py-3 bg-gradient-to-r from-purple-600 to-indigo-700 hover:from-purple-700 hover:to-indigo-800 text-white rounded-lg font-medium flex items-center justify-center shadow-lg transition-all duration-300">
+                <i class="fas fa-save mr-2"></i>
+                <span>{{ grabar|default:"Guardar" }}</span>
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Función para cargar permisos según el módulo seleccionado
+    const moduleSelect = document.getElementById('{{ form.module.id_for_label }}');
+    const permissionsSelect = document.getElementById('{{ form.permissions.id_for_label }}');
+    
+    moduleSelect.addEventListener('change', function() {
+        const moduleId = this.value;
+        
+        if (moduleId) {
+            // Hacer petición AJAX para obtener permisos del módulo
+            fetch(`/api/modules/${moduleId}/permissions/`)
+                .then(response => response.json())
+                .then(data => {
+                    // Actualizar opciones del select de permisos
+                    permissionsSelect.innerHTML = '';
+                    
+                    data.forEach(permission => {
+                        const option = document.createElement('option');
+                        option.value = permission.id;
+                        option.textContent = permission.name;
+                        permissionsSelect.appendChild(option);
+                    });
+                })
+                .catch(error => console.error('Error cargando permisos:', error));
+        }
+    });
+    
+    // Disparar cambio inicial si hay un módulo ya seleccionado
+    if (moduleSelect.value) {
+        moduleSelect.dispatchEvent(new Event('change'));
+    }
+});
+</script>
+
+{% endblock %}

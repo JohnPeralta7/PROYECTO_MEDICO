@@ -1,0 +1,335 @@
+{% extends 'home.html' %}
+{% load static %}
+{% block title %}{{ title|default:"Gestionar Usuario" }}{% endblock %}
+{% block content %}
+
+<!-- Header de la página con diseño moderno -->
+<div class="bg-gradient-to-br from-purple-600 to-indigo-700 mb-8 rounded-2xl shadow-xl overflow-hidden">
+    <!-- Elementos decorativos de fondo -->
+    <div class="absolute inset-0 overflow-hidden opacity-20">
+        <div class="absolute -right-20 -top-20 w-64 h-64 rounded-full bg-blue-400 filter blur-xl"></div>
+        <div class="absolute right-20 bottom-10 w-48 h-48 rounded-full bg-purple-400 filter blur-xl"></div>
+        <div class="absolute left-20 bottom-10 w-48 h-48 rounded-full bg-pink-400 filter blur-xl"></div>
+    </div>
+    
+    <div class="max-w-7xl mx-auto px-6 py-10 relative z-10">
+        <!-- Detalles del formulario -->
+        <div class="flex flex-col md:flex-row items-center justify-between">
+            <div class="flex items-center mb-6 md:mb-0">
+                <div class="bg-white/15 backdrop-blur-md p-4 rounded-2xl mr-5 shadow-lg transform transition-all duration-300 hover:scale-105 hover:bg-white/20">
+                    <i class="{% if object %}fas fa-user-edit{% else %}fas fa-user-plus{% endif %} text-white text-2xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-2xl md:text-4xl font-extrabold text-white tracking-tight">
+                        {{ title1|default:"Usuario" }}
+                    </h1>
+                    <p class="text-blue-100 mt-2 text-lg">
+                        {% if object %}
+                            Actualiza la información del usuario existente
+                        {% else %}
+                            Crea un nuevo usuario para el sistema
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+            <div>
+                <a href="{% url 'security:user_list' %}" 
+                   class="group inline-flex items-center px-5 py-3 bg-white/15 backdrop-blur-md text-white rounded-xl hover:bg-white/25 transition-all duration-300 shadow-lg">
+                    <i class="fas fa-arrow-left mr-3 group-hover:-translate-x-1 transition-transform duration-300"></i>
+                    <span>Volver al listado</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="max-w-6xl mx-auto px-4">
+    {% if not form %}
+    <div style="color: red; font-weight: bold; background: #fff3f3; padding: 1em; border: 2px solid red;">
+        ¡El formulario no está disponible en el contexto!<br>
+        Verifica permisos y la vista.
+    </div>
+    {% endif %}
+
+    <!-- Mensajes de error del formulario -->
+    {% if form.non_field_errors %}
+    <div class="mb-8 bg-gradient-to-r from-red-50 to-pink-50 border-l-4 border-red-500 p-6 rounded-xl shadow-lg animate-appear">
+        <div class="flex items-start">
+            <div class="flex-shrink-0">
+                <i class="fas fa-exclamation-triangle text-red-500 text-xl"></i>
+            </div>
+            <div class="ml-4">
+                <h3 class="text-lg font-medium text-red-800">Se han encontrado errores en el formulario</h3>
+                <div class="mt-2 text-sm text-red-700 space-y-1">
+                    {% for error in form.non_field_errors %}
+                    <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Formulario principal unificado -->
+    <form method="post" enctype="multipart/form-data" class="bg-white shadow-xl rounded-3xl overflow-hidden border border-gray-100">
+        {% csrf_token %}
+        <div class="bg-gray-50 px-8 py-6 border-b border-gray-100">
+            <h2 class="text-2xl font-bold text-gray-800">
+                {% if object %}Actualizar usuario{% else %}Crear nuevo usuario{% endif %}
+            </h2>
+            <p class="text-gray-500 mt-2">
+                Complete todos los campos requeridos marcados con <span class="text-red-500">*</span>
+            </p>
+        </div>
+        <div class="p-8 space-y-10">
+            <!-- Información personal -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="space-y-6">
+                    <!-- Username -->
+                    <div>
+                        <label for="{{ form.username.id_for_label }}" class="block mb-2 text-sm font-medium text-gray-700">
+                            Nombre de usuario <span class="text-red-500">*</span>
+                            {% if form.username.errors %}
+                            <span class="text-sm text-red-600 font-normal">- {{ form.username.errors.0 }}</span>
+                            {% endif %}
+                        </label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                <i class="fas fa-user text-gray-400"></i>
+                            </div>
+                            {{ form.username }}
+                        </div>
+                    </div>
+                    <!-- Nombre -->
+                    <div>
+                        <label for="{{ form.first_name.id_for_label }}" class="block mb-2 text-sm font-medium text-gray-700">
+                            Nombres <span class="text-red-500">*</span>
+                            {% if form.first_name.errors %}
+                            <span class="text-sm text-red-600 font-normal">- {{ form.first_name.errors.0 }}</span>
+                            {% endif %}
+                        </label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                <i class="fas fa-signature text-gray-400"></i>
+                            </div>
+                            {{ form.first_name }}
+                        </div>
+                    </div>
+                    <!-- Email -->
+                    <div>
+                        <label for="{{ form.email.id_for_label }}" class="block mb-2 text-sm font-medium text-gray-700">
+                            Correo electrónico <span class="text-red-500">*</span>
+                            {% if form.email.errors %}
+                            <span class="text-sm text-red-600 font-normal">- {{ form.email.errors.0 }}</span>
+                            {% endif %}
+                        </label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                <i class="fas fa-envelope text-gray-400"></i>
+                            </div>
+                            {{ form.email }}
+                        </div>
+                    </div>
+                    <!-- DNI/Cédula -->
+                    <div>
+                        <label for="{{ form.dni.id_for_label }}" class="block mb-2 text-sm font-medium text-gray-700">
+                            Cédula o RUC
+                            {% if form.dni.errors %}
+                            <span class="text-sm text-red-600 font-normal">- {{ form.dni.errors.0 }}</span>
+                            {% endif %}
+                        </label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                <i class="fas fa-id-card text-gray-400"></i>
+                            </div>
+                            {{ form.dni }}
+                        </div>
+                    </div>
+                </div>
+                <div class="space-y-6">
+                    <!-- Apellidos -->
+                    <div>
+                        <label for="{{ form.last_name.id_for_label }}" class="block mb-2 text-sm font-medium text-gray-700">
+                            Apellidos <span class="text-red-500">*</span>
+                            {% if form.last_name.errors %}
+                            <span class="text-sm text-red-600 font-normal">- {{ form.last_name.errors.0 }}</span>
+                            {% endif %}
+                        </label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                <i class="fas fa-user-tag text-gray-400"></i>
+                            </div>
+                            {{ form.last_name }}
+                        </div>
+                    </div>
+                    <!-- Teléfono -->
+                    <div>
+                        <label for="{{ form.phone.id_for_label }}" class="block mb-2 text-sm font-medium text-gray-700">
+                            Teléfono
+                            {% if form.phone.errors %}
+                            <span class="text-sm text-red-600 font-normal">- {{ form.phone.errors.0 }}</span>
+                            {% endif %}
+                        </label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                <i class="fas fa-phone text-gray-400"></i>
+                            </div>
+                            {{ form.phone }}
+                        </div>
+                    </div>
+                    <!-- Dirección -->
+                    <div>
+                        <label for="{{ form.direction.id_for_label }}" class="block mb-2 text-sm font-medium text-gray-700">
+                            Dirección
+                            {% if form.direction.errors %}
+                            <span class="text-sm text-red-600 font-normal">- {{ form.direction.errors.0 }}</span>
+                            {% endif %}
+                        </label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                <i class="fas fa-map-marker-alt text-gray-400"></i>
+                            </div>
+                            {{ form.direction }}
+                        </div>
+                    </div>
+                    <!-- Imagen/Avatar -->
+                    <div>
+                        <label for="{{ form.image.id_for_label }}" class="block mb-2 text-sm font-medium text-gray-700">
+                            Foto de perfil
+                            {% if form.image.errors %}
+                            <span class="text-sm text-red-600 font-normal">- {{ form.image.errors.0 }}</span>
+                            {% endif %}
+                        </label>
+                        <div class="flex items-center space-x-4">
+                            {% if object.image %}
+                            <div class="w-16 h-16 rounded-full overflow-hidden border border-gray-200">
+                                <img src="{{ object.get_image }}" class="w-full h-full object-cover" alt="Avatar del usuario">
+                            </div>
+                            {% endif %}
+                            <div class="flex-1">
+                                {{ form.image }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Acceso y permisos -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-10">
+                <div class="space-y-6 p-6 bg-gray-50 rounded-xl border border-gray-100">
+                    <h3 class="text-lg font-semibold text-gray-800 pb-2 border-b border-gray-200 flex items-center">
+                        <i class="fas fa-key text-purple-500 mr-2"></i>
+                        Configuración de contraseña
+                    </h3>
+                    {% if not object %}
+                    <div class="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-r-lg mb-6">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-info-circle text-blue-400"></i>
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-sm text-blue-700">
+                                    La contraseña debe tener al menos 8 caracteres, incluir letras y números.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    <!-- Contraseña -->
+                    <div>
+                        <label for="{{ form.password.id_for_label }}" class="block mb-2 text-sm font-medium text-gray-700">
+                            Contraseña {% if not object %}<span class="text-red-500">*</span>{% endif %}
+                            {% if form.password.errors %}
+                            <span class="text-sm text-red-600 font-normal">- {{ form.password.errors.0 }}</span>
+                            {% endif %}
+                        </label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                <i class="fas fa-lock text-gray-400"></i>
+                            </div>
+                            {{ form.password }}
+                        </div>
+                        {% if object %}
+                        <p class="mt-1 text-sm text-gray-500">Deje en blanco para mantener la contraseña actual</p>
+                        {% endif %}
+                    </div>
+                    <!-- Confirmar contraseña -->
+                    <div>
+                        <label for="{{ form.password_confirmation.id_for_label }}" class="block mb-2 text-sm font-medium text-gray-700">
+                            Confirmar contraseña {% if not object %}<span class="text-red-500">*</span>{% endif %}
+                            {% if form.password_confirmation.errors %}
+                            <span class="text-sm text-red-600 font-normal">- {{ form.password_confirmation.errors.0 }}</span>
+                            {% endif %}
+                        </label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                <i class="fas fa-lock text-gray-400"></i>
+                            </div>
+                            {{ form.password_confirmation }}
+                        </div>
+                    </div>
+                    <!-- Checkbox para estado -->
+                    <div class="flex items-center mt-4">
+                        <div class="flex items-center h-5">
+                            {{ form.is_active }}
+                        </div>
+                        <div class="ml-3 text-sm">
+                            <label for="{{ form.is_active.id_for_label }}" class="font-medium text-gray-700">Usuario activo</label>
+                            <p class="text-gray-500">El usuario podrá iniciar sesión y usar el sistema</p>
+                        </div>
+                    </div>
+                    <!-- Checkbox para staff -->
+                    <div class="flex items-center mt-2">
+                        <div class="flex items-center h-5">
+                            {{ form.is_staff }}
+                        </div>
+                        <div class="ml-3 text-sm">
+                            <label for="{{ form.is_staff.id_for_label }}" class="font-medium text-gray-700">Usuario staff</label>
+                            <p class="text-gray-500">Acceso al panel de administración</p>
+                        </div>
+                    </div>
+                    <!-- Checkbox para superusuario -->
+                    <div class="flex items-center mt-2">
+                        <div class="flex items-center h-5">
+                            {{ form.is_superuser }}
+                        </div>
+                        <div class="ml-3 text-sm">
+                            <label for="{{ form.is_superuser.id_for_label }}" class="font-medium text-gray-700">Superusuario</label>
+                            <p class="text-gray-500">Acceso completo a todas las funcionalidades</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="space-y-6">
+                    <!-- Grupos -->
+                    <div class="p-6 bg-gray-50 rounded-xl border border-gray-100">
+                        <h3 class="text-lg font-semibold text-gray-800 pb-2 border-b border-gray-200 flex items-center">
+                            <i class="fas fa-users-cog text-purple-500 mr-2"></i>
+                            Grupos
+                        </h3>
+                        <div class="mt-3">
+                            <label for="{{ form.groups.id_for_label }}" class="block mb-2 text-sm font-medium text-gray-700">
+                                Seleccione los grupos para este usuario
+                                {% if form.groups.errors %}
+                                <span class="text-sm text-red-600 font-normal">- {{ form.groups.errors.0 }}</span>
+                                {% endif %}
+                            </label>
+                            {{ form.groups }}
+                            <p class="mt-1 text-sm text-gray-500">Mantenga presionada la tecla Ctrl para seleccionar múltiples grupos</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="bg-gray-50 px-8 py-6 flex flex-col sm:flex-row justify-between items-center space-y-3 sm:space-y-0">
+            <a href="{% url 'security:user_list' %}" class="w-full sm:w-auto px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg font-medium flex items-center justify-center transition-all duration-300">
+                <i class="fas fa-times mr-2"></i>
+                <span>Cancelar</span>
+            </a>
+            <button type="submit" class="w-full sm:w-auto px-8 py-3 bg-blue-400 text-white rounded-lg font-medium flex items-center justify-center shadow-lg transition-all duration-300">
+                <i class="fas fa-save mr-2"></i>
+                <span>{{ grabar }}</span>
+            </button>
+        </div>
+    </form>
+</div>
+
+{% endblock %}
