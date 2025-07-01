@@ -1,0 +1,565 @@
+{% extends 'home.html' %} 
+<title>{% block title %}{{title}}{% endblock %}</title>
+{% block content %}
+    {% load static %}
+    {% include 'fragments/messages.html' %}
+    
+    <!-- Header con diseño moderno -->
+    <div class="relative mb-8">
+        <!-- Fondo con efecto de gradiente y formas -->
+        <div class="absolute inset-0 header-gradient rounded-3xl shadow-lg overflow-hidden z-0">
+            <!-- Formas decorativas -->
+            <div class="absolute -right-20 -top-20 w-64 h-64 rounded-full bg-green-300 opacity-20 filter blur-xl"></div>
+            <div class="absolute right-40 bottom-10 w-40 h-40 rounded-full bg-emerald-300 opacity-20 filter blur-xl"></div>
+            <div class="absolute left-20 -bottom-10 w-48 h-48 rounded-full bg-teal-300 opacity-20 filter blur-xl"></div>
+        </div>
+        
+        <!-- Contenido del header -->
+        <div class="relative z-10 p-8">
+            <div class="max-w-7xl mx-auto">
+                <div class="flex flex-col md:flex-row justify-between items-center space-y-6 md:space-y-0">
+                    <!-- Título y descripción -->
+                    <div class="flex items-center">
+                        <div class="w-16 h-16 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center mr-5 shadow-lg border border-white/10">
+                            <i class="fas fa-users text-white text-2xl"></i>
+                        </div>
+                        <div class="text-left">
+                            <h1 class="text-3xl md:text-4xl font-extrabold text-white tracking-tight">{{ title1 }}</h1>
+                            <p class="text-green-100 text-lg mt-2">Administra los usuarios del sistema</p>
+                            <div class="flex items-center mt-3 text-white/80 text-sm">
+                                <i class="fas fa-info-circle mr-2"></i>
+                                <span>Crea, edita y administra permisos para los usuarios de la plataforma</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Botones de acción -->
+                    <div class="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-6">
+                        {% if permissions.add_user %}
+                        <a href="{% url 'security:user_create' %}" class="group bg-esmerald-perso text-white px-8 py-4 rounded-xl shadow-lg hover:bg-emerald-600 transition-all duration-300 flex items-center font-semibold transform hover:scale-105 animate-button-float">
+                            <i class="fa-solid fa-user-plus mr-3 group-hover:scale-110 transition-transform duration-300"></i>
+                            <span>Nuevo Usuario</span>
+                        </a>
+                        {% endif %}
+                        <a href="{% url 'home' %}" class="bg-white/15 backdrop-blur-md text-white px-6 py-4 rounded-xl hover:bg-white/25 transition-all duration-300 flex items-center shadow-lg transform hover:scale-105 animate-button-float-delay">
+                            <i class="fa-solid fa-house mr-3"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Barra de estadísticas -->
+            <div class="max-w-7xl mx-auto mt-8 py-4 px-6 bg-white/10 backdrop-blur-md rounded-xl flex flex-wrap justify-between items-center gap-4">
+                <div class="flex items-center">
+                    <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center mr-3">
+                        <i class="fas fa-user-friends text-white"></i>
+                    </div>
+                    <div>
+                        <div class="text-white font-bold text-xl">{{ total_users|default:"0" }}</div>
+                        <div class="text-white/70 text-xs">Total usuarios</div>
+                    </div>
+                </div>
+                
+                <div class="flex items-center">
+                    <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center mr-3">
+                        <i class="fas fa-user-check text-white"></i>
+                    </div>
+                    <div>
+                        <div class="text-white font-bold text-xl">{{ active_users|default:"0" }}</div>
+                        <div class="text-white/70 text-xs">Usuarios activos</div>
+                    </div>
+                </div>
+                
+                <div class="flex items-center">
+                    <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center mr-3">
+                        <i class="fas fa-user-shield text-white"></i>
+                    </div>
+                    <div>
+                        <div class="text-white font-bold text-xl">{{ staff_users|default:"0" }}</div>
+                        <div class="text-white/70 text-xs">Administradores</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Vista principal con filtros y listado -->
+    <div class="max-w-7xl mx-auto px-4">
+        <!-- Panel superior con filtros -->
+        <div class="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 mb-8">
+            <div class="p-6">
+                <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                    <i class="fas fa-filter text-purple-500 mr-2"></i>
+                    Filtros avanzados
+                </h2>
+                
+                <form method="GET" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Búsqueda por nombre/email/dni -->
+                    <div class="col-span-1 md:col-span-2">
+                        <label for="table-search" class="block text-sm font-medium text-gray-600 mb-2">Buscar usuarios</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                </svg>
+                            </div>
+                            <input type="text" name="q" id="table-search" value="{{ request.GET.q }}"
+                                class="block w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg bg-white focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm shadow-sm"
+                                placeholder="Buscar por nombre, email, DNI...">
+                        </div>
+                    </div>
+                    
+                    <!-- Filtro por estado (activo/inactivo) -->
+                    <div>
+                        <label for="status-filter" class="block text-sm font-medium text-gray-600 mb-2">Estado</label>
+                        <select id="status-filter" name="status" class="block w-full py-3 px-4 border border-gray-200 rounded-lg bg-white focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm shadow-sm">
+                            <option value="">Todos los estados</option>
+                            <option value="active" {% if request.GET.status == 'active' %}selected{% endif %}>Activos</option>
+                            <option value="inactive" {% if request.GET.status == 'inactive' %}selected{% endif %}>Inactivos</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Botones de búsqueda -->
+                    <div class="col-span-1 md:col-span-3 flex flex-wrap gap-4 justify-end">
+                        <button type="submit" class="px-6 py-3 bg-esmerald-perso hover:bg-emerald-600 text-white font-medium rounded-lg shadow-lg transition-all duration-300 flex items-center transform hover:scale-105 animate-button-float">
+                            <i class="fas fa-search mr-2"></i>
+                            <span>Buscar</span>
+                        </button>
+                        
+                        {% if request.GET.q or request.GET.status %}
+                        <a href="{% url 'security:user_list' %}" class="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg shadow-sm transition-all duration-300 flex items-center">
+                            <i class="fas fa-times mr-2"></i>
+                            <span>Limpiar</span>
+                        </a>
+                        {% endif %}
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Usuarios en visualización de cards -->
+        <div class="mb-10">
+            <!-- Encabezado de resultados -->
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-800">
+                    Usuarios del sistema
+                    {% if request.GET.q %}<span class="text-gray-500 font-normal text-lg ml-2">resultados para "{{ request.GET.q }}"</span>{% endif %}
+                </h2>
+                <div class="text-sm text-gray-500">
+                    Mostrando {{ users|length }} usuarios{% if page_obj.paginator.count > users|length %} de {{ page_obj.paginator.count }} totales{% endif %}
+                </div>
+            </div>
+            
+            <!-- Grid de tarjetas de usuarios -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {% for item in users %}
+                <div class="user-card bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 flex flex-col border border-gray-100 group relative">
+                    <!-- Cabecera con degradado personalizado -->
+                    <div class="bg-gradient-to-br from-purple-500 to-indigo-600 p-5 relative group-hover:from-purple-600 group-hover:to-indigo-700 transition-all duration-500">
+                        <!-- Información del usuario -->
+                        <div class="flex items-center justify-center mb-3">
+                            <!-- Avatar/Imagen -->
+                            <div class="w-24 h-24 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center transform group-hover:scale-105 transition-all duration-300 overflow-hidden border-2 border-white/30">
+                                {% if item.image %}
+                                <img src="{{ item.get_image }}" class="object-cover w-full h-full" alt="{{ item.get_full_name }}">
+                                {% else %}
+                                <i class="fas fa-user text-white text-4xl"></i>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Nombre y username -->
+                        <div class="text-center text-white">
+                            <h3 class="font-bold text-xl group-hover:scale-105 transform origin-center transition-all duration-300">{{ item.first_name }} {{ item.last_name }}</h3>
+                            <p class="text-indigo-100 text-sm">@{{ item.username }}</p>
+                        </div>
+                        
+                        <!-- Estado del usuario -->
+                        <div class="absolute top-3 right-3">
+                            {% if item.is_active %}
+                            <span class="bg-green-400/20 backdrop-blur-sm text-white px-2 py-1 rounded-full text-xs font-medium flex items-center">
+                                <span class="w-2 h-2 bg-green-400 rounded-full mr-1"></span>
+                                Activo
+                            </span>
+                            {% else %}
+                            <span class="bg-red-400/20 backdrop-blur-sm text-white px-2 py-1 rounded-full text-xs font-medium flex items-center">
+                                <span class="w-2 h-2 bg-red-400 rounded-full mr-1"></span>
+                                Inactivo
+                            </span>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Badge para staff/superuser -->
+                        {% if item.is_superuser %}
+                        <div class="absolute top-3 left-3">
+                            <span class="bg-yellow-400/30 backdrop-blur-sm text-white px-2 py-1 rounded-full text-xs font-medium flex items-center">
+                                <i class="fas fa-crown text-yellow-300 mr-1 text-xs"></i>
+                                Superusuario
+                            </span>
+                        </div>
+                        {% elif item.is_staff %}
+                        <div class="absolute top-3 left-3">
+                            <span class="bg-blue-400/30 backdrop-blur-sm text-white px-2 py-1 rounded-full text-xs font-medium flex items-center">
+                                <i class="fas fa-user-cog text-blue-300 mr-1 text-xs"></i>
+                                Staff
+                            </span>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Elementos decorativos -->
+                        <div class="absolute bottom-0 right-0 w-20 h-20 bg-white/5 rounded-full -mb-10 -mr-10 group-hover:scale-150 transition-transform duration-700"></div>
+                    </div>
+                    
+                    <!-- Cuerpo de la tarjeta -->
+                    <div class="p-5 flex-1 flex flex-col justify-between bg-gradient-to-b from-white to-gray-50">
+                        <!-- Datos de contacto -->
+                        <div class="space-y-3">
+                            <!-- Email -->
+                            <div class="flex items-center">
+                                <div class="w-8 h-8 rounded-md bg-purple-50 flex items-center justify-center mr-2">
+                                    <i class="fas fa-envelope text-purple-500 text-sm"></i>
+                                </div>
+                                <div class="overflow-hidden">
+                                    <p class="text-xs text-gray-500">Email</p>
+                                    <p class="text-sm text-gray-800 truncate">{{ item.email }}</p>
+                                </div>
+                            </div>
+                            
+                            <!-- DNI/Cédula -->
+                            <div class="flex items-center">
+                                <div class="w-8 h-8 rounded-md bg-indigo-50 flex items-center justify-center mr-2">
+                                    <i class="fas fa-id-card text-indigo-500 text-sm"></i>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-gray-500">DNI/Cédula</p>
+                                    <p class="text-sm text-gray-800">{{ item.dni|default:"No especificado" }}</p>
+                                </div>
+                            </div>
+                            
+                            <!-- Grupos -->
+                            <div class="flex items-start">
+                                <div class="w-8 h-8 rounded-md bg-violet-50 flex items-center justify-center mr-2 mt-1">
+                                    <i class="fas fa-users-cog text-violet-500 text-sm"></i>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-gray-500">Grupos</p>
+                                    <div class="flex flex-wrap gap-1 mt-1">
+                                        {% for group in item.groups.all|slice:":2" %}
+                                            <span class="bg-violet-100 text-violet-800 text-xs px-2 py-0.5 rounded-md">
+                                                {{ group.name }}
+                                            </span>
+                                        {% empty %}
+                                            <span class="text-gray-400 italic text-xs">Sin grupos</span>
+                                        {% endfor %}
+                                        {% if item.groups.all|length > 2 %}
+                                            <span class="bg-gray-100 text-gray-800 text-xs px-2 py-0.5 rounded-md">
+                                                +{{ item.groups.all|length|add:"-2" }}
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Acciones -->
+                        <div class="flex justify-between items-center pt-4 mt-4 border-t border-gray-100">
+                            <a href="{% url 'security:user_detail' item.id %}" class="text-xs inline-flex items-center justify-center bg-purple-100 text-purple-800 px-3 py-1.5 rounded-lg transition-colors hover:bg-purple-200">
+                                <i class="fas fa-eye mr-1"></i>
+                                <span>Ver detalle</span>
+                            </a>
+                            
+                            <div class="flex space-x-2">
+                                {% if permissions.change_user %}
+                                <a href="{% url 'security:user_update' item.id %}" 
+                                   class="text-blue-600 hover:bg-blue-50 p-2 rounded-lg transition-colors group/edit">
+                                    <i class="fa-solid fa-user-edit text-lg group-hover/edit:scale-110 transition-transform"></i>
+                                </a>
+                                {% endif %}
+                                
+                                {% if permissions.delete_user %}
+                                <a href="#" 
+                                   onclick="openDeleteModal('{{ item.id }}', '{{ item.get_full_name }}')"
+                                   class="text-red-600 hover:bg-red-50 p-2 rounded-lg transition-colors group/delete">
+                                    <i class="fa-solid fa-user-times text-lg group-hover/delete:scale-110 transition-transform"></i>
+                                </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <!-- Estado vacío -->
+                <div class="col-span-full bg-white rounded-2xl shadow-md p-10 text-center border border-dashed border-gray-200">
+                    <div class="mx-auto w-32 h-32 bg-gray-50 rounded-full flex items-center justify-center mb-6 relative">
+                        <div class="absolute inset-0 bg-purple-50 rounded-full animate-pulse opacity-50"></div>
+                        <i class="fas fa-users text-purple-300 text-4xl"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-800 mb-2">No se encontraron usuarios</h3>
+                    <p class="text-gray-500 mb-8 max-w-lg mx-auto text-lg">
+                        {% if request.GET.q %}
+                            No hay usuarios que coincidan con tu búsqueda "{{ request.GET.q }}".
+                        {% else %}
+                            No hay usuarios registrados en el sistema. Los usuarios son necesarios para acceder al sistema.
+                        {% endif %}
+                    </p>
+                    
+                    <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                        {% if permissions.add_user %}
+                        <a href="{% url 'security:user_create' %}" class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl hover:from-purple-700 hover:to-indigo-700 transition-all duration-300 shadow-lg">
+                            <i class="fa-solid fa-user-plus mr-2"></i> Crear primer usuario
+                        </a>
+                        {% endif %}
+                        
+                        {% if request.GET.q or request.GET.status %}
+                        <a href="{% url 'security:user_list' %}" class="inline-flex items-center px-6 py-3 bg-white border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 transition-all duration-300">
+                            <i class="fa-solid fa-arrow-left mr-2"></i> Ver todos los usuarios
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Paginación rediseñada -->
+            {% if page_obj.paginator.num_pages > 1 %}
+            <div class="flex justify-center mt-10">
+                <nav class="inline-flex rounded-xl shadow-lg overflow-hidden" aria-label="Paginación">
+                    {% if page_obj.has_previous %}
+                    <a href="?page=1{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}" 
+                       class="px-4 py-3 border-r border-gray-200 bg-white hover:bg-gray-50 text-gray-600 flex items-center transition-all duration-200">
+                        <i class="fas fa-angle-double-left mr-2"></i>
+                        <span>Inicio</span>
+                    </a>
+                    <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}" 
+                       class="px-4 py-3 border-r border-gray-200 bg-white hover:bg-gray-50 text-gray-600 flex items-center transition-all duration-200">
+                        <i class="fas fa-angle-left mr-2"></i>
+                        <span>Anterior</span>
+                    </a>
+                    {% endif %}
+                    
+                    <div class="px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-medium flex items-center">
+                        <span>Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+                    </div>
+                    
+                    {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}" 
+                       class="px-4 py-3 border-l border-gray-200 bg-white hover:bg-gray-50 text-gray-600 flex items-center transition-all duration-200">
+                        <span>Siguiente</span>
+                        <i class="fas fa-angle-right ml-2"></i>
+                    </a>
+                    <a href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}" 
+                       class="px-4 py-3 bg-white hover:bg-gray-50 text-gray-600 flex items-center transition-all duration-200">
+                        <span>Fin</span>
+                        <i class="fas fa-angle-double-right ml-2"></i>
+                    </a>
+                    {% endif %}
+                </nav>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Importar fragment para eliminar -->
+    {% include 'fragments/delete.html' %}
+    
+    <!-- Estilos adicionales -->
+    <style>
+        /* Colores personalizados */
+        .verde-perso {
+            background-color: #87f099;
+        }
+        
+        .bg-verde-perso {
+            background-color: #87f099;
+        }
+        
+        .esmerald-perso {
+            background-color: #27cb79;
+        }
+        
+        .bg-esmerald-perso {
+            background-color: #27cb79;
+        }
+
+        /* Gradiente personalizado para el header */
+        .header-gradient {
+            background: linear-gradient(135deg, #87f099 0%, #27cb79 100%);
+        }
+
+        /* Animaciones para botones flotantes */
+        @keyframes button-float {
+            0%, 100% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-3px);
+            }
+        }
+        
+        @keyframes button-float-delay {
+            0%, 100% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-2px);
+            }
+        }
+        
+        .animate-button-float {
+            animation: button-float 3s ease-in-out infinite;
+        }
+        
+        .animate-button-float-delay {
+            animation: button-float-delay 3s ease-in-out infinite 0.5s;
+        }
+
+        /* Animaciones para las tarjetas */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* Efecto hover para el degradado */
+        .user-card .bg-gradient-to-br {
+            background-size: 200% 200%;
+            background-position: 0% 0%;
+            transition: background-position 0.8s ease, transform 0.3s ease;
+        }
+        
+        .user-card:hover .bg-gradient-to-br {
+            background-position: 100% 100%;
+        }
+        
+        /* Animación para el estado vacío */
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 0.5;
+            }
+            50% {
+                opacity: 0.8;
+            }
+        }
+        
+        .animate-pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+    </style>
+    
+    <script>
+    function openDeleteModal(id, name) {
+        // Configurar el modal de eliminación
+        const deleteForm = document.getElementById('deleteForm');
+        deleteForm.action = `{% url 'security:user_delete' 0 %}`.replace('0', id);
+        
+        // Actualizar mensaje con animación
+        const descriptionElement = document.getElementById('Description');
+        descriptionElement.innerHTML = `¿Estás seguro que deseas eliminar el usuario <span class="font-semibold">"${name}"</span>?`;
+        descriptionElement.innerHTML += `<p class="text-sm mt-2 text-gray-600">Esta acción no se puede deshacer. El usuario será eliminado permanentemente del sistema.</p>`;
+        
+        // Mostrar el modal con animación
+        const deleteModal = document.getElementById('deleteModal');
+        deleteModal.classList.remove('hidden');
+        
+        // Animar entrada del modal
+        setTimeout(() => {
+            const modalContent = deleteModal.querySelector('.modal-content');
+            if (modalContent) {                modalContent.classList.add('scale-100', 'opacity-100');
+                modalContent.classList.remove('scale-95', 'opacity-0');
+            }
+        }, 10);
+    }
+    
+    function closeModal() {
+        // Animar salida del modal
+        const deleteModal = document.getElementById('deleteModal');
+        const modalContent = deleteModal.querySelector('.modal-content');
+        
+        if (modalContent) {
+            modalContent.classList.add('scale-95', 'opacity-0');
+            modalContent.classList.remove('scale-100', 'opacity-100');
+            
+            // Esperar a que termine la animación antes de ocultar
+            setTimeout(() => {
+                deleteModal.classList.add('hidden');
+            }, 200);
+        } else {
+            deleteModal.classList.add('hidden');
+        }
+    }
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        // Manejar el evento submit del formulario de eliminación
+        const deleteForm = document.getElementById('deleteForm');
+        if (deleteForm) {
+            deleteForm.addEventListener('submit', function(e) {
+                const submitBtn = deleteForm.querySelector('button[type="submit"]');
+                if (submitBtn) {
+                    submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Eliminando...';
+                    submitBtn.disabled = true;
+                    
+                    // Agregar clase de animación al botón
+                    submitBtn.classList.add('bg-red-800');
+                }
+            });
+        }
+        
+        // Animación de entrada para las tarjetas
+        const cards = document.querySelectorAll('.user-card');
+        if (cards.length > 0) {
+            cards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(30px)';
+                
+                setTimeout(() => {
+                    card.style.transition = 'all 0.5s cubic-bezier(0.215, 0.61, 0.355, 1)';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, 100 + (index * 80)); // Escalonado para cada tarjeta
+            });
+        }
+        
+        // Agregar efecto de hover avanzado a las tarjetas
+        cards.forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.classList.add('shadow-xl', 'border-purple-100');
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.classList.remove('shadow-xl', 'border-purple-100');
+            });
+        });
+        
+        // Animación para el panel de filtros
+        const filterPanel = document.querySelector('.bg-white.rounded-2xl');
+        if (filterPanel) {
+            filterPanel.style.opacity = '0';
+            filterPanel.style.transform = 'translateY(-20px)';
+            
+            setTimeout(() => {
+                filterPanel.style.transition = 'all 0.5s ease';
+                filterPanel.style.opacity = '1';
+                filterPanel.style.transform = 'translateY(0)';
+            }, 100);
+        }
+        
+        // Simulación de filtros activos
+        const statusFilter = document.getElementById('status-filter');
+        
+        if (statusFilter) {
+            statusFilter.addEventListener('change', function() {
+                // En un entorno real, esto enviaría el form automáticamente
+                // pero aquí solo lo agregamos para simular la funcionalidad
+            });        }
+    });
+</script>
+
+<!-- Incluir el modal de eliminación -->
+{% include 'fragments/delete.html' %}
+{% endblock %}
