@@ -54,6 +54,7 @@ class UserListView( PermissionMixin, ListViewMixin, ListView):
         return queryset.filter(self.query).order_by('id')
 
     def get_context_data(self, **kwargs):
+        from django.contrib.auth.models import Group
         context = super().get_context_data(**kwargs)
         context['create_url'] = reverse_lazy('security:user_create')
         
@@ -61,6 +62,9 @@ class UserListView( PermissionMixin, ListViewMixin, ListView):
         context['total_users'] = User.objects.count()
         context['active_users'] = User.objects.filter(is_active=True).count()
         context['staff_users'] = User.objects.filter(is_staff=True).count()
+        
+        # Agregar todos los grupos disponibles para el modal de creación
+        context['available_groups'] = Group.objects.all().order_by('name')
         
         return context
 

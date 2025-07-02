@@ -36,10 +36,10 @@
                     <!-- Botones de acción -->
                     <div class="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-6">
                         {% if permissions.add_user %}
-                        <a href="{% url 'security:user_create' %}" class="group bg-esmerald-perso text-white px-8 py-4 rounded-xl shadow-lg hover:bg-emerald-600 transition-all duration-300 flex items-center font-semibold transform hover:scale-105 animate-button-float">
+                        <button onclick="openCreateUserModal()" class="group bg-esmerald-perso text-white px-8 py-4 rounded-xl shadow-lg hover:bg-emerald-600 transition-all duration-300 flex items-center font-semibold transform hover:scale-105 animate-button-float">
                             <i class="fa-solid fa-user-plus mr-3 group-hover:scale-110 transition-transform duration-300"></i>
                             <span>Nuevo Usuario</span>
-                        </a>
+                        </button>
                         {% endif %}
                         <a href="{% url 'home' %}" class="bg-white/15 backdrop-blur-md text-white px-6 py-4 rounded-xl hover:bg-white/25 transition-all duration-300 flex items-center shadow-lg transform hover:scale-105 animate-button-float-delay">
                             <i class="fa-solid fa-house mr-3"></i>
@@ -289,9 +289,9 @@
                     
                     <div class="flex flex-col sm:flex-row gap-4 justify-center">
                         {% if permissions.add_user %}
-                        <a href="{% url 'security:user_create' %}" class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl hover:from-purple-700 hover:to-indigo-700 transition-all duration-300 shadow-lg">
+                        <button onclick="openCreateUserModal()" class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-esmerald-perso to-emerald-600 text-white rounded-xl hover:from-emerald-600 hover:to-emerald-700 transition-all duration-300 shadow-lg">
                             <i class="fa-solid fa-user-plus mr-2"></i> Crear primer usuario
-                        </a>
+                        </button>
                         {% endif %}
                         
                         {% if request.GET.q or request.GET.status %}
@@ -505,6 +505,362 @@
         </div>
     </div>
     
+    <!-- Script con grupos disponibles -->
+    <script type="application/json" id="available-groups-data">
+        [
+            {% for group in available_groups %}
+            {
+                "id": {{ group.id }},
+                "name": "{{ group.name|escapejs }}"
+            }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ]
+    </script>
+    
+    <!-- Modal de creación de usuario -->
+    <div id="createUserModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+        <div class="modal-content bg-white rounded-2xl max-w-5xl w-full max-h-[95vh] overflow-hidden transform scale-95 opacity-0 transition-all duration-300">
+            <!-- Header del modal -->
+            <div class="header-gradient p-6 relative overflow-hidden">
+                <!-- Elementos decorativos de fondo -->
+                <div class="absolute inset-0 overflow-hidden opacity-20">
+                    <div class="absolute -right-20 -top-20 w-64 h-64 rounded-full bg-green-300 filter blur-xl"></div>
+                    <div class="absolute right-20 bottom-10 w-48 h-48 rounded-full bg-emerald-300 filter blur-xl"></div>
+                    <div class="absolute left-20 bottom-10 w-48 h-48 rounded-full bg-teal-300 filter blur-xl"></div>
+                </div>
+                
+                <div class="relative z-10 flex justify-between items-start">
+                    <div class="flex items-center">
+                        <div class="w-16 h-16 rounded-full bg-white/15 backdrop-blur-md flex items-center justify-center mr-4 shadow-lg">
+                            <i class="fas fa-user-plus text-white text-2xl"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-2xl font-extrabold text-white tracking-tight">Crear Nuevo Usuario</h2>
+                            <p class="text-green-100 mt-1">Complete la información para crear un usuario en el sistema</p>
+                        </div>
+                    </div>
+                    <button onclick="closeCreateUserModal()" class="text-white hover:bg-white/20 p-2 rounded-lg transition-colors">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Tabs navigation -->
+            <div class="bg-gray-50 border-b border-gray-200">
+                <div class="flex space-x-1 p-1">
+                    <button onclick="switchTab('personal')" id="tab-personal" class="create-tab-btn flex-1 py-3 px-4 text-sm font-medium rounded-lg transition-all duration-200 bg-white text-esmerald-perso shadow-sm border border-gray-200">
+                        <i class="fas fa-user mr-2"></i>
+                        Información Personal
+                    </button>
+                    <button onclick="switchTab('access')" id="tab-access" class="create-tab-btn flex-1 py-3 px-4 text-sm font-medium rounded-lg transition-all duration-200 text-gray-500 hover:text-gray-700 hover:bg-gray-100">
+                        <i class="fas fa-key mr-2"></i>
+                        Acceso y Permisos
+                    </button>
+                    <button onclick="switchTab('groups')" id="tab-groups" class="create-tab-btn flex-1 py-3 px-4 text-sm font-medium rounded-lg transition-all duration-200 text-gray-500 hover:text-gray-700 hover:bg-gray-100">
+                        <i class="fas fa-users-cog mr-2"></i>
+                        Grupos y Roles
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Modal content -->
+            <div class="p-6 max-h-[60vh] overflow-y-auto">
+                <form id="createUserForm" method="post" action="{% url 'security:user_create' %}" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <!-- Tab: Información Personal -->
+                    <div id="tab-content-personal" class="tab-content">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Columna izquierda -->
+                            <div class="space-y-4">
+                                <!-- Username -->
+                                <div>
+                                    <label class="block mb-2 text-sm font-medium text-gray-700">
+                                        Nombre de usuario <span class="text-red-500">*</span>
+                                    </label>
+                                    <div class="relative">
+                                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                            <i class="fas fa-user text-gray-400"></i>
+                                        </div>
+                                        <input type="text" name="username" required
+                                            class="pl-10 block w-full py-3 px-4 border border-gray-200 rounded-lg bg-white focus:ring-2 focus:ring-esmerald-perso focus:border-esmerald-perso text-sm shadow-sm"
+                                            placeholder="Ingrese el nombre de usuario">
+                                    </div>
+                                </div>
+                                
+                                <!-- Nombres -->
+                                <div>
+                                    <label class="block mb-2 text-sm font-medium text-gray-700">
+                                        Nombres <span class="text-red-500">*</span>
+                                    </label>
+                                    <div class="relative">
+                                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                            <i class="fas fa-signature text-gray-400"></i>
+                                        </div>
+                                        <input type="text" name="first_name" required
+                                            class="pl-10 block w-full py-3 px-4 border border-gray-200 rounded-lg bg-white focus:ring-2 focus:ring-esmerald-perso focus:border-esmerald-perso text-sm shadow-sm"
+                                            placeholder="Ingrese los nombres">
+                                    </div>
+                                </div>
+                                
+                                <!-- Email -->
+                                <div>
+                                    <label class="block mb-2 text-sm font-medium text-gray-700">
+                                        Correo electrónico <span class="text-red-500">*</span>
+                                    </label>
+                                    <div class="relative">
+                                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                            <i class="fas fa-envelope text-gray-400"></i>
+                                        </div>
+                                        <input type="email" name="email" required
+                                            class="pl-10 block w-full py-3 px-4 border border-gray-200 rounded-lg bg-white focus:ring-2 focus:ring-esmerald-perso focus:border-esmerald-perso text-sm shadow-sm"
+                                            placeholder="usuario@ejemplo.com">
+                                    </div>
+                                </div>
+                                
+                                <!-- DNI -->
+                                <div>
+                                    <label class="block mb-2 text-sm font-medium text-gray-700">
+                                        Cédula o RUC
+                                    </label>
+                                    <div class="relative">
+                                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                            <i class="fas fa-id-card text-gray-400"></i>
+                                        </div>
+                                        <input type="text" name="dni"
+                                            class="pl-10 block w-full py-3 px-4 border border-gray-200 rounded-lg bg-white focus:ring-2 focus:ring-esmerald-perso focus:border-esmerald-perso text-sm shadow-sm"
+                                            placeholder="Número de cédula o RUC">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Columna derecha -->
+                            <div class="space-y-4">
+                                <!-- Apellidos -->
+                                <div>
+                                    <label class="block mb-2 text-sm font-medium text-gray-700">
+                                        Apellidos <span class="text-red-500">*</span>
+                                    </label>
+                                    <div class="relative">
+                                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                            <i class="fas fa-user-tag text-gray-400"></i>
+                                        </div>
+                                        <input type="text" name="last_name" required
+                                            class="pl-10 block w-full py-3 px-4 border border-gray-200 rounded-lg bg-white focus:ring-2 focus:ring-esmerald-perso focus:border-esmerald-perso text-sm shadow-sm"
+                                            placeholder="Ingrese los apellidos">
+                                    </div>
+                                </div>
+                                
+                                <!-- Teléfono -->
+                                <div>
+                                    <label class="block mb-2 text-sm font-medium text-gray-700">
+                                        Teléfono
+                                    </label>
+                                    <div class="relative">
+                                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                            <i class="fas fa-phone text-gray-400"></i>
+                                        </div>
+                                        <input type="tel" name="phone"
+                                            class="pl-10 block w-full py-3 px-4 border border-gray-200 rounded-lg bg-white focus:ring-2 focus:ring-esmerald-perso focus:border-esmerald-perso text-sm shadow-sm"
+                                            placeholder="Número de teléfono">
+                                    </div>
+                                </div>
+                                
+                                <!-- Dirección -->
+                                <div>
+                                    <label class="block mb-2 text-sm font-medium text-gray-700">
+                                        Dirección
+                                    </label>
+                                    <div class="relative">
+                                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                            <i class="fas fa-map-marker-alt text-gray-400"></i>
+                                        </div>
+                                        <input type="text" name="direction"
+                                            class="pl-10 block w-full py-3 px-4 border border-gray-200 rounded-lg bg-white focus:ring-2 focus:ring-esmerald-perso focus:border-esmerald-perso text-sm shadow-sm"
+                                            placeholder="Dirección completa">
+                                    </div>
+                                </div>
+                                
+                                <!-- Imagen -->
+                                <div>
+                                    <label class="block mb-2 text-sm font-medium text-gray-700">
+                                        Foto de perfil
+                                    </label>
+                                    <input type="file" name="image" accept="image/*"
+                                        class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-esmerald-perso file:text-white hover:file:bg-emerald-600 file:cursor-pointer border border-gray-200 rounded-lg">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Tab: Acceso y Permisos -->
+                    <div id="tab-content-access" class="tab-content hidden">
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                            <!-- Configuración de contraseña -->
+                            <div class="space-y-4">
+                                <h3 class="text-lg font-semibold text-gray-800 pb-2 border-b border-gray-200 flex items-center">
+                                    <i class="fas fa-key text-esmerald-perso mr-2"></i>
+                                    Configuración de contraseña
+                                </h3>
+                                
+                                <div class="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-r-lg">
+                                    <div class="flex">
+                                        <div class="flex-shrink-0">
+                                            <i class="fas fa-info-circle text-blue-400"></i>
+                                        </div>
+                                        <div class="ml-3">
+                                            <p class="text-sm text-blue-700">
+                                                La contraseña debe tener al menos 8 caracteres, incluir letras y números.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Contraseña -->
+                                <div>
+                                    <label class="block mb-2 text-sm font-medium text-gray-700">
+                                        Contraseña <span class="text-red-500">*</span>
+                                    </label>
+                                    <div class="relative">
+                                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                            <i class="fas fa-lock text-gray-400"></i>
+                                        </div>
+                                        <input type="password" name="password" required
+                                            class="pl-10 block w-full py-3 px-4 border border-gray-200 rounded-lg bg-white focus:ring-2 focus:ring-esmerald-perso focus:border-esmerald-perso text-sm shadow-sm"
+                                            placeholder="Ingrese la contraseña">
+                                    </div>
+                                </div>
+                                
+                                <!-- Confirmar contraseña -->
+                                <div>
+                                    <label class="block mb-2 text-sm font-medium text-gray-700">
+                                        Confirmar contraseña <span class="text-red-500">*</span>
+                                    </label>
+                                    <div class="relative">
+                                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                            <i class="fas fa-lock text-gray-400"></i>
+                                        </div>
+                                        <input type="password" name="password_confirmation" required
+                                            class="pl-10 block w-full py-3 px-4 border border-gray-200 rounded-lg bg-white focus:ring-2 focus:ring-esmerald-perso focus:border-esmerald-perso text-sm shadow-sm"
+                                            placeholder="Confirme la contraseña">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Estados del usuario -->
+                            <div class="space-y-4">
+                                <h3 class="text-lg font-semibold text-gray-800 pb-2 border-b border-gray-200 flex items-center">
+                                    <i class="fas fa-user-cog text-esmerald-perso mr-2"></i>
+                                    Estados del usuario
+                                </h3>
+                                
+                                <!-- Usuario activo -->
+                                <div class="flex items-start">
+                                    <div class="flex items-center h-5 mt-1">
+                                        <input type="checkbox" name="is_active" checked
+                                            class="w-4 h-4 text-esmerald-perso bg-gray-100 border-gray-300 rounded focus:ring-esmerald-perso focus:ring-2">
+                                    </div>
+                                    <div class="ml-3">
+                                        <label class="font-medium text-gray-700">Usuario activo</label>
+                                        <p class="text-gray-500 text-sm">El usuario podrá iniciar sesión y usar el sistema</p>
+                                    </div>
+                                </div>
+                                
+                                <!-- Usuario staff -->
+                                <div class="flex items-start">
+                                    <div class="flex items-center h-5 mt-1">
+                                        <input type="checkbox" name="is_staff"
+                                            class="w-4 h-4 text-esmerald-perso bg-gray-100 border-gray-300 rounded focus:ring-esmerald-perso focus:ring-2">
+                                    </div>
+                                    <div class="ml-3">
+                                        <label class="font-medium text-gray-700">Usuario staff</label>
+                                        <p class="text-gray-500 text-sm">Acceso al panel de administración</p>
+                                    </div>
+                                </div>
+                                
+                                <!-- Superusuario -->
+                                <div class="flex items-start">
+                                    <div class="flex items-center h-5 mt-1">
+                                        <input type="checkbox" name="is_superuser"
+                                            class="w-4 h-4 text-esmerald-perso bg-gray-100 border-gray-300 rounded focus:ring-esmerald-perso focus:ring-2">
+                                    </div>
+                                    <div class="ml-3">
+                                        <label class="font-medium text-gray-700">Superusuario</label>
+                                        <p class="text-gray-500 text-sm">Acceso completo a todas las funcionalidades</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Tab: Grupos y Roles -->
+                    <div id="tab-content-groups" class="tab-content hidden">
+                        <div class="space-y-6">
+                            <h3 class="text-lg font-semibold text-gray-800 pb-2 border-b border-gray-200 flex items-center">
+                                <i class="fas fa-users-cog text-esmerald-perso mr-2"></i>
+                                Asignación de grupos
+                            </h3>
+                            
+                            <div class="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-r-lg">
+                                <div class="flex">
+                                    <div class="flex-shrink-0">
+                                        <i class="fas fa-info-circle text-blue-400"></i>
+                                    </div>
+                                    <div class="ml-3">
+                                        <p class="text-sm text-blue-700">
+                                            Los grupos definen qué permisos tendrá el usuario en el sistema. Puede seleccionar múltiples grupos.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <div class="flex justify-between items-center mb-3">
+                                    <label class="block text-sm font-medium text-gray-700">
+                                        Seleccione los grupos para este usuario
+                                    </label>
+                                    <span id="selectedGroupsCount" class="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+                                        0 grupos seleccionados
+                                    </span>
+                                </div>
+                                <div id="groupsContainer" class="space-y-2 max-h-48 overflow-y-auto border border-gray-200 rounded-lg p-4 bg-gray-50">
+                                    <!-- Los grupos se cargarán dinámicamente como checkboxes -->
+                                    <div class="text-center text-gray-500 text-sm py-4">
+                                        <i class="fas fa-spinner fa-spin mr-2"></i>
+                                        Cargando grupos disponibles...
+                                    </div>
+                                </div>
+                                <p class="mt-2 text-sm text-gray-500">Seleccione uno o más grupos para asignar permisos al usuario</p>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Footer del modal -->
+            <div class="bg-gray-50 px-6 py-4 flex flex-col sm:flex-row justify-between items-center space-y-3 sm:space-y-0 border-t border-gray-200">
+                <button onclick="closeCreateUserModal()" class="w-full sm:w-auto px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg font-medium flex items-center justify-center transition-all duration-300">
+                    <i class="fas fa-times mr-2"></i>
+                    <span>Cancelar</span>
+                </button>
+                <div class="flex space-x-3">
+                    <button type="button" onclick="previousTab()" id="prevTabBtn" class="hidden px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium flex items-center transition-all duration-300">
+                        <i class="fas fa-arrow-left mr-2"></i>
+                        <span>Anterior</span>
+                    </button>
+                    <button type="button" onclick="nextTab()" id="nextTabBtn" class="px-6 py-3 bg-esmerald-perso hover:bg-emerald-600 text-white rounded-lg font-medium flex items-center transition-all duration-300">
+                        <span>Siguiente</span>
+                        <i class="fas fa-arrow-right ml-2"></i>
+                    </button>
+                    <button type="submit" form="createUserForm" id="submitBtn" class="hidden px-8 py-3 bg-esmerald-perso hover:bg-emerald-600 text-white rounded-lg font-medium flex items-center shadow-lg transition-all duration-300">
+                        <i class="fas fa-save mr-2"></i>
+                        <span>Crear Usuario</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
     <!-- Estilos adicionales -->
     <style>
         /* Colores personalizados */
@@ -596,6 +952,41 @@
         
         .animate-pulse {
             animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        
+        /* Estilos para el modal de creación */
+        .create-tab-btn {
+            transition: all 0.2s ease-in-out;
+        }
+        
+        .create-tab-btn:hover {
+            transform: translateY(-1px);
+        }
+        
+        .tab-content {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* Validación de formularios */
+        .form-error {
+            border-color: #ef4444 !important;
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1) !important;
+        }
+        
+        .form-success {
+            border-color: #10b981 !important;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1) !important;
         }
     </style>
     
@@ -863,6 +1254,295 @@
             modal.classList.add('hidden');
         }, 300);
     }
+    
+    // Funciones para el modal de creación de usuario
+    let currentTab = 'personal';
+    const tabs = ['personal', 'access', 'groups'];
+    
+    function openCreateUserModal() {
+        const modal = document.getElementById('createUserModal');
+        if (modal) {
+            modal.classList.remove('hidden');
+            
+            setTimeout(() => {
+                const modalContent = modal.querySelector('.modal-content');
+                if (modalContent) {
+                    modalContent.classList.add('scale-100', 'opacity-100');
+                    modalContent.classList.remove('scale-95', 'opacity-0');
+                }
+            }, 10);
+            
+            // Resetear al primer tab
+            switchTab('personal');
+            
+            // Cargar grupos disponibles
+            loadAvailableGroups();
+        }
+    }
+    
+    function loadAvailableGroups() {
+        const groupsContainer = document.getElementById('groupsContainer');
+        if (!groupsContainer) return;
+        
+        // Mostrar indicador de carga
+        groupsContainer.innerHTML = `
+            <div class="text-center text-gray-500 text-sm py-4">
+                <i class="fas fa-spinner fa-spin mr-2"></i>
+                Cargando grupos disponibles...
+            </div>
+        `;
+        
+        // Obtener grupos del script JSON
+        let availableGroups = [];
+        try {
+            const groupsScript = document.getElementById('available-groups-data');
+            if (groupsScript) {
+                availableGroups = JSON.parse(groupsScript.textContent);
+            }
+        } catch (e) {
+            console.warn('Error parsing groups data:', e);
+        }
+        
+        if (availableGroups.length > 0) {
+            renderGroupsCheckboxes(availableGroups);
+        } else {
+            // Si no hay grupos en el contexto, usar grupos por defecto
+            const defaultGroups = [
+                {id: null, name: 'Administradores'},
+                {id: null, name: 'Doctores'}, 
+                {id: null, name: 'Empleados'},
+                {id: null, name: 'Recepcionistas'},
+                {id: null, name: 'Usuarios'}
+            ];
+            renderGroupsCheckboxes(defaultGroups);
+        }
+    }
+    
+    function extractGroupsFromPage() {
+        // Esta función ya no es necesaria, pero la mantenemos por compatibilidad
+        const groupsSet = new Set();
+        const userCards = document.querySelectorAll('.user-card');
+        
+        userCards.forEach(card => {
+            const groupElements = card.querySelectorAll('.bg-green-100');
+            groupElements.forEach(groupElement => {
+                const groupName = groupElement.textContent.trim();
+                if (groupName && !groupName.startsWith('+') && groupName !== 'Sin grupos') {
+                    groupsSet.add(groupName);
+                }
+            });
+        });
+        
+        return Array.from(groupsSet).sort();
+    }
+    
+    function renderGroupsCheckboxes(groups) {
+        const groupsContainer = document.getElementById('groupsContainer');
+        if (!groupsContainer) return;
+        
+        groupsContainer.innerHTML = '';
+        
+        if (groups.length > 0) {
+            groups.forEach(group => {
+                const groupDiv = document.createElement('div');
+                groupDiv.className = 'flex items-center p-3 bg-white rounded-lg border border-gray-200 hover:bg-green-50 hover:border-esmerald-perso transition-all duration-200 cursor-pointer';
+                
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.name = 'groups';
+                // Usar el ID del grupo si está disponible, sino usar el nombre
+                checkbox.value = group.id !== null ? group.id : group.name;
+                checkbox.setAttribute('data-group-name', group.name);
+                checkbox.id = `group_${group.name.toLowerCase().replace(/\s+/g, '_')}`;
+                checkbox.className = 'w-4 h-4 text-esmerald-perso bg-gray-100 border-gray-300 rounded focus:ring-esmerald-perso focus:ring-2';
+                
+                const label = document.createElement('label');
+                label.htmlFor = checkbox.id;
+                label.className = 'ml-3 flex items-center cursor-pointer flex-1';
+                
+                const icon = document.createElement('i');
+                icon.className = 'fas fa-users text-esmerald-perso mr-2';
+                
+                const text = document.createElement('span');
+                text.className = 'text-sm font-medium text-gray-700';
+                text.textContent = group.name;
+                
+                const description = document.createElement('span');
+                description.className = 'text-xs text-gray-500 ml-auto';
+                description.textContent = getGroupDescription(group.name);
+                
+                label.appendChild(icon);
+                label.appendChild(text);
+                label.appendChild(description);
+                
+                // Hacer que todo el div sea clickeable
+                groupDiv.addEventListener('click', function(e) {
+                    if (e.target !== checkbox) {
+                        checkbox.checked = !checkbox.checked;
+                        updateGroupDivStyle(groupDiv, checkbox.checked);
+                        updateSelectedGroupsCount();
+                    }
+                });
+                
+                checkbox.addEventListener('change', function() {
+                    updateGroupDivStyle(groupDiv, this.checked);
+                    updateSelectedGroupsCount();
+                });
+                
+                groupDiv.appendChild(checkbox);
+                groupDiv.appendChild(label);
+                
+                groupsContainer.appendChild(groupDiv);
+            });
+        } else {
+            const noGroupsDiv = document.createElement('div');
+            noGroupsDiv.className = 'text-center text-gray-500 text-sm py-6';
+            noGroupsDiv.innerHTML = `
+                <i class="fas fa-info-circle text-blue-400 text-2xl mb-2"></i>
+                <p class="font-medium">No hay grupos disponibles</p>
+                <p class="text-xs mt-1">Los grupos se crearán automáticamente cuando agregue usuarios</p>
+            `;
+            groupsContainer.appendChild(noGroupsDiv);
+        }
+    }
+    
+    function getGroupDescription(groupName) {
+        const descriptions = {
+            'Administradores': 'Acceso completo',
+            'Doctores': 'Personal médico',
+            'Empleados': 'Personal general',
+            'Recepcionistas': 'Atención al cliente',
+            'Usuarios': 'Acceso básico'
+        };
+        return descriptions[groupName] || 'Grupo personalizado';
+    }
+    
+    function updateGroupDivStyle(groupDiv, isChecked) {
+        if (isChecked) {
+            groupDiv.classList.add('bg-green-50', 'border-esmerald-perso', 'ring-2', 'ring-green-200');
+            groupDiv.classList.remove('bg-white', 'border-gray-200');
+        } else {
+            groupDiv.classList.remove('bg-green-50', 'border-esmerald-perso', 'ring-2', 'ring-green-200');
+            groupDiv.classList.add('bg-white', 'border-gray-200');
+        }
+    }
+    
+    function updateSelectedGroupsCount() {
+        const checkedBoxes = document.querySelectorAll('#groupsContainer input[name="groups"]:checked');
+        const countElement = document.getElementById('selectedGroupsCount');
+        if (countElement) {
+            const count = checkedBoxes.length;
+            countElement.textContent = `${count} grupo${count !== 1 ? 's' : ''} seleccionado${count !== 1 ? 's' : ''}`;
+            
+            if (count > 0) {
+                countElement.className = 'text-xs text-white bg-esmerald-perso px-2 py-1 rounded-full';
+            } else {
+                countElement.className = 'text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full';
+            }
+        }
+    }
+    
+    function closeCreateUserModal() {
+        const modal = document.getElementById('createUserModal');
+        const modalContent = modal.querySelector('.modal-content');
+        
+        modalContent.classList.add('scale-95', 'opacity-0');
+        modalContent.classList.remove('scale-100', 'opacity-100');
+        
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            // Resetear el formulario
+            const form = document.getElementById('createUserForm');
+            if (form) {
+                form.reset();
+                
+                // Limpiar estilos de validación
+                form.querySelectorAll('.form-error, .form-success').forEach(field => {
+                    field.classList.remove('form-error', 'form-success');
+                });
+                
+                // Desmarcar todos los checkboxes de grupos
+                const groupCheckboxes = form.querySelectorAll('input[name="groups"]');
+                groupCheckboxes.forEach(checkbox => {
+                    checkbox.checked = false;
+                    const groupDiv = checkbox.closest('div');
+                    if (groupDiv) {
+                        updateGroupDivStyle(groupDiv, false);
+                    }
+                });
+                
+                // Restaurar texto del botón de submit
+                const submitBtn = document.getElementById('submitBtn');
+                if (submitBtn) {
+                    submitBtn.innerHTML = '<i class="fas fa-save mr-2"></i><span>Crear Usuario</span>';
+                    submitBtn.disabled = false;
+                }
+            }
+        }, 300);
+    }
+    
+    function switchTab(tabName) {
+        currentTab = tabName;
+        
+        // Ocultar todos los contenidos de tabs
+        document.querySelectorAll('.tab-content').forEach(content => {
+            content.classList.add('hidden');
+        });
+        
+        // Mostrar el contenido del tab actual
+        document.getElementById(`tab-content-${tabName}`).classList.remove('hidden');
+        
+        // Actualizar estilos de los botones de tab
+        document.querySelectorAll('.create-tab-btn').forEach(btn => {
+            btn.classList.remove('bg-white', 'text-esmerald-perso', 'shadow-sm', 'border', 'border-gray-200');
+            btn.classList.add('text-gray-500', 'hover:text-gray-700', 'hover:bg-gray-100');
+        });
+        
+        // Activar el tab actual
+        const activeTab = document.getElementById(`tab-${tabName}`);
+        activeTab.classList.remove('text-gray-500', 'hover:text-gray-700', 'hover:bg-gray-100');
+        activeTab.classList.add('bg-white', 'text-esmerald-perso', 'shadow-sm', 'border', 'border-gray-200');
+        
+        // Actualizar botones de navegación
+        updateTabNavigation();
+    }
+    
+    function updateTabNavigation() {
+        const currentIndex = tabs.indexOf(currentTab);
+        const prevBtn = document.getElementById('prevTabBtn');
+        const nextBtn = document.getElementById('nextTabBtn');
+        const submitBtn = document.getElementById('submitBtn');
+        
+        // Mostrar/ocultar botón anterior
+        if (currentIndex > 0) {
+            prevBtn.classList.remove('hidden');
+        } else {
+            prevBtn.classList.add('hidden');
+        }
+        
+        // Mostrar/ocultar botón siguiente o submit
+        if (currentIndex < tabs.length - 1) {
+            nextBtn.classList.remove('hidden');
+            submitBtn.classList.add('hidden');
+        } else {
+            nextBtn.classList.add('hidden');
+            submitBtn.classList.remove('hidden');
+        }
+    }
+    
+    function previousTab() {
+        const currentIndex = tabs.indexOf(currentTab);
+        if (currentIndex > 0) {
+            switchTab(tabs[currentIndex - 1]);
+        }
+    }
+    
+    function nextTab() {
+        const currentIndex = tabs.indexOf(currentTab);
+        if (currentIndex < tabs.length - 1) {
+            switchTab(tabs[currentIndex + 1]);
+        }
+    }
 
     function openDeleteModal(id, name) {
         // Configurar el modal de eliminación
@@ -972,6 +1652,8 @@
         
         // Cerrar modal al hacer clic fuera de él
         const userDetailModal = document.getElementById('userDetailModal');
+        const createUserModal = document.getElementById('createUserModal');
+        
         if (userDetailModal) {
             userDetailModal.addEventListener('click', function(e) {
                 if (e.target === userDetailModal) {
@@ -980,15 +1662,101 @@
             });
         }
         
+        if (createUserModal) {
+            createUserModal.addEventListener('click', function(e) {
+                if (e.target === createUserModal) {
+                    closeCreateUserModal();
+                }
+            });
+        }
+        
         // Cerrar modal con tecla Escape
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
-                const modal = document.getElementById('userDetailModal');
-                if (modal && !modal.classList.contains('hidden')) {
+                const detailModal = document.getElementById('userDetailModal');
+                const createModal = document.getElementById('createUserModal');
+                
+                if (detailModal && !detailModal.classList.contains('hidden')) {
                     closeUserDetailModal();
+                } else if (createModal && !createModal.classList.contains('hidden')) {
+                    closeCreateUserModal();
                 }
             }
         });
+        
+        // Manejar envío del formulario de creación de usuario
+        const createUserForm = document.getElementById('createUserForm');
+        if (createUserForm) {
+            createUserForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Validación básica
+                const requiredFields = ['username', 'first_name', 'last_name', 'email', 'password', 'password_confirmation'];
+                let isValid = true;
+                
+                requiredFields.forEach(fieldName => {
+                    const field = createUserForm.querySelector(`[name="${fieldName}"]`);
+                    if (field && !field.value.trim()) {
+                        field.classList.add('form-error');
+                        isValid = false;
+                    } else if (field) {
+                        field.classList.remove('form-error');
+                        field.classList.add('form-success');
+                    }
+                });
+                
+                // Validar que las contraseñas coincidan
+                const password = createUserForm.querySelector('[name="password"]');
+                const passwordConfirmation = createUserForm.querySelector('[name="password_confirmation"]');
+                
+                if (password && passwordConfirmation && password.value !== passwordConfirmation.value) {
+                    passwordConfirmation.classList.add('form-error');
+                    alert('Las contraseñas no coinciden');
+                    isValid = false;
+                } else if (password && passwordConfirmation) {
+                    passwordConfirmation.classList.remove('form-error');
+                    passwordConfirmation.classList.add('form-success');
+                }
+                
+                if (isValid) {
+                    // Verificar si al menos un grupo está seleccionado (opcional)
+                    const selectedGroups = createUserForm.querySelectorAll('input[name="groups"]:checked');
+                    if (selectedGroups.length === 0) {
+                        const confirmProceed = confirm('No ha seleccionado ningún grupo. ¿Desea continuar creando el usuario sin grupos asignados?');
+                        if (!confirmProceed) {
+                            switchTab('groups');
+                            return;
+                        }
+                    }
+                    
+                    // Mostrar indicador de carga
+                    const submitBtn = document.getElementById('submitBtn');
+                    const originalText = submitBtn.innerHTML;
+                    submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Creando usuario...';
+                    submitBtn.disabled = true;
+                    
+                    // Enviar el formulario
+                    this.submit();
+                } else {
+                    // Mostrar el primer tab si hay errores allí
+                    const personalTabFields = createUserForm.querySelectorAll('#tab-content-personal input.form-error');
+                    const accessTabFields = createUserForm.querySelectorAll('#tab-content-access input.form-error');
+                    
+                    if (personalTabFields.length > 0) {
+                        switchTab('personal');
+                    } else if (accessTabFields.length > 0) {
+                        switchTab('access');
+                    }
+                }
+            });
+            
+            // Limpiar estilos de error cuando el usuario empiece a escribir
+            createUserForm.addEventListener('input', function(e) {
+                if (e.target.classList.contains('form-error')) {
+                    e.target.classList.remove('form-error');
+                }
+            });
+        }
     });
 </script>
 

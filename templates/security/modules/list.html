@@ -54,14 +54,23 @@
                         </thead>
                         <tbody>
                             {% for item in modules %}
-                            <tr class="dark:text-gray-400 bg-white border-b dark:bg-[#0b1121] dark:border-secundario hover:bg-gray-50 dark:hover:bg-[#121c33]">
+                            <tr class="dark:text-gray-400 bg-gray-50 border-t border-b border-gray-200 dark:bg-principal dark:border-secundario hover:bg-gray-100 dark:hover:bg-secundario transition-colors duration-200"
+                                data-id="{{ item.id }}"
+                                data-name="{{ item.name }}"
+                                data-url="{{ item.url }}"
+                                data-icon="{{ item.icon }}"
+                                data-order="{{ item.order }}"
+                                data-menu-id="{{ item.menu.id }}"
+                                data-menu-name="{{ item.menu.name }}"
+                                data-description="{{ item.description|default:'' }}"
+                                data-is-active="{{ item.is_active|yesno:'true,false' }}">
                                 <td class="px-6 py-4">{{ item.id }}</td>
                                 <td class="px-6 py-4">
                                     <i class="{{ item.icon }} text-2xl text-blue-600 dark:text-blue-400"></i>
                                 </td>
                                 <td class="px-6 py-4 font-semibold">{{ item.name }}</td>
                                 <td class="px-6 py-4">
-                                    <code class="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded text-sm">
+                                    <code class="bg-white dark:bg-secundario px-2 py-1 rounded text-sm border border-gray-300 dark:border-gray-600">
                                         {{ item.url }}
                                     </code>
                                 </td>
@@ -78,7 +87,7 @@
                                     {% endif %}
                                 </td>
                                 <td class="px-6 py-4">
-                                    <span class="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-full text-sm">
+                                    <span class="bg-white dark:bg-secundario px-2 py-1 rounded-full text-sm border border-gray-300 dark:border-gray-600">
                                         {{ item.order }}
                                     </span>
                                 </td>
@@ -100,8 +109,8 @@
                                 </td>
                                 <td class="px-6 py-4">
                                   {% if permissions.change_module %}
-                                    <a href="{% url 'security:module_update' item.id %}"
-                                        class="text-blue-600 dark:text-blue-500 hover:text-blue-800 mx-1">
+                                    <a href="#"
+                                        class="text-blue-600 dark:text-blue-500 hover:text-blue-800 mx-1 edit-btn">
                                         <i class="fa-solid fa-edit text-lg"></i>
                                     </a>
                                   {% endif%}  
@@ -150,8 +159,8 @@
                 <!-- Enlaces adicionales -->
                 <div class="flex flex-col md:flex-row justify-center form-group text-center p-4">
                     {% if permissions.add_module %}
-                    <a class="bg-blue-700 hover:bg-blue-800 text-white py-2 px-4 rounded-full mr-0 md:mr-2 mb-2 md:mb-0 flex items-center justify-center transition-colors duration-300"
-                        href="{% url 'security:module_create' %}">
+                    <a href="#" onclick="openCreateModal()"
+                        class="bg-blue-700 hover:bg-blue-800 text-white py-2 px-4 rounded-full mr-0 md:mr-2 mb-2 md:mb-0 flex items-center justify-center transition-colors duration-300">
                         <i class="fa-solid fa-plus mr-2"></i> Nuevo Módulo
                     </a>
                     {% endif %}
@@ -165,6 +174,258 @@
     </section>
 
     {% include 'fragments/delete.html' %}
+    
+    <!-- Modal de edición -->
+    <div id="editModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-secundario rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-hidden transform scale-95 opacity-0 transition-all duration-300" id="editModalContent">
+            <!-- Header del modal -->
+            <div class="bg-indigo-500 p-6">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-white text-2xl font-bold uppercase">Editar Módulo</h2>
+                    <button onclick="closeEditModal()" class="text-white hover:bg-white/20 p-2 rounded-lg transition-colors">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Contenido del modal -->
+            <div class="p-8">
+                <!-- Vista previa del ícono -->
+                <div class="text-center mb-8">
+                    <div class="bg-gray-100 dark:bg-principal rounded-full w-20 h-20 mx-auto flex items-center justify-center mb-4">
+                        <i id="editIconPreview" class="bi bi-x-octagon text-3xl text-gray-400"></i>
+                    </div>
+                    <h3 class="dark:text-blue-300 text-xl font-medium">Vista previa del ícono</h3>
+                </div>
+                
+                <!-- Formulario de edición -->
+                <form id="editForm" method="post">
+                    {% csrf_token %}
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <!-- Campo Nombre -->
+                        <div>
+                            <label for="editName" class="font-bold uppercase text-lg block mb-2 dark:text-blue-300">
+                                Nombre <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" id="editName" name="name" required
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-principal dark:border-gray-600 dark:text-gray-300"
+                                placeholder="Nombre del módulo">
+                        </div>
+                        
+                        <!-- Campo URL -->
+                        <div>
+                            <label for="editUrl" class="font-bold uppercase text-lg block mb-2 dark:text-blue-300">
+                                URL <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" id="editUrl" name="url" required
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-principal dark:border-gray-600 dark:text-gray-300"
+                                placeholder="URL del módulo">
+                        </div>
+                        
+                        <!-- Campo Orden -->
+                        <div>
+                            <label for="editOrder" class="font-bold uppercase text-lg block mb-2 dark:text-blue-300">
+                                Orden <span class="text-red-500">*</span>
+                            </label>
+                            <input type="number" id="editOrder" name="order" required min="0"
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-principal dark:border-gray-600 dark:text-gray-300"
+                                placeholder="Orden del módulo">
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                        <!-- Campo Ícono -->
+                        <div>
+                            <label for="editIcon" class="font-bold uppercase text-lg block mb-2 dark:text-blue-300">
+                                Ícono <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" id="editIcon" name="icon" required
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-principal dark:border-gray-600 dark:text-gray-300"
+                                placeholder="Clase del ícono (ej: bi bi-house)">
+                            <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                                Use clases de Bootstrap Icons o Font Awesome
+                            </p>
+                        </div>
+                        
+                        <!-- Campo Menú -->
+                        <div>
+                            <label for="editMenu" class="font-bold uppercase text-lg block mb-2 dark:text-blue-300">
+                                Menú <span class="text-red-500">*</span>
+                            </label>
+                            <select id="editMenu" name="menu" required
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-principal dark:border-gray-600 dark:text-gray-300">
+                                <option value="">Seleccione un menú</option>
+                                <!-- Las opciones se llenarán dinámicamente -->
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Campo Descripción (ancho completo) -->
+                    <div class="mt-6">
+                        <label for="editDescription" class="font-bold uppercase text-lg block mb-2 dark:text-blue-300">
+                            Descripción
+                        </label>
+                        <textarea id="editDescription" name="description" rows="3"
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-principal dark:border-gray-600 dark:text-gray-300"
+                            placeholder="Descripción del módulo (opcional)"></textarea>
+                    </div>
+                    
+                    <!-- Campo Estado Activo -->
+                    <div class="mt-6">
+                        <div class="flex items-center">
+                            <input type="checkbox" id="editIsActive" name="is_active"
+                                class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2 dark:bg-principal dark:border-gray-600">
+                            <label for="editIsActive" class="ml-3 font-bold uppercase text-lg dark:text-blue-300">
+                                Módulo Activo
+                            </label>
+                        </div>
+                        <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                            Marque esta casilla si el módulo debe estar activo en el sistema
+                        </p>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Footer del modal -->
+            <div class="bg-gray-50 dark:bg-principal px-8 py-6 flex flex-col sm:flex-row justify-between items-center space-y-3 sm:space-y-0">
+                <button onclick="closeEditModal()" class="w-full sm:w-auto px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg font-medium flex items-center justify-center transition-all duration-300">
+                    <i class="fas fa-times mr-2"></i>
+                    <span>Cancelar</span>
+                </button>
+                <button type="submit" form="editForm" id="editSubmitBtn" class="w-full sm:w-auto px-8 py-3 bg-blue-700 hover:bg-blue-800 text-white rounded-lg font-medium flex items-center justify-center shadow-lg transition-all duration-300">
+                    <i class="fas fa-save mr-2"></i>
+                    <span>Guardar Cambios</span>
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal de creación -->
+    <div id="createModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-secundario rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-hidden transform scale-95 opacity-0 transition-all duration-300" id="createModalContent">
+            <!-- Header del modal -->
+            <div class="bg-indigo-500 p-6">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-white text-2xl font-bold uppercase">Crear Nuevo Módulo</h2>
+                    <button onclick="closeCreateModal()" class="text-white hover:bg-white/20 p-2 rounded-lg transition-colors">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Contenido del modal -->
+            <div class="p-8">
+                <!-- Vista previa del ícono -->
+                <div class="text-center mb-8">
+                    <div class="bg-gray-100 dark:bg-principal rounded-full w-20 h-20 mx-auto flex items-center justify-center mb-4">
+                        <i id="createIconPreview" class="bi bi-x-octagon text-3xl text-gray-400"></i>
+                    </div>
+                    <h3 class="dark:text-blue-300 text-xl font-medium">Vista previa del ícono</h3>
+                </div>
+                
+                <!-- Formulario de creación -->
+                <form id="createForm" method="post" action="{% url 'security:module_create' %}">
+                    {% csrf_token %}
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <!-- Campo Nombre -->
+                        <div>
+                            <label for="createName" class="font-bold uppercase text-lg block mb-2 dark:text-blue-300">
+                                Nombre <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" id="createName" name="name" required
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-principal dark:border-gray-600 dark:text-gray-300"
+                                placeholder="Nombre del módulo">
+                        </div>
+                        
+                        <!-- Campo URL -->
+                        <div>
+                            <label for="createUrl" class="font-bold uppercase text-lg block mb-2 dark:text-blue-300">
+                                URL <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" id="createUrl" name="url" required
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-principal dark:border-gray-600 dark:text-gray-300"
+                                placeholder="URL del módulo">
+                        </div>
+                        
+                        <!-- Campo Orden -->
+                        <div>
+                            <label for="createOrder" class="font-bold uppercase text-lg block mb-2 dark:text-blue-300">
+                                Orden <span class="text-red-500">*</span>
+                            </label>
+                            <input type="number" id="createOrder" name="order" required min="0" value="0"
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-principal dark:border-gray-600 dark:text-gray-300"
+                                placeholder="Orden del módulo">
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                        <!-- Campo Ícono -->
+                        <div>
+                            <label for="createIcon" class="font-bold uppercase text-lg block mb-2 dark:text-blue-300">
+                                Ícono <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" id="createIcon" name="icon" required value="bi bi-x-octagon"
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-principal dark:border-gray-600 dark:text-gray-300"
+                                placeholder="Clase del ícono (ej: bi bi-house)">
+                            <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                                Use clases de Bootstrap Icons o Font Awesome
+                            </p>
+                        </div>
+                        
+                        <!-- Campo Menú -->
+                        <div>
+                            <label for="createMenu" class="font-bold uppercase text-lg block mb-2 dark:text-blue-300">
+                                Menú <span class="text-red-500">*</span>
+                            </label>
+                            <select id="createMenu" name="menu" required
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-principal dark:border-gray-600 dark:text-gray-300">
+                                <option value="">Seleccione un menú</option>
+                                <!-- Las opciones se llenarán dinámicamente -->
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Campo Descripción (ancho completo) -->
+                    <div class="mt-6">
+                        <label for="createDescription" class="font-bold uppercase text-lg block mb-2 dark:text-blue-300">
+                            Descripción
+                        </label>
+                        <textarea id="createDescription" name="description" rows="3"
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-principal dark:border-gray-600 dark:text-gray-300"
+                            placeholder="Descripción del módulo (opcional)"></textarea>
+                    </div>
+                    
+                    <!-- Campo Estado Activo -->
+                    <div class="mt-6">
+                        <div class="flex items-center">
+                            <input type="checkbox" id="createIsActive" name="is_active" checked
+                                class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2 dark:bg-principal dark:border-gray-600">
+                            <label for="createIsActive" class="ml-3 font-bold uppercase text-lg dark:text-blue-300">
+                                Módulo Activo
+                            </label>
+                        </div>
+                        <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                            Marque esta casilla si el módulo debe estar activo en el sistema
+                        </p>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Footer del modal -->
+            <div class="bg-gray-50 dark:bg-principal px-8 py-6 flex flex-col sm:flex-row justify-between items-center space-y-3 sm:space-y-0">
+                <button onclick="closeCreateModal()" class="w-full sm:w-auto px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg font-medium flex items-center justify-center transition-all duration-300">
+                    <i class="fas fa-times mr-2"></i>
+                    <span>Cancelar</span>
+                </button>
+                <button type="submit" form="createForm" id="createSubmitBtn" class="w-full sm:w-auto px-8 py-3 bg-blue-700 hover:bg-blue-800 text-white rounded-lg font-medium flex items-center justify-center shadow-lg transition-all duration-300">
+                    <i class="fas fa-save mr-2"></i>
+                    <span>Crear Módulo</span>
+                </button>
+            </div>
+        </div>
+    </div>
    <script>
 function openDeleteModal(id, name) {
     const deleteForm = document.getElementById('deleteForm');
@@ -177,9 +438,182 @@ function closeModal() {
     document.getElementById('deleteModal').classList.add('hidden');
 }
 
+function openEditModal(moduleRow) {
+    // Obtener datos del módulo desde los atributos data
+    const id = moduleRow.dataset.id;
+    const name = moduleRow.dataset.name;
+    const url = moduleRow.dataset.url;
+    const icon = moduleRow.dataset.icon;
+    const order = moduleRow.dataset.order;
+    const menuId = moduleRow.dataset.menuId;
+    const menuName = moduleRow.dataset.menuName;
+    const description = moduleRow.dataset.description;
+    const isActive = moduleRow.dataset.isActive === 'true';
+    
+    // Llenar los campos del formulario
+    document.getElementById('editName').value = name;
+    document.getElementById('editUrl').value = url;
+    document.getElementById('editIcon').value = icon;
+    document.getElementById('editOrder').value = order;
+    document.getElementById('editDescription').value = description;
+    document.getElementById('editIsActive').checked = isActive;
+    
+    // Configurar la acción del formulario
+    const editForm = document.getElementById('editForm');
+    editForm.action = `{% url 'security:module_update' 0 %}`.replace('0', id);
+    
+    // Llenar el select de menús (necesitaremos obtener los menús disponibles)
+    loadMenusForEdit(menuId);
+    
+    // Actualizar vista previa del ícono
+    updateEditIconPreview();
+    
+    // Mostrar el modal con animación
+    const modal = document.getElementById('editModal');
+    const modalContent = document.getElementById('editModalContent');
+    
+    modal.classList.remove('hidden');
+    setTimeout(() => {
+        modalContent.classList.add('scale-100', 'opacity-100');
+        modalContent.classList.remove('scale-95', 'opacity-0');
+    }, 10);
+}
+
+function closeEditModal() {
+    const modal = document.getElementById('editModal');
+    const modalContent = document.getElementById('editModalContent');
+    
+    modalContent.classList.add('scale-95', 'opacity-0');
+    modalContent.classList.remove('scale-100', 'opacity-100');
+    
+    setTimeout(() => {
+        modal.classList.add('hidden');
+        // Limpiar el formulario
+        document.getElementById('editForm').reset();
+    }, 300);
+}
+
+function updateEditIconPreview() {
+    const iconInput = document.getElementById('editIcon');
+    const iconPreview = document.getElementById('editIconPreview');
+    
+    const iconClass = iconInput.value.trim();
+    if (iconClass) {
+        iconPreview.className = iconClass + ' text-3xl text-blue-600 dark:text-blue-400';
+    } else {
+        iconPreview.className = 'bi bi-x-octagon text-3xl text-gray-400';
+    }
+}
+
+function loadMenusForEdit(selectedMenuId) {
+    const menuSelect = document.getElementById('editMenu');
+    
+    // Extraer menús únicos de la tabla
+    const menuRows = document.querySelectorAll('tbody tr');
+    const menus = new Map();
+    
+    menuRows.forEach(row => {
+        const menuId = row.dataset.menuId;
+        const menuName = row.dataset.menuName;
+        if (menuId && menuName && !menus.has(menuId)) {
+            menus.set(menuId, menuName);
+        }
+    });
+    
+    // Limpiar y llenar el select
+    menuSelect.innerHTML = '<option value="">Seleccione un menú</option>';
+    menus.forEach((name, id) => {
+        const option = document.createElement('option');
+        option.value = id;
+        option.textContent = name;
+        if (id === selectedMenuId) {
+            option.selected = true;
+        }
+        menuSelect.appendChild(option);
+    });
+}
+
+function openCreateModal() {
+    // Limpiar el formulario
+    document.getElementById('createForm').reset();
+    
+    // Configurar valores por defecto
+    document.getElementById('createIcon').value = 'bi bi-x-octagon';
+    document.getElementById('createOrder').value = '0';
+    document.getElementById('createIsActive').checked = true;
+    
+    // Llenar el select de menús
+    loadMenusForCreate();
+    
+    // Actualizar vista previa del ícono
+    updateCreateIconPreview();
+    
+    // Mostrar el modal con animación
+    const modal = document.getElementById('createModal');
+    const modalContent = document.getElementById('createModalContent');
+    
+    modal.classList.remove('hidden');
+    setTimeout(() => {
+        modalContent.classList.add('scale-100', 'opacity-100');
+        modalContent.classList.remove('scale-95', 'opacity-0');
+    }, 10);
+}
+
+function closeCreateModal() {
+    const modal = document.getElementById('createModal');
+    const modalContent = document.getElementById('createModalContent');
+    
+    modalContent.classList.add('scale-95', 'opacity-0');
+    modalContent.classList.remove('scale-100', 'opacity-100');
+    
+    setTimeout(() => {
+        modal.classList.add('hidden');
+        // Limpiar el formulario
+        document.getElementById('createForm').reset();
+    }, 300);
+}
+
+function updateCreateIconPreview() {
+    const iconInput = document.getElementById('createIcon');
+    const iconPreview = document.getElementById('createIconPreview');
+    
+    const iconClass = iconInput.value.trim();
+    if (iconClass) {
+        iconPreview.className = iconClass + ' text-3xl text-indigo-500';
+    } else {
+        iconPreview.className = 'bi bi-x-octagon text-3xl text-gray-400';
+    }
+}
+
+function loadMenusForCreate() {
+    const menuSelect = document.getElementById('createMenu');
+    
+    // Extraer menús únicos de la tabla
+    const menuRows = document.querySelectorAll('tbody tr');
+    const menus = new Map();
+    
+    menuRows.forEach(row => {
+        const menuId = row.dataset.menuId;
+        const menuName = row.dataset.menuName;
+        if (menuId && menuName && !menus.has(menuId)) {
+            menus.set(menuId, menuName);
+        }
+    });
+    
+    // Limpiar y llenar el select
+    menuSelect.innerHTML = '<option value="">Seleccione un menú</option>';
+    menus.forEach((name, id) => {
+        const option = document.createElement('option');
+        option.value = id;
+        option.textContent = name;
+        menuSelect.appendChild(option);
+    });
+}
+
 // ✅ AGREGAR: Asegurar redirección correcta
 document.addEventListener('DOMContentLoaded', function() {
     const deleteForm = document.getElementById('deleteForm');
+    const editForm = document.getElementById('editForm');
     
     if (deleteForm) {
         deleteForm.addEventListener('submit', function(e) {
@@ -192,6 +626,88 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Permitir envío normal del formulario
             // Django manejará la redirección automáticamente
+        });
+    }
+    
+    if (editForm) {
+        editForm.addEventListener('submit', function(e) {
+            // Mostrar loading en el botón de guardar
+            const submitBtn = document.getElementById('editSubmitBtn');
+            if (submitBtn) {
+                submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Guardando...';
+                submitBtn.disabled = true;
+            }
+            
+            // Permitir envío normal del formulario
+            // Django manejará la redirección automáticamente
+        });
+        
+        // Actualizar vista previa del ícono cuando cambie el input
+        const iconInput = document.getElementById('editIcon');
+        if (iconInput) {
+            iconInput.addEventListener('input', updateEditIconPreview);
+            iconInput.addEventListener('keyup', updateEditIconPreview);
+            iconInput.addEventListener('change', updateEditIconPreview);
+        }
+    }
+    
+    // Event listeners para el modal de creación
+    const createForm = document.getElementById('createForm');
+    if (createForm) {
+        createForm.addEventListener('submit', function(e) {
+            // Mostrar loading en el botón de crear
+            const submitBtn = document.getElementById('createSubmitBtn');
+            if (submitBtn) {
+                submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Creando...';
+                submitBtn.disabled = true;
+            }
+            
+            // Permitir envío normal del formulario
+            // Django manejará la redirección automáticamente
+        });
+        
+        // Actualizar vista previa del ícono cuando cambie el input
+        const iconInput = document.getElementById('createIcon');
+        if (iconInput) {
+            iconInput.addEventListener('input', updateCreateIconPreview);
+            iconInput.addEventListener('keyup', updateCreateIconPreview);
+            iconInput.addEventListener('change', updateCreateIconPreview);
+        }
+    }
+    
+    // Cerrar modal con tecla Escape
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const editModal = document.getElementById('editModal');
+            const createModal = document.getElementById('createModal');
+            const deleteModal = document.getElementById('deleteModal');
+            
+            if (editModal && !editModal.classList.contains('hidden')) {
+                closeEditModal();
+            } else if (createModal && !createModal.classList.contains('hidden')) {
+                closeCreateModal();
+            } else if (deleteModal && !deleteModal.classList.contains('hidden')) {
+                closeModal();
+            }
+        }
+    });
+    
+    // Cerrar modal al hacer clic fuera de él
+    const editModal = document.getElementById('editModal');
+    if (editModal) {
+        editModal.addEventListener('click', function(e) {
+            if (e.target === editModal) {
+                closeEditModal();
+            }
+        });
+    }
+    
+    const createModal = document.getElementById('createModal');
+    if (createModal) {
+        createModal.addEventListener('click', function(e) {
+            if (e.target === createModal) {
+                closeCreateModal();
+            }
         });
     }
 });
