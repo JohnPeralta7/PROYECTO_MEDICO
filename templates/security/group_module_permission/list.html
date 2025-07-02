@@ -1,59 +1,70 @@
 {% extends 'home.html' %}
 {% load static %}
-{% block title %}{{ title|default:"Gestionar Permisos por Grupo y Módulo" }}{% endblock %}
+{% block title %}{{ title|default:"Gestionar Permisos por Grupo" }}{% endblock %}
 {% block content %}
 
 <!-- Header de la página con diseño moderno -->
-<div class="bg-gradient-to-br from-purple-600 to-indigo-700 mb-8 rounded-2xl shadow-xl overflow-hidden relative">
+<div class="bg-gradient-to-br from-green-500 to-green-700 mb-8 rounded-2xl shadow-xl overflow-hidden relative">
     <!-- Elementos decorativos de fondo -->
     <div class="absolute inset-0 overflow-hidden opacity-20">
-        <div class="absolute -right-20 -top-20 w-64 h-64 rounded-full bg-blue-400 filter blur-xl"></div>
-        <div class="absolute right-20 bottom-10 w-48 h-48 rounded-full bg-purple-400 filter blur-xl"></div>
-        <div class="absolute left-20 bottom-10 w-48 h-48 rounded-full bg-pink-400 filter blur-xl"></div>
+        <div class="absolute -right-20 -top-20 w-64 h-64 rounded-full bg-green-200 filter blur-xl"></div>
+        <div class="absolute right-20 bottom-10 w-48 h-48 rounded-full bg-green-300 filter blur-xl"></div>
+        <div class="absolute left-20 bottom-10 w-48 h-48 rounded-full bg-green-400 filter blur-xl"></div>
     </div>
     
     <div class="max-w-7xl mx-auto px-6 py-10 relative z-10">
-        <div class="text-center">
-            <div class="bg-white/15 backdrop-blur-md p-4 rounded-2xl w-16 h-16 mx-auto mb-4 shadow-lg transform transition-all duration-300 hover:scale-105 hover:bg-white/20">
-                <i class="fas fa-shield-alt text-white text-3xl"></i>
+        <div class="flex flex-col md:flex-row items-center justify-between">
+            <div class="flex items-center mb-6 md:mb-0">
+                <div class="bg-white/15 backdrop-blur-md p-4 rounded-2xl mr-5 shadow-lg transform transition-all duration-300 hover:scale-105 hover:bg-white/20">
+                    <i class="fas fa-shield-alt text-white text-2xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-2xl md:text-4xl font-extrabold text-white tracking-tight">
+                        {{ title1|default:"Gestión de Permisos por Grupos" }}
+                    </h1>
+                    <p class="text-green-100 mt-2 text-lg">
+                        Selecciona un grupo y gestiona sus permisos de manera interactiva
+                    </p>
+                </div>
             </div>
-            <h1 class="text-3xl md:text-4xl font-extrabold text-white tracking-tight mb-3">
-                {{ title1|default:"Gestión de Permisos por Grupos" }}
-            </h1>
-            <p class="text-blue-100 text-lg max-w-3xl mx-auto">
-                Selecciona un grupo y gestiona sus permisos de manera interactiva
-            </p>
+            <div>
+                <a href="{% url 'home' %}" 
+                   class="group inline-flex items-center px-5 py-3 bg-white/15 backdrop-blur-md text-white rounded-xl hover:bg-white/25 transition-all duration-300 shadow-lg">
+                    <i class="fas fa-home mr-3 group-hover:scale-110 transition-transform duration-300"></i>
+                    <span>Inicio</span>
+                </a>
+            </div>
         </div>
     </div>
 </div>
 
-<!-- Contenido principal con tarjetas interactivas -->
+<!-- Contenido principal con dos tarjetas -->
 <div class="max-w-7xl mx-auto px-4 pb-20">
-    <!-- Tarjetas superiores: Selector de grupo y Permisos -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        
         <!-- Tarjeta 1: Selector de Grupo -->
-        <div class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden transform transition-all duration-300 hover:shadow-2xl">
-            <div class="bg-gradient-to-r from-purple-500 to-indigo-600 p-6">
+        <div class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+            <div class="bg-gradient-to-r from-green-500 to-green-600 p-6">
                 <div class="flex items-center">
                     <div class="bg-white/20 p-3 rounded-xl mr-4">
                         <i class="fas fa-users text-white text-2xl"></i>
                     </div>
                     <div>
                         <h3 class="text-xl font-bold text-white">Seleccionar Grupo</h3>
-                        <p class="text-purple-100">Elige el grupo para gestionar sus permisos</p>
+                        <p class="text-green-100">Elige el grupo para gestionar sus permisos</p>
                     </div>
                 </div>
             </div>
             
-            <div class="p-8">
-                <div class="space-y-6">
+            <div class="p-6">
+                <div class="space-y-4">
                     <div>
                         <label for="groupSelector" class="block text-sm font-medium text-gray-700 mb-3">
-                            <i class="fas fa-filter mr-2 text-purple-500"></i>
+                            <i class="fas fa-filter mr-2 text-green-500"></i>
                             Grupo de usuarios
                         </label>
                         <select id="groupSelector" 
-                                class="w-full px-4 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-300 bg-gray-50 hover:bg-white text-lg">
+                                class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-300 bg-gray-50 hover:bg-white text-lg">
                             <option value="">Selecciona un grupo...</option>
                             {% for group in all_groups %}
                             <option value="{{ group.id }}" data-group-name="{{ group.name }}">
@@ -64,14 +75,14 @@
                     </div>
                     
                     <!-- Información del grupo seleccionado -->
-                    <div id="groupInfo" class="hidden bg-purple-50 border-l-4 border-purple-400 p-4 rounded-r-lg">
+                    <div id="groupInfo" class="hidden bg-green-50 border-l-4 border-green-400 p-4 rounded-r-lg">
                         <div class="flex items-start">
-                            <div class="bg-purple-100 p-2 rounded-lg mr-3">
-                                <i class="fas fa-info-circle text-purple-600"></i>
+                            <div class="bg-green-100 p-2 rounded-lg mr-3">
+                                <i class="fas fa-info-circle text-green-600"></i>
                             </div>
                             <div>
-                                <h4 class="font-semibold text-purple-800" id="selectedGroupName">Grupo seleccionado</h4>
-                                <p class="text-purple-600 text-sm mt-1">Los permisos se mostrarán en la tarjeta de la derecha</p>
+                                <h4 class="font-semibold text-green-800" id="selectedGroupName">Grupo seleccionado</h4>
+                                <p class="text-green-600 text-sm mt-1">Los permisos se mostrarán en la tarjeta de la derecha</p>
                             </div>
                         </div>
                     </div>
@@ -80,7 +91,7 @@
         </div>
 
         <!-- Tarjeta 2: Gestión de Permisos -->
-        <div class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden transform transition-all duration-300 hover:shadow-2xl">
+        <div class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
             <div class="bg-gradient-to-r from-indigo-500 to-blue-600 p-6">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center">
@@ -101,7 +112,7 @@
                 </div>
             </div>
             
-            <div class="p-8">
+            <div class="p-6">
                 <div id="permissionsContainer">
                     <!-- Estado inicial: sin grupo seleccionado -->
                     <div id="noGroupSelected" class="text-center py-12">
@@ -139,79 +150,38 @@
             </div>
         </div>
     </div>
-
-    <!-- Tarjeta 3: Resumen de Menús y Módulos -->
-    <div class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden transform transition-all duration-300 hover:shadow-2xl">
-        <div class="bg-gradient-to-r from-green-500 to-teal-600 p-6">
-            <div class="flex items-center">
-                <div class="bg-white/20 p-3 rounded-xl mr-4">
-                    <i class="fas fa-sitemap text-white text-2xl"></i>
-                </div>
-                <div>
-                    <h3 class="text-xl font-bold text-white">Estructura del Sistema</h3>
-                    <p class="text-green-100">Menús y módulos disponibles</p>
-                </div>
-            </div>
-        </div>
-        
-        <div class="p-8">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {% regroup group_module_permissions by module.menu as menu_groups %}
-                {% for menu_group in menu_groups %}
-                <div class="bg-gray-50 rounded-xl p-4 border border-gray-200 hover:shadow-md transition-all duration-300">
-                    <div class="flex items-center mb-3">
-                        <div class="bg-green-100 p-2 rounded-lg mr-3">
-                            <i class="fas fa-folder text-green-600"></i>
-                        </div>
-                        <h4 class="font-semibold text-gray-800">{{ menu_group.grouper.name }}</h4>
-                    </div>
-                    
-                    <div class="space-y-2">
-                        {% for gmp in menu_group.list %}
-                        {% ifchanged gmp.module.name %}
-                        <div class="flex items-center text-sm text-gray-600">
-                            <div class="bg-blue-100 p-1 rounded mr-2">
-                                <i class="{{ gmp.module.icon }} text-blue-600 text-xs"></i>
-                            </div>
-                            <span>{{ gmp.module.name }}</span>
-                        </div>
-                        {% endifchanged %}
-                        {% endfor %}
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-        </div>
-    </div>
 </div>
 
-<!-- Botón de Home en esquina inferior izquierda -->
-<div class="fixed bottom-6 left-6 z-50">
-    <a href="{% url 'home' %}" 
-       class="group bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white p-4 rounded-full shadow-2xl transform transition-all duration-300 hover:scale-110 hover:rotate-12 flex items-center">
-        <i class="fas fa-home text-xl group-hover:text-2xl transition-all duration-300"></i>
-        <span class="ml-2 opacity-0 group-hover:opacity-100 transition-all duration-300 whitespace-nowrap">Inicio</span>
-    </a>
-</div>
-
-<!-- Scripts JavaScript para funcionalidad interactiva -->
+<!-- Scripts JavaScript para funcionalidad -->
 <script>
-// Datos de permisos por grupo - CARGAR TODOS LOS REGISTROS SIN AGRUPAR
+// DEBUG: Verificar datos del backend
+console.log('=== DEBUG DATOS BACKEND ===');
+console.log('Group module permissions count:', {{ group_module_permissions|length }});
+console.log('All groups count:', {{ all_groups|length }});
+
+// Verificar si hay datos
+{% if group_module_permissions|length > 0 %}
+console.log('✅ HAY DATOS en group_module_permissions');
+{% else %}
+console.log('❌ NO HAY DATOS en group_module_permissions');
+{% endif %}
+
+// Cargar datos de permisos desde Django
 const allPermissionsData = [
     {% for gmp in group_module_permissions %}
     {
         groupId: {{ gmp.group.id }},
-        groupName: "{{ gmp.group.name }}",
+        groupName: "{{ gmp.group.name|escapejs }}",
         moduleId: {{ gmp.module.id }},
-        moduleName: "{{ gmp.module.name }}",
-        moduleIcon: "{{ gmp.module.icon }}",
-        menuName: "{{ gmp.module.menu.name }}",
+        moduleName: "{{ gmp.module.name|escapejs }}",
+        moduleIcon: "{{ gmp.module.icon|escapejs }}",
+        menuName: "{{ gmp.module.menu.name|escapejs }}",
         currentPermissions: [
             {% for perm in gmp.permissions.all %}
             {
                 id: {{ perm.id }},
-                name: "{{ perm.name }}",
-                codename: "{{ perm.codename }}"
+                name: "{{ perm.name|escapejs }}",
+                codename: "{{ perm.codename|escapejs }}"
             }{% if not forloop.last %},{% endif %}
             {% endfor %}
         ],
@@ -219,16 +189,27 @@ const allPermissionsData = [
             {% for perm in gmp.module.permissions.all %}
             {
                 id: {{ perm.id }},
-                name: "{{ perm.name }}",
-                codename: "{{ perm.codename }}"
+                name: "{{ perm.name|escapejs }}",
+                codename: "{{ perm.codename|escapejs }}"
             }{% if not forloop.last %},{% endif %}
             {% endfor %}
         ]
     }{% if not forloop.last %},{% endif %}
+    {% empty %}
+    // No hay datos
     {% endfor %}
 ];
 
-// Agrupar dinámicamente por grupo en JavaScript
+console.log('allPermissionsData:', allPermissionsData);
+console.log('allPermissionsData length:', allPermissionsData.length);
+
+if (allPermissionsData.length === 0) {
+    console.error('❌ allPermissionsData está VACÍO - No llegan datos desde Django');
+} else {
+    console.log('✅ allPermissionsData tiene datos:', allPermissionsData.length);
+}
+
+// Agrupar por grupo
 const groupPermissionsData = {};
 allPermissionsData.forEach(item => {
     if (!groupPermissionsData[item.groupId]) {
@@ -247,7 +228,10 @@ allPermissionsData.forEach(item => {
     });
 });
 
-// Datos de todos los grupos disponibles (incluso sin permisos)
+console.log('groupPermissionsData:', groupPermissionsData);
+console.log('Grupos con permisos encontrados:', Object.keys(groupPermissionsData));
+
+// Todos los grupos disponibles
 const allGroupsData = {
     {% for group in all_groups %}
     "{{ group.id }}": {
@@ -257,7 +241,7 @@ const allGroupsData = {
     {% endfor %}
 };
 
-// Selectors
+// Elementos del DOM
 const groupSelector = document.getElementById('groupSelector');
 const groupInfo = document.getElementById('groupInfo');
 const selectedGroupName = document.getElementById('selectedGroupName');
@@ -279,12 +263,11 @@ groupSelector.addEventListener('change', function() {
     }
 });
 
-// Función para mostrar permisos del grupo
+// Mostrar permisos del grupo
 function showGroupPermissions(groupId) {
-    // Primero intentar obtener datos del grupo con permisos asignados
     let groupData = groupPermissionsData[groupId];
     
-    // Si no existe en groupPermissionsData, usar allGroupsData
+    // Si no hay permisos, usar datos básicos del grupo
     if (!groupData) {
         groupData = allGroupsData[groupId];
         if (!groupData) {
@@ -292,16 +275,13 @@ function showGroupPermissions(groupId) {
             return;
         }
         
-        // Para grupos sin permisos asignados, mostrar mensaje informativo
         selectedGroupName.textContent = groupData.groupName;
         selectedGroupId.value = groupId;
         
-        // Mostrar/ocultar elementos
         groupInfo.classList.remove('hidden');
         noGroupSelected.classList.add('hidden');
         permissionsContent.classList.remove('hidden');
         
-        // Mostrar mensaje de que el grupo no tiene permisos asignados
         permissionsList.innerHTML = `
             <div class="text-center py-12">
                 <div class="bg-yellow-100 rounded-full w-20 h-20 mx-auto mb-4 flex items-center justify-center">
@@ -316,29 +296,24 @@ function showGroupPermissions(groupId) {
             </div>
         `;
         
-        // Actualizar contador
         permissionCount.textContent = '0 permisos seleccionados';
         saveIndicator.classList.add('hidden');
         return;
     }
     
-    // Lógica existente para grupos con permisos
+    // Mostrar permisos existentes
     selectedGroupName.textContent = groupData.groupName;
     selectedGroupId.value = groupId;
     
-    // Mostrar/ocultar elementos
     groupInfo.classList.remove('hidden');
     noGroupSelected.classList.add('hidden');
     permissionsContent.classList.remove('hidden');
     
-    // Generar checkboxes de permisos
     generatePermissionCheckboxes(groupData.permissions);
-    
-    // Contar permisos seleccionados
     updatePermissionCount();
 }
 
-// Función para ocultar permisos
+// Ocultar permisos
 function hideGroupPermissions() {
     groupInfo.classList.add('hidden');
     noGroupSelected.classList.remove('hidden');
@@ -346,11 +321,11 @@ function hideGroupPermissions() {
     saveIndicator.classList.add('hidden');
 }
 
-// Función para generar checkboxes de permisos
+// Generar checkboxes de permisos
 function generatePermissionCheckboxes(permissions) {
     permissionsList.innerHTML = '';
     
-    // Agrupar por módulo
+    // Agrupar por menú
     const moduleGroups = {};
     permissions.forEach(moduleData => {
         const menuName = moduleData.menuName;
@@ -363,12 +338,12 @@ function generatePermissionCheckboxes(permissions) {
     // Crear HTML por menú
     Object.entries(moduleGroups).forEach(([menuName, modules]) => {
         const menuDiv = document.createElement('div');
-        menuDiv.className = 'border border-gray-200 rounded-xl p-4 bg-gray-50';
+        menuDiv.className = 'border border-gray-200 rounded-xl p-4 bg-gray-50 mb-4';
         
         menuDiv.innerHTML = `
             <div class="flex items-center mb-4">
-                <div class="bg-purple-100 p-2 rounded-lg mr-3">
-                    <i class="fas fa-folder text-purple-600"></i>
+                <div class="bg-green-100 p-2 rounded-lg mr-3">
+                    <i class="fas fa-folder text-green-600"></i>
                 </div>
                 <h4 class="font-semibold text-gray-800">${menuName}</h4>
             </div>
@@ -389,7 +364,7 @@ function generatePermissionCheckboxes(permissions) {
                                         <input type="checkbox" 
                                                name="permissions" 
                                                value="${permission.id}"
-                                               class="permission-checkbox mr-3 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                                               class="permission-checkbox mr-3 rounded border-gray-300 text-green-600 focus:ring-green-500"
                                                ${isChecked ? 'checked' : ''}>
                                         <span class="text-sm text-gray-700">${permission.name}</span>
                                     </label>
@@ -404,7 +379,7 @@ function generatePermissionCheckboxes(permissions) {
         permissionsList.appendChild(menuDiv);
     });
     
-    // Agregar event listeners a checkboxes
+    // Agregar event listeners
     const checkboxes = permissionsList.querySelectorAll('.permission-checkbox');
     checkboxes.forEach(checkbox => {
         checkbox.addEventListener('change', function() {
@@ -415,29 +390,26 @@ function generatePermissionCheckboxes(permissions) {
     });
 }
 
-// Función para actualizar contador de permisos
+// Actualizar contador
 function updatePermissionCount() {
     const checkedBoxes = permissionsList.querySelectorAll('.permission-checkbox:checked');
     const count = checkedBoxes.length;
     permissionCount.textContent = `${count} permiso${count !== 1 ? 's' : ''} seleccionado${count !== 1 ? 's' : ''}`;
 }
 
-// Función para mostrar indicador de guardado
+// Mostrar indicador de guardado
 function showSaveIndicator() {
     saveIndicator.classList.remove('hidden');
 }
 
-// Función para auto-guardar permisos (simulación)
+// Auto-guardar permisos (simulación)
 function autoSavePermissions() {
     const checkedBoxes = Array.from(permissionsList.querySelectorAll('.permission-checkbox:checked'));
     const selectedPermissions = checkedBoxes.map(cb => cb.value);
     
-    // Aquí podrías hacer una llamada AJAX para guardar automáticamente
-    // Por ahora solo simularemos el guardado
     setTimeout(() => {
-        console.log('Permisos guardados automáticamente:', selectedPermissions);
+        console.log('Permisos guardados:', selectedPermissions);
         
-        // Mostrar feedback visual
         const saveBtn = document.getElementById('savePermissions');
         const originalContent = saveBtn.innerHTML;
         saveBtn.innerHTML = '<i class="fas fa-check mr-2"></i> Guardado';
@@ -452,7 +424,6 @@ function autoSavePermissions() {
 
 // Inicialización
 document.addEventListener('DOMContentLoaded', function() {
-    // Si hay un grupo preseleccionado en la URL
     const urlParams = new URLSearchParams(window.location.search);
     const preselectedGroup = urlParams.get('grupo');
     

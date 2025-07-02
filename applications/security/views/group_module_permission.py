@@ -62,6 +62,35 @@ class GroupModulePermissionListView( PermissionMixin, ListViewMixin, ListView):
         # Agregar todos los grupos disponibles para el selector
         context['all_groups'] = Group.objects.all().order_by('name')
         
+        # FORZAR los datos para asegurar que lleguen al template
+        queryset = self.get_queryset()
+        context['group_module_permissions'] = queryset
+        
+        # DEBUG: Verificar datos
+        print(f"=== DEBUG VISTA GET_CONTEXT_DATA ===")
+        print(f"QuerySet count: {queryset.count()}")
+        print(f"Context group_module_permissions count: {context['group_module_permissions'].count()}")
+        
+        if queryset.exists():
+            print("✅ Datos encontrados:")
+            for gmp in queryset[:5]:  # Mostrar primeros 5
+                print(f"  • Grupo: {gmp.group.name} -> Módulo: {gmp.module.name} -> Permisos: {gmp.permissions.count()}")
+        else:
+            print("❌ NO hay datos en el queryset")
+            # Verificar directamente en BD
+            total_bd = GroupModulePermission.objects.count()
+            print(f"Total en BD: {total_bd}")
+            if total_bd > 0:
+                print("❌ PROBLEMA: Hay datos en BD pero no llegan al queryset")
+                # Forzar todos los datos
+                context['group_module_permissions'] = GroupModulePermission.objects.select_related(
+                    'group', 'module', 'module__menu'
+                ).prefetch_related('permissions', 'module__permissions').all()
+                print(f"✅ FORZADO: {context['group_module_permissions'].count()} registros")
+        
+        print(f"Grupos disponibles: {[g.name for g in context['all_groups']]}")
+        print("=== FIN DEBUG VISTA ===")
+        
         return context
 
 
