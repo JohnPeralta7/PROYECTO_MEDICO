@@ -27,28 +27,41 @@ class GroupModulePermissionListView( PermissionMixin, ListViewMixin, ListView):
         grupo = self.request.GET.get('grupo')
         modulo = self.request.GET.get('modulo')
         
-        # Iniciar con la consulta base
-        queryset = self.model.objects.select_related('group', 'module')
+        # Iniciar con la consulta base - CARGAR TODOS LOS REGISTROS
+        queryset = self.model.objects.select_related('group', 'module').prefetch_related('permissions', 'module__permissions')
         
-        # Filtrar por término de búsqueda
-        if q:
-            self.query.add(Q(group__name__icontains=q) | 
-                           Q(module__name__icontains=q) |
-                           Q(module__menu__name__icontains=q), Q.AND)
+        # Solo aplicar filtros si hay parámetros específicos
+        has_filters = bool(q or grupo or modulo)
         
-        # Filtrar por grupo
-        if grupo:
-            self.query.add(Q(group__id=grupo), Q.AND)
-        
-        # Filtrar por módulo
-        if modulo:
-            self.query.add(Q(module__id=modulo), Q.AND)
+        if has_filters:
+            filters = Q()
             
-        return queryset.filter(self.query).order_by('group__name', 'module__name')
+            # Filtrar por término de búsqueda
+            if q:
+                filters |= (Q(group__name__icontains=q) | 
+                           Q(module__name__icontains=q) |
+                           Q(module__menu__name__icontains=q))
+            
+            # Filtrar por grupo
+            if grupo:
+                filters &= Q(group__id=grupo)
+            
+            # Filtrar por módulo
+            if modulo:
+                filters &= Q(module__id=modulo)
+            
+            queryset = queryset.filter(filters)
+            
+        return queryset.order_by('group__name', 'module__name')
 
     def get_context_data(self, **kwargs):
+        from django.contrib.auth.models import Group
         context = super().get_context_data(**kwargs)
         context['create_url'] = reverse_lazy('security:group_module_permission_create')
+        
+        # Agregar todos los grupos disponibles para el selector
+        context['all_groups'] = Group.objects.all().order_by('name')
+        
         return context
 
 
