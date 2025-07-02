@@ -90,7 +90,7 @@
         <div class="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 mb-8">
             <div class="p-6">
                 <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
-                    <i class="fas fa-filter text-purple-500 mr-2"></i>
+                    <i class="fas fa-filter text-esmerald-perso mr-2"></i>
                     Filtros avanzados
                 </h2>
                 
@@ -105,7 +105,7 @@
                                 </svg>
                             </div>
                             <input type="text" name="q" id="table-search" value="{{ request.GET.q }}"
-                                class="block w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg bg-white focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm shadow-sm"
+                                class="block w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg bg-white focus:ring-2 focus:ring-esmerald-perso focus:border-esmerald-perso text-sm shadow-sm"
                                 placeholder="Buscar por nombre, email, DNI...">
                         </div>
                     </div>
@@ -113,7 +113,7 @@
                     <!-- Filtro por estado (activo/inactivo) -->
                     <div>
                         <label for="status-filter" class="block text-sm font-medium text-gray-600 mb-2">Estado</label>
-                        <select id="status-filter" name="status" class="block w-full py-3 px-4 border border-gray-200 rounded-lg bg-white focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm shadow-sm">
+                        <select id="status-filter" name="status" class="block w-full py-3 px-4 border border-gray-200 rounded-lg bg-white focus:ring-2 focus:ring-esmerald-perso focus:border-esmerald-perso text-sm shadow-sm">
                             <option value="">Todos los estados</option>
                             <option value="active" {% if request.GET.status == 'active' %}selected{% endif %}>Activos</option>
                             <option value="inactive" {% if request.GET.status == 'inactive' %}selected{% endif %}>Inactivos</option>
@@ -156,7 +156,7 @@
                 {% for item in users %}
                 <div class="user-card bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 flex flex-col border border-gray-100 group relative">
                     <!-- Cabecera con degradado personalizado -->
-                    <div class="bg-gradient-to-br from-purple-500 to-indigo-600 p-5 relative group-hover:from-purple-600 group-hover:to-indigo-700 transition-all duration-500">
+                    <div class="header-gradient p-5 relative transition-all duration-500">
                         <!-- Información del usuario -->
                         <div class="flex items-center justify-center mb-3">
                             <!-- Avatar/Imagen -->
@@ -172,7 +172,7 @@
                         <!-- Nombre y username -->
                         <div class="text-center text-white">
                             <h3 class="font-bold text-xl group-hover:scale-105 transform origin-center transition-all duration-300">{{ item.first_name }} {{ item.last_name }}</h3>
-                            <p class="text-indigo-100 text-sm">@{{ item.username }}</p>
+                            <p class="text-green-100 text-sm">@{{ item.username }}</p>
                         </div>
                         
                         <!-- Estado del usuario -->
@@ -217,8 +217,8 @@
                         <div class="space-y-3">
                             <!-- Email -->
                             <div class="flex items-center">
-                                <div class="w-8 h-8 rounded-md bg-purple-50 flex items-center justify-center mr-2">
-                                    <i class="fas fa-envelope text-purple-500 text-sm"></i>
+                                <div class="w-8 h-8 rounded-md bg-green-50 flex items-center justify-center mr-2">
+                                    <i class="fas fa-envelope text-esmerald-perso text-sm"></i>
                                 </div>
                                 <div class="overflow-hidden">
                                     <p class="text-xs text-gray-500">Email</p>
@@ -228,8 +228,8 @@
                             
                             <!-- DNI/Cédula -->
                             <div class="flex items-center">
-                                <div class="w-8 h-8 rounded-md bg-indigo-50 flex items-center justify-center mr-2">
-                                    <i class="fas fa-id-card text-indigo-500 text-sm"></i>
+                                <div class="w-8 h-8 rounded-md bg-emerald-50 flex items-center justify-center mr-2">
+                                    <i class="fas fa-id-card text-esmerald-perso text-sm"></i>
                                 </div>
                                 <div>
                                     <p class="text-xs text-gray-500">DNI/Cédula</p>
@@ -239,14 +239,14 @@
                             
                             <!-- Grupos -->
                             <div class="flex items-start">
-                                <div class="w-8 h-8 rounded-md bg-violet-50 flex items-center justify-center mr-2 mt-1">
-                                    <i class="fas fa-users-cog text-violet-500 text-sm"></i>
+                                <div class="w-8 h-8 rounded-md bg-teal-50 flex items-center justify-center mr-2 mt-1">
+                                    <i class="fas fa-users-cog text-esmerald-perso text-sm"></i>
                                 </div>
                                 <div>
                                     <p class="text-xs text-gray-500">Grupos</p>
                                     <div class="flex flex-wrap gap-1 mt-1">
                                         {% for group in item.groups.all|slice:":2" %}
-                                            <span class="bg-violet-100 text-violet-800 text-xs px-2 py-0.5 rounded-md">
+                                            <span class="bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded-md">
                                                 {{ group.name }}
                                             </span>
                                         {% empty %}
@@ -572,15 +572,16 @@
             }
         }
         
-        /* Efecto hover para el degradado */
-        .user-card .bg-gradient-to-br {
+        /* Efecto hover para el degradado de las tarjetas */
+        .user-card .header-gradient {
             background-size: 200% 200%;
             background-position: 0% 0%;
             transition: background-position 0.8s ease, transform 0.3s ease;
         }
         
-        .user-card:hover .bg-gradient-to-br {
+        .user-card:hover .header-gradient {
             background-position: 100% 100%;
+            background: linear-gradient(135deg, #27cb79 0%, #10b981 100%);
         }
         
         /* Animación para el estado vacío */
@@ -634,7 +635,7 @@
             const h3Element = userCard.querySelector('h3');
             const userName = h3Element ? h3Element.textContent.trim() : 'Usuario desconocido';
             
-            const usernameElement = userCard.querySelector('.text-indigo-100');
+            const usernameElement = userCard.querySelector('.text-green-100');
             const userUsername = usernameElement ? usernameElement.textContent.replace('@', '').trim() : 'username';
             
             // Buscar email de forma más segura
@@ -766,7 +767,7 @@
             // Obtener grupos del usuario
             const groupsContainer = document.getElementById('modalGroups');
             if (groupsContainer) {
-                const groupElements = userCard.querySelectorAll('.bg-violet-100');
+                const groupElements = userCard.querySelectorAll('.bg-green-100');
                 groupsContainer.innerHTML = '';
                 
                 if (groupElements.length > 0) {
@@ -774,16 +775,16 @@
                         const groupName = group.textContent.trim();
                         if (!groupName.startsWith('+')) {
                             groupsContainer.innerHTML += `
-                                <div class="bg-purple-50 text-purple-800 px-3 py-1 rounded-lg flex items-center text-sm">
-                                    <i class="fas fa-users text-purple-500 mr-2"></i>
+                                <div class="bg-green-50 text-green-800 px-3 py-1 rounded-lg flex items-center text-sm">
+                                    <i class="fas fa-users text-green-600 mr-2"></i>
                                     <span>${groupName}</span>
                                 </div>
                             `;
                             
                             if (badgesContainer) {
                                 badgesContainer.innerHTML += `
-                                    <div class="bg-purple-500/20 backdrop-blur-sm text-white px-3 py-1 rounded-lg text-sm flex items-center">
-                                        <i class="fas fa-users text-purple-300 mr-2"></i>
+                                    <div class="bg-green-500/20 backdrop-blur-sm text-white px-3 py-1 rounded-lg text-sm flex items-center">
+                                        <i class="fas fa-users text-green-300 mr-2"></i>
                                         <span>${groupName}</span>
                                     </div>
                                 `;
@@ -938,11 +939,11 @@
         // Agregar efecto de hover avanzado a las tarjetas
         cards.forEach(card => {
             card.addEventListener('mouseenter', function() {
-                this.classList.add('shadow-xl', 'border-purple-100');
+                this.classList.add('shadow-xl', 'border-green-100');
             });
             
             card.addEventListener('mouseleave', function() {
-                this.classList.remove('shadow-xl', 'border-purple-100');
+                this.classList.remove('shadow-xl', 'border-green-100');
             });
         });
         
