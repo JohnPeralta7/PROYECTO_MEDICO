@@ -4,7 +4,8 @@ from applications.doctor.views.atencion_medica import AtencionListView, Atencion
     AtencionDeleteView
 
 from applications.doctor.views.cita_medica import (
-    CitaMedicaListView, CitaMedicaCreateView, CitaMedicaDeleteView, CitaMedicaUpdateView
+    CitaMedicaListView, CitaMedicaCreateView, CitaMedicaDeleteView, CitaMedicaUpdateView,
+    CalendarioCitasView, get_day_schedule_ajax, crear_cita_ajax
 )
 
 from applications.doctor.views.horario_atencion import (
@@ -34,6 +35,11 @@ urlpatterns = [
     path('citas_create/', CitaMedicaCreateView.as_view(), name="cita_medica_create"),
     path('citas_delete/<int:pk>/', CitaMedicaDeleteView.as_view(), name="cita_medica_delete"),
     path('citas_update/<int:pk>/', CitaMedicaUpdateView.as_view(), name="cita_medica_update"),
+    
+    # Rutas AJAX para calendario
+    path('calendario_citas/', CalendarioCitasView.as_view(), name="calendario_citas"),
+    path('ajax/horarios_dia/', get_day_schedule_ajax, name="get_day_schedule_ajax"),
+    path('ajax/crear_cita/', crear_cita_ajax, name="crear_cita_ajax"),
 
 
     # Rutas HORARIO ATENCION

@@ -1,0 +1,547 @@
+{% extends 'home.html' %}
+{% load static %}
+
+{% block title %}Calendario de Citas Médicas{% endblock %}
+
+{% block content %}
+<!-- Font Awesome para iconos -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<div class="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 py-8">
+    {% include 'fragments/messages.html' %}
+    
+    <!-- Header -->
+    <div class="max-w-7xl mx-auto px-4 mb-8">
+        <div class="bg-white rounded-2xl shadow-xl p-6 border border-gray-100">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <div class="p-4 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl shadow-lg transform hover:scale-110 transition-transform duration-300">
+                        <i class="fas fa-calendar-alt text-2xl text-white"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-3xl font-bold text-gray-800 mb-1">Calendario de Citas Médicas</h1>
+                        <p class="text-gray-600">Gestiona y programa citas de manera visual e intuitiva</p>
+                    </div>
+                </div>
+                <div class="flex space-x-3">
+                    <a href="{% url 'home' %}" 
+                       class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-3 rounded-xl font-medium flex items-center space-x-2 transition-all duration-300 transform hover:scale-105 hover:shadow-lg">
+                        <i class="fas fa-home"></i>
+                        <span>Inicio</span>
+                    </a>
+                    <a href="{{ create_cita_medica }}" 
+                       class="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-6 py-3 rounded-xl font-medium flex items-center space-x-2 transition-all duration-300 transform hover:scale-105 hover:shadow-lg">
+                        <i class="fas fa-plus"></i>
+                        <span>Nueva Cita</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenido Principal -->
+    <div class="max-w-7xl mx-auto px-4">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            
+            <!-- TARJETA IZQUIERDA: CALENDARIO MENSUAL -->
+            <div class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden transform hover:shadow-2xl transition-shadow duration-500">
+                <!-- Header del Calendario -->
+                <div class="bg-gradient-to-r from-blue-600 to-indigo-700 p-6">
+                    <div class="flex items-center justify-between">
+                        <button id="prevMonth" 
+                                class="p-3 bg-white/20 hover:bg-white/30 rounded-xl transition-all duration-300 transform hover:scale-110">
+                            <i class="fas fa-chevron-left text-white text-xl"></i>
+                        </button>
+                        
+                        <div class="text-center">
+                            <h2 id="monthYear" class="text-2xl font-bold text-white mb-1">
+                                {{ month_name }} {{ year }}
+                            </h2>
+                            <p class="text-blue-100">Selecciona un día para ver horarios</p>
+                        </div>
+                        
+                        <button id="nextMonth" 
+                                class="p-3 bg-white/20 hover:bg-white/30 rounded-xl transition-all duration-300 transform hover:scale-110">
+                            <i class="fas fa-chevron-right text-white text-xl"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Días de la Semana -->
+                <div class="grid grid-cols-7 bg-gray-50 border-b">
+                    {% for day in "LMMJVSD" %}
+                    <div class="p-3 text-center font-semibold text-gray-600 text-sm">
+                        {% if day == "L" %}Lun
+                        {% elif day == "M" %}Mar
+                        {% elif day == "M" %}Mié
+                        {% elif day == "J" %}Jue
+                        {% elif day == "V" %}Vie
+                        {% elif day == "S" %}Sáb
+                        {% elif day == "D" %}Dom
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Grid del Calendario -->
+                <div id="calendarGrid" class="grid grid-cols-7 p-4 gap-2">
+                    {% for day_data in calendar_data %}
+                    <div class="calendar-day relative {% if not day_data.is_current_month %}opacity-30{% endif %} 
+                                {% if day_data.is_today %}bg-gradient-to-br from-blue-100 to-indigo-100 border-2 border-blue-400{% endif %}
+                                {% if day_data.is_past and day_data.is_current_month %}bg-gray-100{% elif day_data.is_current_month %}bg-white hover:bg-blue-50{% endif %}
+                                border border-gray-200 rounded-xl p-3 cursor-pointer transition-all duration-300 transform hover:scale-105 hover:shadow-lg"
+                         data-date="{{ day_data.date|date:'Y-m-d' }}"
+                         data-has-schedule="{{ day_data.has_schedule|yesno:'true,false' }}"
+                         data-is-past="{{ day_data.is_past|yesno:'true,false' }}">
+                        
+                        <div class="text-center">
+                            <span class="text-lg font-semibold {% if day_data.is_today %}text-blue-600{% elif day_data.is_past %}text-gray-400{% else %}text-gray-700{% endif %}">
+                                {{ day_data.date.day }}
+                            </span>
+                            
+                            {% if day_data.total_citas > 0 %}
+                            <div class="mt-1">
+                                <span class="inline-block w-6 h-6 bg-gradient-to-r from-red-500 to-pink-600 text-white text-xs rounded-full flex items-center justify-center font-bold shadow-lg">
+                                    {{ day_data.total_citas }}
+                                </span>
+                            </div>
+                            {% endif %}
+                            
+                            {% if day_data.has_schedule and not day_data.is_past %}
+                            <div class="mt-1">
+                                <div class="w-2 h-2 bg-green-400 rounded-full mx-auto animate-pulse"></div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Leyenda -->
+                <div class="bg-gray-50 p-4 border-t">
+                    <div class="flex flex-wrap gap-4 text-sm">
+                        <div class="flex items-center space-x-2">
+                            <div class="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
+                            <span class="text-gray-600">Día con horario</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <div class="w-6 h-6 bg-gradient-to-r from-red-500 to-pink-600 rounded-full flex items-center justify-center">
+                                <span class="text-white text-xs font-bold">N</span>
+                            </div>
+                            <span class="text-gray-600">Citas programadas</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <div class="w-6 h-6 bg-gradient-to-br from-blue-100 to-indigo-100 border-2 border-blue-400 rounded"></div>
+                            <span class="text-gray-600">Hoy</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TARJETA DERECHA: HORARIOS DEL DÍA -->
+            <div class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden transform hover:shadow-2xl transition-shadow duration-500">
+                <!-- Header de Horarios -->
+                <div class="bg-gradient-to-r from-emerald-600 to-teal-700 p-6">
+                    <div class="text-center">
+                        <h3 class="text-2xl font-bold text-white mb-1">Horarios Disponibles</h3>
+                        <p id="selectedDate" class="text-emerald-100">Selecciona un día del calendario</p>
+                    </div>
+                </div>
+
+                <!-- Contenido de Horarios -->
+                <div id="scheduleContent" class="p-6">
+                    <!-- Estado inicial: ningún día seleccionado -->
+                    <div id="noDateSelected" class="text-center py-12">
+                        <div class="mb-6">
+                            <i class="fas fa-hand-pointer text-6xl text-gray-300 animate-bounce"></i>
+                        </div>
+                        <h4 class="text-xl font-semibold text-gray-600 mb-2">Selecciona un día</h4>
+                        <p class="text-gray-500">Haz clic en cualquier día del calendario para ver los horarios disponibles</p>
+                    </div>
+
+                    <!-- Loading state -->
+                    <div id="loadingSchedule" class="hidden text-center py-12">
+                        <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+                        <p class="text-gray-600">Cargando horarios...</p>
+                    </div>
+
+                    <!-- Sin horarios configurados -->
+                    <div id="noScheduleDay" class="hidden text-center py-12">
+                        <div class="mb-6">
+                            <i class="fas fa-calendar-times text-6xl text-gray-300"></i>
+                        </div>
+                        <h4 class="text-xl font-semibold text-gray-600 mb-2">Sin horarios configurados</h4>
+                        <p class="text-gray-500">Este día no tiene horarios de atención configurados</p>
+                    </div>
+
+                    <!-- Grid de horarios -->
+                    <div id="scheduleGrid" class="hidden">
+                        <div class="mb-6">
+                            <h4 class="text-lg font-semibold text-gray-700 mb-3 flex items-center">
+                                <i class="fas fa-clock text-emerald-600 mr-2"></i>
+                                Horarios Disponibles
+                            </h4>
+                            <div id="availableHours" class="grid grid-cols-3 gap-3">
+                                <!-- Los horarios se cargarán dinámicamente -->
+                            </div>
+                        </div>
+
+                        <div id="occupiedSection" class="hidden">
+                            <h4 class="text-lg font-semibold text-gray-700 mb-3 flex items-center">
+                                <i class="fas fa-user-clock text-red-600 mr-2"></i>
+                                Horarios Ocupados
+                            </h4>
+                            <div id="occupiedHours" class="grid grid-cols-3 gap-3 mb-6">
+                                <!-- Los horarios ocupados se cargarán dinámicamente -->
+                            </div>
+                        </div>
+
+                        <div id="citasSection" class="hidden">
+                            <h4 class="text-lg font-semibold text-gray-700 mb-3 flex items-center">
+                                <i class="fas fa-users text-blue-600 mr-2"></i>
+                                Citas Programadas
+                            </h4>
+                            <div id="citasList" class="space-y-3">
+                                <!-- Las citas se cargarán dinámicamente -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Nueva Cita -->
+<div id="citaModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 transform scale-95 transition-transform duration-300">
+        <div class="bg-gradient-to-r from-blue-600 to-indigo-700 p-6 rounded-t-2xl">
+            <div class="flex items-center justify-between">
+                <h3 class="text-xl font-bold text-white">Nueva Cita Médica</h3>
+                <button id="closeCitaModal" class="text-white hover:text-gray-200 transition-colors">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+        </div>
+        
+        <form id="citaForm" class="p-6">
+            {% csrf_token %}
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Fecha y Hora</label>
+                    <div class="bg-gray-50 p-3 rounded-lg">
+                        <p id="modalDateTime" class="text-gray-800 font-medium"></p>
+                    </div>
+                </div>
+                
+                <div>
+                    <label for="paciente_id" class="block text-sm font-semibold text-gray-700 mb-2">Paciente</label>
+                    <select id="paciente_id" name="paciente_id" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="">Seleccionar paciente...</option>
+                        {% for paciente in pacientes %}
+                        <option value="{{ paciente.id }}">{{ paciente.nombre_completo }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div>
+                    <label for="observaciones" class="block text-sm font-semibold text-gray-700 mb-2">Observaciones</label>
+                    <textarea id="observaciones" name="observaciones" rows="3" 
+                              class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              placeholder="Observaciones adicionales (opcional)"></textarea>
+                </div>
+            </div>
+            
+            <div class="flex space-x-3 mt-6">
+                <button type="button" id="cancelCita" 
+                        class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 py-3 rounded-lg font-medium transition-colors">
+                    Cancelar
+                </button>
+                <button type="submit" 
+                        class="flex-1 bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white py-3 rounded-lg font-medium transition-all transform hover:scale-105">
+                    <i class="fas fa-save mr-2"></i>Guardar Cita
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let selectedDate = null;
+    let selectedHour = null;
+    let currentYear = parseInt('{{ year }}');
+    let currentMonth = parseInt('{{ month }}');
+
+    // Elementos del DOM
+    const calendarDays = document.querySelectorAll('.calendar-day');
+    const selectedDateEl = document.getElementById('selectedDate');
+    const scheduleContent = document.getElementById('scheduleContent');
+    const noDateSelected = document.getElementById('noDateSelected');
+    const loadingSchedule = document.getElementById('loadingSchedule');
+    const noScheduleDay = document.getElementById('noScheduleDay');
+    const scheduleGrid = document.getElementById('scheduleGrid');
+    const availableHours = document.getElementById('availableHours');
+    const occupiedHours = document.getElementById('occupiedHours');
+    const citasList = document.getElementById('citasList');
+    const citaModal = document.getElementById('citaModal');
+    const citaForm = document.getElementById('citaForm');
+    const modalDateTime = document.getElementById('modalDateTime');
+
+    // Event listeners para días del calendario
+    calendarDays.forEach(day => {
+        day.addEventListener('click', function() {
+            const date = this.dataset.date;
+            const hasSchedule = this.dataset.hasSchedule === 'true';
+            const isPast = this.dataset.isPast === 'true';
+            
+            if (isPast) {
+                showNotification('No se pueden seleccionar fechas pasadas', 'warning');
+                return;
+            }
+            
+            // Remover selección anterior
+            calendarDays.forEach(d => d.classList.remove('ring-4', 'ring-blue-400', 'ring-opacity-50'));
+            
+            // Agregar selección actual
+            this.classList.add('ring-4', 'ring-blue-400', 'ring-opacity-50');
+            
+            selectedDate = date;
+            loadDaySchedule(date, hasSchedule);
+        });
+    });
+
+    // Función para cargar horarios del día
+    function loadDaySchedule(date, hasSchedule) {
+        // Ocultar todas las secciones
+        hideAllScheduleSections();
+        
+        // Mostrar loading
+        loadingSchedule.classList.remove('hidden');
+        
+        // Actualizar fecha seleccionada
+        const dateObj = new Date(date + 'T00:00:00');
+        const formattedDate = dateObj.toLocaleDateString('es-ES', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+        selectedDateEl.textContent = formattedDate;
+        
+        if (!hasSchedule) {
+            setTimeout(() => {
+                loadingSchedule.classList.add('hidden');
+                noScheduleDay.classList.remove('hidden');
+            }, 500);
+            return;
+        }
+        
+        // Realizar petición AJAX
+        const ajaxUrl = '{% url "doctor:get_day_schedule_ajax" %}';
+        fetch(ajaxUrl + '?fecha=' + date)
+            .then(response => response.json())
+            .then(data => {
+                setTimeout(() => {
+                    loadingSchedule.classList.add('hidden');
+                    displaySchedule(data);
+                }, 500);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                setTimeout(() => {
+                    loadingSchedule.classList.add('hidden');
+                    noScheduleDay.classList.remove('hidden');
+                }, 500);
+                showNotification('Error al cargar horarios', 'error');
+            });
+    }
+
+    // Función para mostrar horarios
+    function displaySchedule(data) {
+        scheduleGrid.classList.remove('hidden');
+        
+        // Limpiar contenido anterior
+        availableHours.innerHTML = '';
+        occupiedHours.innerHTML = '';
+        citasList.innerHTML = '';
+        
+        // Mostrar horarios disponibles
+        data.horarios_disponibles.forEach(hora => {
+            const hourBtn = createHourButton(hora, 'available');
+            availableHours.appendChild(hourBtn);
+        });
+        
+        // Mostrar horarios ocupados
+        if (data.horarios_ocupados.length > 0) {
+            document.getElementById('occupiedSection').classList.remove('hidden');
+            data.horarios_ocupados.forEach(hora => {
+                const hourBtn = createHourButton(hora, 'occupied');
+                occupiedHours.appendChild(hourBtn);
+            });
+        }
+        
+        // Mostrar citas existentes
+        if (data.citas.length > 0) {
+            document.getElementById('citasSection').classList.remove('hidden');
+            data.citas.forEach(cita => {
+                const citaItem = createCitaItem(cita);
+                citasList.appendChild(citaItem);
+            });
+        }
+    }
+
+    // Función para crear botón de hora
+    function createHourButton(hora, type) {
+        const btn = document.createElement('button');
+        btn.className = type === 'available' 
+            ? 'p-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-lg font-medium transition-all transform hover:scale-105 hover:shadow-lg'
+            : 'p-3 bg-gradient-to-r from-red-500 to-pink-600 text-white rounded-lg font-medium opacity-60 cursor-not-allowed';
+        
+        btn.textContent = hora;
+        
+        if (type === 'available') {
+            btn.addEventListener('click', () => openCitaModal(hora));
+        }
+        
+        return btn;
+    }
+
+    // Función para crear item de cita
+    function createCitaItem(cita) {
+        const div = document.createElement('div');
+        div.className = 'bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-center justify-between';
+        div.innerHTML = '<div><p class="font-semibold text-blue-800">' + cita.hora + ' - ' + cita.paciente + '</p><p class="text-sm text-blue-600">' + (cita.observaciones || 'Sin observaciones') + '</p></div><span class="px-2 py-1 bg-blue-200 text-blue-800 rounded-full text-xs font-medium">' + cita.estado + '</span>';
+        return div;
+    }
+
+    // Función para abrir modal de cita
+    function openCitaModal(hora) {
+        selectedHour = hora;
+        const dateObj = new Date(selectedDate + 'T00:00:00');
+        const formattedDate = dateObj.toLocaleDateString('es-ES', {
+            weekday: 'long',
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric'
+        });
+        
+        modalDateTime.textContent = formattedDate + ' a las ' + hora;
+        citaModal.classList.remove('hidden');
+        citaModal.querySelector('.transform').classList.remove('scale-95');
+        citaModal.querySelector('.transform').classList.add('scale-100');
+    }
+
+    // Función para cerrar modal
+    function closeCitaModal() {
+        citaModal.querySelector('.transform').classList.remove('scale-100');
+        citaModal.querySelector('.transform').classList.add('scale-95');
+        setTimeout(() => {
+            citaModal.classList.add('hidden');
+            citaForm.reset();
+        }, 300);
+    }
+
+    // Event listeners del modal
+    document.getElementById('closeCitaModal').addEventListener('click', closeCitaModal);
+    document.getElementById('cancelCita').addEventListener('click', closeCitaModal);
+
+    // Submit del formulario
+    citaForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData();
+        formData.append('fecha', selectedDate);
+        formData.append('hora', selectedHour);
+        formData.append('paciente_id', document.getElementById('paciente_id').value);
+        formData.append('observaciones', document.getElementById('observaciones').value);
+        formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+        
+        const submitUrl = '{% url "doctor:crear_cita_ajax" %}';
+        fetch(submitUrl, {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification(data.message, 'success');
+                closeCitaModal();
+                // Recargar horarios del día
+                loadDaySchedule(selectedDate, true);
+                // Actualizar contador en el calendario
+                updateCalendarDayCounter(selectedDate);
+            } else {
+                showNotification(data.error, 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Error al crear la cita', 'error');
+        });
+    });
+
+    // Funciones auxiliares
+    function hideAllScheduleSections() {
+        noDateSelected.classList.add('hidden');
+        loadingSchedule.classList.add('hidden');
+        noScheduleDay.classList.add('hidden');
+        scheduleGrid.classList.add('hidden');
+        document.getElementById('occupiedSection').classList.add('hidden');
+        document.getElementById('citasSection').classList.add('hidden');
+    }
+
+    function showNotification(message, type) {
+        // Crear notificación temporal
+        const notification = document.createElement('div');
+        let bgClass = 'bg-red-600';
+        if (type === 'success') bgClass = 'bg-green-600';
+        if (type === 'warning') bgClass = 'bg-yellow-600';
+        
+        notification.className = 'fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg text-white font-medium transform translate-x-full transition-transform duration-300 ' + bgClass;
+        notification.textContent = message;
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => notification.classList.remove('translate-x-full'), 100);
+        setTimeout(() => {
+            notification.classList.add('translate-x-full');
+            setTimeout(() => document.body.removeChild(notification), 300);
+        }, 3000);
+    }
+
+    function updateCalendarDayCounter(date) {
+        const dayEl = document.querySelector('[data-date="' + date + '"]');
+        if (dayEl) {
+            // Actualizar contador visualmente
+            const counter = dayEl.querySelector('.bg-gradient-to-r.from-red-500');
+            if (counter) {
+                const currentCount = parseInt(counter.textContent) || 0;
+                counter.textContent = currentCount + 1;
+            } else {
+                // Crear nuevo contador
+                const dayContent = dayEl.querySelector('div');
+                const newCounter = document.createElement('div');
+                newCounter.className = 'mt-1';
+                newCounter.innerHTML = '<span class="inline-block w-6 h-6 bg-gradient-to-r from-red-500 to-pink-600 text-white text-xs rounded-full flex items-center justify-center font-bold shadow-lg">1</span>';
+                dayContent.appendChild(newCounter);
+            }
+        }
+    }
+
+    // Navegación de meses
+    document.getElementById('prevMonth').addEventListener('click', function() {
+        const newMonth = currentMonth === 1 ? 12 : currentMonth - 1;
+        const newYear = currentMonth === 1 ? currentYear - 1 : currentYear;
+        window.location.href = '?year=' + newYear + '&month=' + newMonth;
+    });
+
+    document.getElementById('nextMonth').addEventListener('click', function() {
+        const newMonth = currentMonth === 12 ? 1 : currentMonth + 1;
+        const newYear = currentMonth === 12 ? currentYear + 1 : currentYear;
+        window.location.href = '?year=' + newYear + '&month=' + newMonth;
+    });
+});
+</script>
+
+{% endblock %}
