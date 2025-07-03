@@ -1,0 +1,182 @@
+{% extends 'home.html' %}
+{% load widget_tweaks %}
+<title>{% block title %}Nuevo Paciente{% endblock %}</title>
+{% load static %}
+{% block content %}
+<section class="bg-gradient-to-tr from-cyan-50 to-cyan-100 min-h-screen py-10">
+  <div class="max-w-2xl mx-auto px-4">
+    <div class="flex items-center gap-3 mb-8">
+      <div class="bg-cyan-100 text-cyan-700 rounded-full p-3 shadow animate-bounce">
+        <i class="fas fa-user-plus fa-2x"></i>
+      </div>
+      <h1 class="text-3xl font-extrabold text-cyan-800 animate-pulse">Nuevo Paciente</h1>
+    </div>
+    {% if form.non_field_errors %}
+    <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded mb-6">
+      <ul>
+        {% for error in form.non_field_errors %}
+        <li>{{ error }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+    <form method="post" enctype="multipart/form-data" class="bg-white rounded-xl shadow-xl p-8 space-y-6">
+      {% csrf_token %}
+
+      <!-- Acordeón: Datos Personales -->
+      <div class="mb-4 border rounded-xl overflow-hidden">
+        <button type="button" class="w-full flex justify-between items-center px-4 py-3 bg-cyan-100 text-cyan-800 font-bold text-lg focus:outline-none transition-colors duration-300"
+          onclick="toggleAccordion('datosPersonales')">
+          <span><i class="fas fa-address-card"></i> Datos Personales</span>
+          <i id="icon-datosPersonales" class="fas fa-chevron-down"></i>
+        </button>
+        <div id="panel-datosPersonales" class="p-4 transition-all duration-300 ease-in-out overflow-hidden max-h-0">
+          {% for field in personales %}
+            <div class="flex flex-col mb-2">
+              {% if field|field_type == "CheckboxInput" %}
+                <div class="flex items-center gap-3 py-2 px-4 bg-cyan-50 rounded-xl border border-cyan-100 shadow-sm">
+                  {{ field|add_class:"h-5 w-5 text-cyan-600 rounded focus:ring-2 focus:ring-cyan-400" }}
+                  <label for="{{ field.id_for_label }}" class="text-cyan-700 font-semibold text-lg mb-0 cursor-pointer select-none">
+                    {{ field.label }}
+                  </label>
+                  {% if field.help_text %}
+                    <span class="text-xs text-gray-500 ml-2">{{ field.help_text }}</span>
+                  {% endif %}
+                </div>
+              {% elif field|field_type == "ClearableFileInput" %}
+                <label for="{{ field.id_for_label }}" class="block text-cyan-700 font-semibold mb-1">
+                  {{ field.label }}{% if field.field.required %}<span class="text-red-500">*</span>{% endif %}
+                </label>
+                <div class="flex items-center gap-4">
+                  {{ field|add_class:"block w-full text-sm text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-cyan-50 file:text-cyan-700 hover:file:bg-cyan-100" }}
+                  <div id="fotoPreviewWrapper" class="relative">
+                    <img id="previewFoto" src="#" alt="Previsualización" class="h-16 w-16 object-cover rounded-full border border-cyan-200 shadow hidden">
+                    <div id="fotoLoader" class="absolute inset-0 flex items-center justify-center bg-white bg-opacity-70 rounded-full hidden">
+                      <i class="fas fa-spinner fa-spin text-cyan-600 text-2xl"></i>
+                    </div>
+                    <button type="button" id="clearFotoBtn" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow hover:bg-red-700 hidden" title="Quitar foto">
+                      <i class="fas fa-times"></i>
+                    </button>
+                  </div>
+                </div>
+                {% if field.help_text %}
+                  <span class="text-xs text-gray-500">{{ field.help_text }}</span>
+                {% endif %}
+              {% else %}
+                <label for="{{ field.id_for_label }}" class="block text-cyan-700 font-semibold mb-1">
+                  {{ field.label }}{% if field.field.required %}<span class="text-red-500">*</span>{% endif %}
+                </label>
+                {{ field|add_class:"w-full px-4 py-3 rounded-xl border border-cyan-300 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition text-lg" }}
+                {% if field.help_text %}
+                  <span class="text-xs text-gray-500">{{ field.help_text }}</span>
+                {% endif %}
+              {% endif %}
+              {% if field.errors %}
+                <div class="text-red-600 text-xs mt-1">
+                  {% for error in field.errors %}
+                    <div class="flex items-center gap-1"><i class="fa-solid fa-circle-exclamation"></i> {{ error }}</div>
+                  {% endfor %}
+                </div>
+              {% endif %}
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Acordeón: Historial Clínico -->
+      <div class="mb-4 border rounded-xl overflow-hidden">
+        <button type="button" class="w-full flex justify-between items-center px-4 py-3 bg-cyan-100 text-cyan-800 font-bold text-lg focus:outline-none transition-colors duration-300"
+          onclick="toggleAccordion('historialClinico')">
+          <span><i class="fas fa-notes-medical"></i> Historial Clínico</span>
+          <i id="icon-historialClinico" class="fas fa-chevron-down"></i>
+        </button>
+        <div id="panel-historialClinico" class="p-4 transition-all duration-300 ease-in-out overflow-hidden max-h-0">
+          {% for field in clinico %}
+            <div class="flex flex-col mb-2">
+              <label for="{{ field.id_for_label }}" class="block text-cyan-700 font-semibold mb-1">
+                {{ field.label }}{% if field.field.required %}<span class="text-red-500">*</span>{% endif %}
+              </label>
+              {{ field|add_class:"w-full px-4 py-3 rounded-xl border border-cyan-300 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition text-lg" }}
+              {% if field.help_text %}
+                <span class="text-xs text-gray-500">{{ field.help_text }}</span>
+              {% endif %}
+              {% if field.errors %}
+                <div class="text-red-600 text-xs mt-1">
+                  {% for error in field.errors %}
+                    <div class="flex items-center gap-1"><i class="fa-solid fa-circle-exclamation"></i> {{ error }}</div>
+                  {% endfor %}
+                </div>
+              {% endif %}
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-4 pt-4 border-t border-cyan-100 mt-6">
+        <button type="submit" class="bg-cyan-600 hover:bg-cyan-700 text-white px-10 py-3 rounded-full flex items-center gap-3 font-bold text-lg shadow-lg transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-cyan-400 animate-pulse">
+          <i class="fas fa-save"></i> Guardar
+        </button>
+        <a href="{% url 'core:paciente_list' %}" class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-10 py-3 rounded-full flex items-center gap-3 font-bold text-lg shadow-lg transition-all duration-200 transform hover:scale-105">
+          <i class="fas fa-times-circle"></i> Cancelar
+        </a>
+      </div>
+    </form>
+  </div>
+</section>
+<script>
+function toggleAccordion(section) {
+  const panels = {
+    datosPersonales: document.getElementById('panel-datosPersonales'),
+    historialClinico: document.getElementById('panel-historialClinico')
+  };
+  const icons = {
+    datosPersonales: document.getElementById('icon-datosPersonales'),
+    historialClinico: document.getElementById('icon-historialClinico')
+  };
+  for (let key in panels) {
+    panels[key].style.maxHeight = '0px';
+    icons[key].classList.remove('fa-chevron-up');
+    icons[key].classList.add('fa-chevron-down');
+  }
+  const panel = panels[section];
+  panel.classList.remove('hidden');
+  panel.style.maxHeight = panel.scrollHeight + 'px';
+  icons[section].classList.remove('fa-chevron-down');
+  icons[section].classList.add('fa-chevron-up');
+}
+document.addEventListener('DOMContentLoaded', function() {
+  toggleAccordion('datosPersonales');
+  // Foto preview mejorada
+  const inputFoto = document.getElementById("id_foto");
+  const preview = document.getElementById("previewFoto");
+  const loader = document.getElementById("fotoLoader");
+  const clearBtn = document.getElementById("clearFotoBtn");
+  if(inputFoto && preview && loader && clearBtn){
+    inputFoto.addEventListener("change", function(e){
+      if (e.target.files && e.target.files[0]) {
+        loader.classList.remove("hidden");
+        const reader = new FileReader();
+        reader.onload = function(ev) {
+          preview.src = ev.target.result;
+          preview.classList.remove("hidden");
+          loader.classList.add("hidden");
+          clearBtn.classList.remove("hidden");
+        }
+        reader.readAsDataURL(e.target.files[0]);
+      } else {
+        preview.src = "#";
+        preview.classList.add("hidden");
+        loader.classList.add("hidden");
+        clearBtn.classList.add("hidden");
+      }
+    });
+    clearBtn.addEventListener("click", function(){
+      inputFoto.value = "";
+      preview.src = "#";
+      preview.classList.add("hidden");
+      clearBtn.classList.add("hidden");
+    });
+  }
+});
+</script>
+{% endblock %}

@@ -17,7 +17,7 @@ from applications.core.views.doctor import (
 from applications.core.views.diagnostico import (
      DiagnosticoListView, DiagnosticoCreateView, DiagnosticoDeleteView, DiagnosticoUpdateView
     )
-
+from applications.core.views.paciente import paciente_json
 
 app_name='core' # define un espacio de nombre para la aplicacion
 urlpatterns = [
@@ -27,6 +27,8 @@ urlpatterns = [
     path('paciente_create/', PacienteCreateView.as_view(), name='paciente_create'),
     path('paciente_delete/<int:pk>/', PacienteDeleteView.as_view(), name='paciente_delete'),
     path('paciente_update/<int:pk>/', PacienteUpdateView.as_view(), name='paciente_update'),
+    path('paciente/<int:pk>/json/', paciente_json, name='paciente_json'),
+
 
     #RUTAS DE MEDICAMENTO
     #path('paciente_find/', paciente_find, name="paciente_find"), por si deseas crear una autocompletacion como en pacientes

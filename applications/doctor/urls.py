@@ -16,7 +16,7 @@ from applications.doctor.views.pago import (
 )
 
 from applications.doctor.views.servicios_adicionales import (
-    ServiciosAdicionalesListView, ServiciosAdicionalesCreateView, ServiciosAdicionalesDeleteView, ServiciosAdicionalesUpdateView
+    ServiciosAdicionalesListView, ServiciosAdicionalesCreateView, ServiciosAdicionalesDeleteView, ServiciosAdicionalesUpdateView,
 )
 
 
@@ -31,14 +31,14 @@ urlpatterns = [
     # Rutas CITA MEDICA
     path('citas_list/', CitaMedicaListView.as_view(), name="cita_medica_list"),
     path('citas_create/', CitaMedicaCreateView.as_view(), name="cita_medica_create"),
-    path('citas_update/<int:pk>/', CitaMedicaDeleteView.as_view(), name="cita_medica_update"),
-    path('citas_delete/<int:pk>/', CitaMedicaUpdateView.as_view(), name="cita_medica_delete"),
+    path('citas_delete/<int:pk>/', CitaMedicaDeleteView.as_view(), name="cita_medica_delete"),
+    path('citas_update/<int:pk>/', CitaMedicaUpdateView.as_view(), name="cita_medica_update"),
 
     # Rutas HORARIO ATENCION
     path('horario_atencion_list/', HorarioAtencionListView.as_view(), name="horario_atencion_list"),
     path('horario_atencion_create/', HorarioAtencionCreateView.as_view(), name="horario_atencion_create"),
-    path('horario_atencion_update/<int:pk>/', HorarioAtencionDeleteView.as_view(), name="horario_atencion_update"),
-    path('horario_atencion_delete/<int:pk>/', HorarioAtencionUpdateView.as_view(), name="horario_atencion_delete"),
+    path('horario_atencion_delete/<int:pk>/', HorarioAtencionDeleteView.as_view(), name="horario_atencion_delete"),
+    path('horario_atencion_update/<int:pk>/', HorarioAtencionUpdateView.as_view(), name="horario_atencion_update"),
 
     # Rutas  PAGO
     path('pago_list/', PagoListView.as_view(), name="pago_list"),
@@ -50,7 +50,7 @@ urlpatterns = [
     # Rutas  SERVICIOS ADICIONALES
     path('servicio_adicional_list/', ServiciosAdicionalesListView.as_view(), name="servicios_adicionales_list"),
     path('servicio_adicional_create/', ServiciosAdicionalesCreateView.as_view(), name="servicios_adicionales_create"),
-    path('servicio_adicional_update/<int:pk>/', ServiciosAdicionalesDeleteView.as_view(), name="servicios_adicionales_update"),
-    path('servicio_adicional_delete/<int:pk>/', ServiciosAdicionalesUpdateView.as_view(), name="servicios_adicionales_delete"),
+    path('servicio_adicional_delete/<int:pk>/', ServiciosAdicionalesDeleteView.as_view(), name="servicios_adicionales_delete"),
+    path('servicio_adicional_update/<int:pk>/', ServiciosAdicionalesUpdateView.as_view(), name="servicios_adicionales_update"),
 
 ]

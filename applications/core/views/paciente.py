@@ -1,8 +1,14 @@
 from django.http import JsonResponse
 from django.urls import reverse_lazy
+from django.contrib import messages
 from django.db.models import Q
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
+from django.shortcuts import get_object_or_404
+from applications.security.components.mixin_crud import CreateViewMixin, DeleteViewMixin, ListViewMixin, PermissionMixin, UpdateViewMixin
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required
+from applications.core.forms.paciente import PacienteForm
 from applications.core.models import Paciente
 from django.views.generic import ListView, CreateView, DeleteView, UpdateView
 from applications.core.models import (
@@ -156,7 +162,7 @@ def paciente_find(request):
 
 
 
-class PacienteListView(ListView):
+class PacienteListView(PermissionMixin, ListViewMixin, ListView):
     model = Paciente
     template_name = 'core/paciente/pacientelistview.html'
     context_object_name = 'pacientes'
@@ -194,21 +200,128 @@ class PacienteListView(ListView):
         # Agregamos estadísticas para el dashboard
         context['total_patient'] = Paciente.objects.count()
         context['active_patient'] = Paciente.objects.filter(activo=True).count()
-        
-        
         return context
     
 
 
 
-class PacienteDeleteView(DeleteView):
-    ...
+class PacienteDeleteView(PermissionMixin, DeleteViewMixin, DeleteView):
+    model = Paciente
+    template_name = 'core/delete.html'
+    success_url = reverse_lazy('core:paciente_list')
+    permission_required = 'delete_paciente'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data()
+        context['grabar'] = 'Eliminar Paciente'
+        context['description'] = f"¿Desea eliminar el paciente: {self.object.name}?"
+        context['back_url'] = self.success_url
+        return context
+
+    
+    def form_valid(self, form):
+        # Guardar info antes de eliminar
+        paciente_name = f"{self.object.nombres} {self.object.apellidos}"
+        
+        # Llamar al delete del padre
+        response = super().form_valid(form)
+        
+        # Agregar mensaje
+        messages.success(self.request, f"Éxito al eliminar lógicamente el paciente {paciente_name}.")    
+        return response
 
 
 
-class PacienteUpdateView(UpdateView):
-    ...
+class PacienteUpdateView(PermissionMixin, UpdateViewMixin, UpdateView):
+    model = Paciente
+    template_name = 'core/paciente/pacienteupdate.html'
+    form_class = PacienteForm
+    success_url = reverse_lazy('core:paciente_list')
+    permission_required = 'change_paciente'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        form = context['form']
+        personales = []
+        clinico = []
+        found = False
+        for field in form.visible_fields():
+            if field.name == "antecedentes_personales":
+                found = True
+            if not found:
+                personales.append(field)
+            else:
+                clinico.append(field)
+        context['personales'] = personales
+        context['clinico'] = clinico
+        return context
+
+    def form_valid(self, form):
+        paciente_name = f"{self.object.nombres} {self.object.apellidos}"
+        response = super().form_valid(form)
+        messages.success(self.request, f"Éxito al actualizar el paciente {paciente_name}.")
+        return response
 
 
-class PacienteCreateView(CreateView):
-    ...
+class PacienteCreateView(PermissionMixin, CreateViewMixin, CreateView):
+    model = Paciente
+    template_name = 'core/paciente/pacientecreate.html'
+    form_class = PacienteForm
+    success_url = reverse_lazy('core:paciente_list')
+    permission_required = 'add_paciente'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        form = context['form']
+        personales = []
+        clinico = []
+        found = False
+        for field in form.visible_fields():
+            if field.name == "antecedentes_personales":
+                found = True
+            if not found:
+                personales.append(field)
+            else:
+                clinico.append(field)
+        context['personales'] = personales
+        context['clinico'] = clinico
+        return context
+
+    def form_valid(self, form):
+        self.object = form.save()
+        paciente_name = f"{self.object.nombres} {self.object.apellidos}"
+        response = super().form_valid(form)
+        messages.success(self.request, f"Éxito al crear el paciente {paciente_name}.")
+        return response
+    
+    
+@csrf_exempt  # Solo si tienes problemas de CSRF con fetch, si no, puedes quitarlo
+def paciente_json(request, pk):
+    paciente = get_object_or_404(Paciente, pk=pk)
+    data = {
+        "nombres": paciente.nombres or "",
+        "apellidos": paciente.apellidos or "",
+        "cedula_ecuatoriana": paciente.cedula_ecuatoriana or "",
+        "dni": paciente.dni or "",
+        "fecha_nacimiento": paciente.fecha_nacimiento.strftime('%Y-%m-%d') if paciente.fecha_nacimiento else "",
+        "telefono": paciente.telefono or "",
+        "email": paciente.email or "",
+        "sexo": paciente.sexo or "",
+        "direccion": paciente.direccion or "",
+        "estado_civil": paciente.estado_civil or "",
+        "latitud": paciente.latitud or "",
+        "longitud": paciente.longitud or "",
+        # Cambia esta línea:
+        "tipo_sangre": paciente.tipo_sangre.tipo if paciente.tipo_sangre else "",
+        "foto": paciente.foto.url if getattr(paciente, "foto", None) and paciente.foto else "",
+        "antecedentes_personales": paciente.antecedentes_personales or "",
+        "antecedentes_familiares": paciente.antecedentes_familiares or "",
+        "antecedentes_quirurgicos": paciente.antecedentes_quirurgicos or "",
+        "alergias": paciente.alergias or "",
+        "medicamentos_actuales": paciente.medicamentos_actuales or "",
+        "habitos_toxicos": paciente.habitos_toxicos or "",
+        "vacunas": paciente.vacunas or "",
+        "antecedentes_gineco_obstetricos": paciente.antecedentes_gineco_obstetricos or "",
+        "activo": paciente.activo,
+    }
+    return JsonResponse(data)
