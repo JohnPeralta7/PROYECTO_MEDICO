@@ -12,14 +12,39 @@
     </div>
     <form method="post" class="bg-white rounded-2xl shadow-2xl p-8 space-y-6 border border-cyan-100">
       {% csrf_token %}
+      
+      {% if form.non_field_errors %}
+        <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+          {% for error in form.non_field_errors %}
+            <div class="text-red-600 text-sm flex items-center gap-2">
+              <i class="fa-solid fa-circle-exclamation"></i> {{ error }}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+      
       {% for field in form.visible_fields %}
         <div>
-          <label for="{{ field.id_for_label }}" class="block text-cyan-700 font-semibold mb-1">
+          <label for="{{ field.id_for_label }}" class="block text-cyan-700 font-semibold mb-2">
             {{ field.label }}{% if field.field.required %}<span class="text-red-500">*</span>{% endif %}
           </label>
-          {{ field|add_class:"w-full px-4 py-3 rounded-xl border border-cyan-300 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition text-lg" }}
+          
+          {% if field.name == 'dias_semana' %}
+            <!-- Diseño especial para checkboxes de días -->
+            <div class="grid grid-cols-2 gap-3">
+              {% for choice in field %}
+                <label class="flex items-center space-x-2 p-3 bg-cyan-50 hover:bg-cyan-100 rounded-lg border border-cyan-200 cursor-pointer transition-colors">
+                  {{ choice.tag }}
+                  <span class="text-cyan-800 font-medium">{{ choice.choice_label }}</span>
+                </label>
+              {% endfor %}
+            </div>
+          {% else %}
+            {{ field|add_class:"w-full px-4 py-3 rounded-xl border border-cyan-300 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition text-lg" }}
+          {% endif %}
+          
           {% if field.help_text %}
-            <span class="text-xs text-gray-500">{{ field.help_text }}</span>
+            <span class="text-xs text-cyan-600 mt-1 block">{{ field.help_text }}</span>
           {% endif %}
           {% if field.errors %}
             <div class="text-red-600 text-xs mt-1">

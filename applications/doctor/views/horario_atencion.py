@@ -2,8 +2,9 @@ from django.http import JsonResponse
 from django.urls import reverse_lazy
 from django.contrib import messages
 from django.db.models import Q
+from django.shortcuts import redirect
 from applications.security.components.mixin_crud import CreateViewMixin, DeleteViewMixin, ListViewMixin, PermissionMixin, UpdateViewMixin
-from applications.doctor.forms.horario import HorarioAtencionForm
+from applications.doctor.forms.horario import HorarioAtencionForm, HorarioAtencionEditForm
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required
 from django.views.generic import ListView, CreateView, DeleteView, UpdateView
@@ -49,13 +50,56 @@ class HorarioAtencionCreateView(PermissionMixin, CreateViewMixin, CreateView):
     permission_required = 'add_horarioatencion'
 
     def form_valid(self, form):
-        messages.success(self.request, "Horario de atención creado correctamente.")
-        return super().form_valid(form)
+        """Crear múltiples horarios para los días seleccionados"""
+        dias_seleccionados = form.cleaned_data['dias_semana']
+        hora_inicio = form.cleaned_data['hora_inicio']
+        hora_fin = form.cleaned_data['hora_fin']
+        intervalo_desde = form.cleaned_data.get('intervalo_desde')
+        intervalo_hasta = form.cleaned_data.get('intervalo_hasta')
+        activo = form.cleaned_data['activo']
+        
+        horarios_creados = []
+        horarios_existentes = []
+        
+        for dia in dias_seleccionados:
+            # Verificar si ya existe un horario para este día con las mismas horas
+            if HorarioAtencion.objects.filter(
+                dia_semana=dia,
+                hora_inicio=hora_inicio,
+                hora_fin=hora_fin
+            ).exists():
+                horarios_existentes.append(dia)
+                continue
+            
+            # Crear el horario para este día
+            horario = HorarioAtencion.objects.create(
+                dia_semana=dia,
+                hora_inicio=hora_inicio,
+                hora_fin=hora_fin,
+                intervalo_desde=intervalo_desde,
+                intervalo_hasta=intervalo_hasta,
+                activo=activo
+            )
+            horarios_creados.append(dia)
+        
+        # Mensajes de feedback
+        if horarios_creados:
+            dias_creados = ', '.join([dict(self.form_class.base_fields['dias_semana'].choices)[dia] for dia in horarios_creados])
+            messages.success(self.request, f"Horarios creados exitosamente para: {dias_creados}")
+        
+        if horarios_existentes:
+            dias_existentes = ', '.join([dict(self.form_class.base_fields['dias_semana'].choices)[dia] for dia in horarios_existentes])
+            messages.warning(self.request, f"Ya existen horarios similares para: {dias_existentes}")
+        
+        if not horarios_creados and not horarios_existentes:
+            messages.error(self.request, "No se pudieron crear los horarios.")
+        
+        return redirect(self.success_url)
 
 class HorarioAtencionUpdateView(PermissionMixin, UpdateViewMixin, UpdateView):
     model = HorarioAtencion
     template_name = 'doctor/horario_atencion/horario_update.html'
-    form_class = HorarioAtencionForm
+    form_class = HorarioAtencionEditForm  # Usar el formulario de edición individual
     success_url = reverse_lazy('doctor:horario_atencion_list')
     permission_required = 'change_horarioatencion'
 
