@@ -792,26 +792,52 @@
     </style>
 
     <script>
+        // Variables globales
         let currentDoctorTab = 'informacion';
         
-        // Función para abrir el modal de creación de doctor
+        // Lista de especialidades comunes para autocompletado
+        const especialidadesComunes = [
+            'Medicina General', 'Pediatría', 'Cardiología', 'Dermatología', 
+            'Ginecología', 'Neurología', 'Oftalmología', 'Ortopedia', 
+            'Psiquiatría', 'Radiología', 'Urología', 'Endocrinología',
+            'Gastroenterología', 'Neumología', 'Oncología', 'Reumatología',
+            'Otorrinolaringología', 'Anestesiología', 'Cirugía General',
+            'Medicina Interna', 'Medicina Familiar', 'Geriatría'
+        ];
+        
+        // =================================
+        // FUNCIONES PRINCIPALES DEL MODAL
+        // =================================
+        
         function openCreateDoctorModal() {
-            document.getElementById('createDoctorModal').classList.remove('hidden');
-            document.getElementById('modalTitle').textContent = 'Nuevo Doctor';
-            document.getElementById('createDoctorForm').action = "{% url 'core:doctor_create' %}";
-            resetDoctorForm();
-            showDoctorTab('informacion');
+            console.log('🔥 Abriendo modal de crear doctor...');
+            const modal = document.getElementById('createDoctorModal');
+            if (modal) {
+                modal.classList.remove('hidden');
+                document.getElementById('modalTitle').textContent = 'Nuevo Doctor';
+                document.getElementById('createDoctorForm').action = "{% url 'core:doctor_create' %}";
+                resetDoctorForm();
+                showDoctorTab('informacion');
+                console.log('✅ Modal abierto correctamente');
+            } else {
+                console.error('❌ Modal no encontrado');
+                alert('Error: Modal no encontrado');
+            }
         }
         
-        // Función para cerrar el modal de creación de doctor
         function closeCreateDoctorModal() {
-            document.getElementById('createDoctorModal').classList.add('hidden');
-            resetDoctorForm();
+            const modal = document.getElementById('createDoctorModal');
+            if (modal) {
+                modal.classList.add('hidden');
+                resetDoctorForm();
+            }
         }
         
-        // Función para resetear el formulario
         function resetDoctorForm() {
-            document.getElementById('createDoctorForm').reset();
+            const form = document.getElementById('createDoctorForm');
+            if (form) {
+                form.reset();
+            }
             
             // Limpiar input de especialidades
             const especialidadInput = document.getElementById('especialidad_input');
@@ -825,17 +851,16 @@
                 suggestions.classList.add('hidden');
             }
             
-            // Limpiar chips (si los hubiera)
-            const chipsContainer = document.getElementById('especialidad_chips');
-            if (chipsContainer) {
-                chipsContainer.innerHTML = '';
-            }
-            
             updateDoctorSummary();
         }
         
-        // Función para mostrar tabs en el modal de doctor
+        // =================================
+        // NAVEGACIÓN ENTRE TABS
+        // =================================
+        
         function showDoctorTab(tabName) {
+            console.log('📋 Mostrando tab:', tabName);
+            
             // Ocultar todos los contenidos de tabs
             document.querySelectorAll('.tab-content').forEach(tab => {
                 tab.classList.add('hidden');
@@ -847,8 +872,16 @@
             });
             
             // Mostrar el tab seleccionado
-            document.getElementById(`tab-content-${tabName}`).classList.remove('hidden');
-            document.querySelector(`button[data-tab="${tabName}"]`).classList.add('active-tab');
+            const targetTab = document.getElementById(`tab-content-${tabName}`);
+            if (targetTab) {
+                targetTab.classList.remove('hidden');
+            }
+            
+            // Activar el botón del tab
+            const targetButton = document.querySelector(`button[data-tab="${tabName}"]`);
+            if (targetButton) {
+                targetButton.classList.add('active-tab');
+            }
             
             currentDoctorTab = tabName;
             updateDoctorNavigation();
@@ -858,7 +891,6 @@
             }
         }
         
-        // Función para navegación entre tabs
         function nextDoctorTab() {
             if (currentDoctorTab === 'informacion') {
                 showDoctorTab('profesional');
@@ -875,211 +907,84 @@
             }
         }
         
-        // Función para actualizar la navegación de botones
         function updateDoctorNavigation() {
             const prevBtn = document.getElementById('prevDoctorTabBtn');
             const nextBtn = document.getElementById('nextDoctorTabBtn');
             const submitBtn = document.getElementById('submitDoctorBtn');
             
-            if (currentDoctorTab === 'informacion') {
-                prevBtn.classList.add('hidden');
-                nextBtn.classList.remove('hidden');
-                submitBtn.classList.add('hidden');
-            } else if (currentDoctorTab === 'profesional') {
-                prevBtn.classList.remove('hidden');
-                nextBtn.classList.remove('hidden');
-                submitBtn.classList.add('hidden');
-            } else if (currentDoctorTab === 'adicional') {
-                prevBtn.classList.remove('hidden');
-                nextBtn.classList.add('hidden');
-                submitBtn.classList.remove('hidden');
+            if (prevBtn && nextBtn && submitBtn) {
+                if (currentDoctorTab === 'informacion') {
+                    prevBtn.classList.add('hidden');
+                    nextBtn.classList.remove('hidden');
+                    submitBtn.classList.add('hidden');
+                } else if (currentDoctorTab === 'profesional') {
+                    prevBtn.classList.remove('hidden');
+                    nextBtn.classList.remove('hidden');
+                    submitBtn.classList.add('hidden');
+                } else if (currentDoctorTab === 'adicional') {
+                    prevBtn.classList.remove('hidden');
+                    nextBtn.classList.add('hidden');
+                    submitBtn.classList.remove('hidden');
+                }
             }
         }
         
-        // Función para actualizar el resumen del doctor
+        // =================================
+        // RESUMEN DEL DOCTOR
+        // =================================
+        
         function updateDoctorSummary() {
             const form = document.getElementById('createDoctorForm');
+            if (!form) return;
+            
             const formData = new FormData(form);
             
             const nombres = formData.get('nombres') || '';
             const apellidos = formData.get('apellidos') || '';
-            document.getElementById('summary-nombre').textContent = 
-                nombres && apellidos ? `${nombres} ${apellidos}` : '-';
             
-            document.getElementById('summary-ruc').textContent = formData.get('ruc') || '-';
-            document.getElementById('summary-codigo').textContent = formData.get('codigo_unico_doctor') || '-';
+            const summaryNombre = document.getElementById('summary-nombre');
+            if (summaryNombre) {
+                summaryNombre.textContent = nombres && apellidos ? `${nombres} ${apellidos}` : '-';
+            }
+            
+            const summaryRuc = document.getElementById('summary-ruc');
+            if (summaryRuc) {
+                summaryRuc.textContent = formData.get('ruc') || '-';
+            }
+            
+            const summaryCodigo = document.getElementById('summary-codigo');
+            if (summaryCodigo) {
+                summaryCodigo.textContent = formData.get('codigo_unico_doctor') || '-';
+            }
             
             const duracion = formData.get('duracion_atencion');
-            document.getElementById('summary-duracion').textContent = 
-                duracion ? `${duracion} minutos` : '-';
+            const summaryDuracion = document.getElementById('summary-duracion');
+            if (summaryDuracion) {
+                summaryDuracion.textContent = duracion ? `${duracion} minutos` : '-';
+            }
             
-            document.getElementById('summary-telefono').textContent = formData.get('telefonos') || '-';
-            document.getElementById('summary-activo').textContent = 
-                formData.get('activo') ? 'Activo' : 'Inactivo';
+            const summaryTelefono = document.getElementById('summary-telefono');
+            if (summaryTelefono) {
+                summaryTelefono.textContent = formData.get('telefonos') || '-';
+            }
+            
+            const summaryActivo = document.getElementById('summary-activo');
+            if (summaryActivo) {
+                summaryActivo.textContent = formData.get('activo') ? 'Activo' : 'Inactivo';
+            }
             
             // Actualizar especialidades en el resumen
             const summaryEspecialidades = document.getElementById('summary-especialidades');
             if (summaryEspecialidades) {
                 const especialidadTexto = document.getElementById('especialidad_input')?.value || '';
-                if (especialidadTexto.trim()) {
-                    summaryEspecialidades.textContent = especialidadTexto;
-                } else {
-                    summaryEspecialidades.textContent = '-';
-                }
+                summaryEspecialidades.textContent = especialidadTexto.trim() || '-';
             }
         }
         
-        // Función para abrir modal de detalle de doctor
-        function openDoctorDetailModal(doctorId) {
-            document.getElementById('doctorDetailModal').classList.remove('hidden');
-            
-            // Mostrar loading
-            document.getElementById('doctorDetailContent').innerHTML = `
-                <div class="flex items-center justify-center py-12">
-                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                    <span class="ml-3 text-gray-600">Cargando información del doctor...</span>
-                </div>
-            `;
-            
-            // Simular carga de datos (aquí harías una petición AJAX real)
-            setTimeout(() => {
-                loadDoctorDetail(doctorId);
-            }, 500);
-        }
+        // =================================
+        // AUTOCOMPLETADO DE ESPECIALIDADES
+        // =================================
         
-        // Función para cargar detalle del doctor
-        function loadDoctorDetail(doctorId) {
-            // Aquí harías una petición AJAX para obtener los datos del doctor
-            // Por ahora simularemos con datos estáticos
-            const content = `
-                <div class="space-y-6">
-                    <div class="text-center">
-                        <div class="w-24 h-24 bg-blue-600 rounded-full mx-auto mb-4 flex items-center justify-center">
-                            <i class="fas fa-user-md text-3xl text-white"></i>
-                        </div>
-                        <h3 class="text-xl font-bold text-gray-900">Dr. Juan Pérez</h3>
-                        <p class="text-gray-600">Código: DOC001</p>
-                    </div>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="bg-gray-50 p-4 rounded-lg">
-                            <h4 class="font-medium text-gray-900 mb-2">Información Personal</h4>
-                            <div class="space-y-1 text-sm">
-                                <p><span class="font-medium">Cédula:</span> 1234567890</p>
-                                <p><span class="font-medium">Email:</span> juan.perez@email.com</p>
-                                <p><span class="font-medium">Teléfono:</span> 0987654321</p>
-                            </div>
-                        </div>
-                        
-                        <div class="bg-gray-50 p-4 rounded-lg">
-                            <h4 class="font-medium text-gray-900 mb-2">Datos Profesionales</h4>
-                            <div class="space-y-1 text-sm">
-                                <p><span class="font-medium">RUC:</span> 1234567890001</p>
-                                <p><span class="font-medium">Duración:</span> 30 minutos</p>
-                                <p><span class="font-medium">Estado:</span> <span class="text-green-600">Activo</span></p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="bg-gray-50 p-4 rounded-lg">
-                        <h4 class="font-medium text-gray-900 mb-2">Especialidades</h4>
-                        <div class="flex flex-wrap gap-2">
-                            <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">Medicina General</span>
-                            <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">Pediatría</span>
-                        </div>
-                    </div>
-                </div>
-            `;
-            
-            document.getElementById('doctorDetailContent').innerHTML = content;
-        }
-        
-        // Función para cerrar modal de detalle
-        function closeDoctorDetailModal() {
-            document.getElementById('doctorDetailModal').classList.add('hidden');
-        }
-        
-        // Función para abrir modal de edición
-        function openEditDoctorModal(doctorId) {
-            document.getElementById('createDoctorModal').classList.remove('hidden');
-            document.getElementById('modalTitle').textContent = 'Editar Doctor';
-            document.getElementById('createDoctorForm').action = `{% url 'core:doctor_update' 0 %}`.replace('0', doctorId);
-            
-            // Aquí cargarías los datos del doctor para edición
-            // loadDoctorForEdit(doctorId);
-            
-            showDoctorTab('informacion');
-        }
-        
-        // Función para confirmar eliminación
-        function confirmDeleteDoctor(doctorId, nombre) {
-            const modal = document.getElementById('deleteModal');
-            const titleElement = document.getElementById('deleteModalTitle');
-            const messageElement = document.getElementById('deleteModalMessage');
-            const confirmButton = document.getElementById('confirmDeleteButton');
-            
-            if (modal && titleElement && messageElement && confirmButton) {
-                titleElement.textContent = 'Eliminar Doctor';
-                messageElement.innerHTML = `
-                    <div class="text-center">
-                        <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
-                            <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
-                        </div>
-                        <h3 class="text-lg font-medium text-gray-900 mb-2">¿Eliminar al Dr. ${nombre}?</h3>
-                        <p class="text-sm text-gray-600">
-                            Esta acción desactivará al doctor del sistema. No se podrá deshacer esta acción.
-                        </p>
-                    </div>
-                `;
-                
-                // Configurar el botón de confirmación
-                confirmButton.onclick = function() {
-                    eliminarDoctor(doctorId);
-                };
-                
-                // Mostrar el modal
-                modal.classList.remove('hidden');
-            } else {
-                // Fallback si no existe el modal
-                if (confirm(`¿Está seguro de eliminar al Dr. "${nombre}"?\n\nEsta acción no se puede deshacer.`)) {
-                    window.location.href = `{% url 'core:doctor_delete' 0 %}`.replace('0', doctorId);
-                }
-            }
-        }
-        
-        // Función para eliminar doctor
-        function eliminarDoctor(doctorId) {
-            // Mostrar loading en el botón
-            const confirmButton = document.getElementById('confirmDeleteButton');
-            const originalText = confirmButton.innerHTML;
-            confirmButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Eliminando...';
-            confirmButton.disabled = true;
-            
-            // Simular proceso y redirigir
-            setTimeout(() => {
-                window.location.href = `{% url 'core:doctor_delete' 0 %}`.replace('0', doctorId);
-            }, 1000);
-        }
-        
-        // Función para cerrar el modal de eliminación
-        function closeDeleteModal() {
-            const modal = document.getElementById('deleteModal');
-            if (modal) {
-                modal.classList.add('hidden');
-            }
-        }
-        
-        // Variables globales para especialidades
-        const especialidadesComunes = [
-            'Medicina General', 'Pediatría', 'Cardiología', 'Dermatología', 
-            'Ginecología', 'Neurología', 'Oftalmología', 'Ortopedia', 
-            'Psiquiatría', 'Radiología', 'Urología', 'Endocrinología',
-            'Gastroenterología', 'Neumología', 'Oncología', 'Reumatología',
-            'Otorrinolaringología', 'Anestesiología', 'Cirugía General',
-            'Medicina Interna', 'Medicina Familiar', 'Geriatría'
-        ];
-        
-        // Función para inicializar autocompletado de especialidades
         function initEspecialidadAutocomplete() {
             const input = document.getElementById('especialidad_input');
             const suggestions = document.getElementById('especialidad_suggestions');
@@ -1121,7 +1026,6 @@
             });
         }
         
-        // Función para seleccionar especialidad de las sugerencias
         function selectEspecialidad(especialidad) {
             const input = document.getElementById('especialidad_input');
             if (!input) return;
@@ -1140,6 +1044,11 @@
                 suggestions.classList.add('hidden');
             }
         }
+        
+        // =================================
+        // ENVÍO DEL FORMULARIO
+        // =================================
+        
         function submitDoctorForm() {
             const form = document.getElementById('createDoctorForm');
             const submitBtn = document.getElementById('submitDoctorBtn');
@@ -1217,47 +1126,115 @@
                 submitBtn.disabled = false;
             });
         }
-            fetch('{% url "core:doctor_create_ajax" %}', {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Éxito - mostrar mensaje y cerrar modal
-                    alert('✓ ' + data.message);
-                    closeCreateDoctorModal();
+        
+        // =================================
+        // OTRAS FUNCIONES DEL MODAL
+        // =================================
+        
+        function openDoctorDetailModal(doctorId) {
+            const modal = document.getElementById('doctorDetailModal');
+            if (modal) {
+                modal.classList.remove('hidden');
+                
+                // Mostrar loading
+                const content = document.getElementById('doctorDetailContent');
+                if (content) {
+                    content.innerHTML = `
+                        <div class="flex items-center justify-center py-12">
+                            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                            <span class="ml-3 text-gray-600">Cargando información del doctor...</span>
+                        </div>
+                    `;
                     
-                    // Recargar la página para mostrar el nuevo doctor
-                    window.location.reload();
-                } else {
-                    // Error - mostrar errores
-                    let errorMessage = 'Errores en el formulario:\n';
-                    for (const [field, errors] of Object.entries(data.errors)) {
-                        errorMessage += `• ${field}: ${errors.join(', ')}\n`;
-                    }
-                    alert(errorMessage);
+                    // Simular carga de datos
+                    setTimeout(() => {
+                        loadDoctorDetail(doctorId);
+                    }, 500);
                 }
-            })
-            .catch(error => {
-                console.error('Error al enviar formulario:', error);
-                alert('Error al enviar el formulario. Por favor intenta de nuevo.\n\nDetalle técnico: ' + error.message);
-            })
-            .finally(() => {
-                // Restaurar botón
-                submitBtn.innerHTML = originalText;
-                submitBtn.disabled = false;
-            });
+            }
         }
         
-        // Event listeners para actualizar resumen en tiempo real
+        function loadDoctorDetail(doctorId) {
+            const content = `
+                <div class="space-y-6">
+                    <div class="text-center">
+                        <div class="w-24 h-24 bg-blue-600 rounded-full mx-auto mb-4 flex items-center justify-center">
+                            <i class="fas fa-user-md text-3xl text-white"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900">Dr. Juan Pérez</h3>
+                        <p class="text-gray-600">Código: DOC001</p>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <h4 class="font-medium text-gray-900 mb-2">Información Personal</h4>
+                            <div class="space-y-1 text-sm">
+                                <p><span class="font-medium">Cédula:</span> 1234567890</p>
+                                <p><span class="font-medium">Email:</span> juan.perez@email.com</p>
+                                <p><span class="font-medium">Teléfono:</span> 0987654321</p>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <h4 class="font-medium text-gray-900 mb-2">Datos Profesionales</h4>
+                            <div class="space-y-1 text-sm">
+                                <p><span class="font-medium">RUC:</span> 1234567890001</p>
+                                <p><span class="font-medium">Duración:</span> 30 minutos</p>
+                                <p><span class="font-medium">Estado:</span> <span class="text-green-600">Activo</span></p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h4 class="font-medium text-gray-900 mb-2">Especialidades</h4>
+                        <div class="flex flex-wrap gap-2">
+                            <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">Medicina General</span>
+                            <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">Pediatría</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            const contentElement = document.getElementById('doctorDetailContent');
+            if (contentElement) {
+                contentElement.innerHTML = content;
+            }
+        }
+        
+        function closeDoctorDetailModal() {
+            const modal = document.getElementById('doctorDetailModal');
+            if (modal) {
+                modal.classList.add('hidden');
+            }
+        }
+        
+        function openEditDoctorModal(doctorId) {
+            const modal = document.getElementById('createDoctorModal');
+            if (modal) {
+                modal.classList.remove('hidden');
+                document.getElementById('modalTitle').textContent = 'Editar Doctor';
+                document.getElementById('createDoctorForm').action = `{% url 'core:doctor_update' 0 %}`.replace('0', doctorId);
+                showDoctorTab('informacion');
+            }
+        }
+        
+        function confirmDeleteDoctor(doctorId, nombre) {
+            if (confirm(`¿Está seguro de eliminar al Dr. "${nombre}"?\n\nEsta acción no se puede deshacer.`)) {
+                window.location.href = `{% url 'core:doctor_delete' 0 %}`.replace('0', doctorId);
+            }
+        }
+        
+        // =================================
+        // INICIALIZACIÓN
+        // =================================
+        
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Script de doctores cargado');
+            
             // Inicializar autocompletado de especialidades
             initEspecialidadAutocomplete();
             
+            // Event listeners para actualizar resumen en tiempo real
             const form = document.getElementById('createDoctorForm');
             if (form) {
                 form.addEventListener('input', updateDoctorSummary);
@@ -1266,25 +1243,27 @@
             
             // Event delegation para todos los botones de acción
             document.addEventListener('click', function(e) {
-                if (e.target.closest('[data-action]')) {
-                    const button = e.target.closest('[data-action]');
-                    const action = button.getAttribute('data-action');
+                const target = e.target.closest('[data-action]');
+                if (target) {
+                    e.preventDefault();
+                    const action = target.getAttribute('data-action');
+                    console.log('🎯 Acción detectada:', action);
                     
                     switch(action) {
                         case 'create':
                             openCreateDoctorModal();
                             break;
                         case 'view-detail':
-                            const doctorId = button.getAttribute('data-doctor-id');
+                            const doctorId = target.getAttribute('data-doctor-id');
                             openDoctorDetailModal(doctorId);
                             break;
                         case 'edit':
-                            const editDoctorId = button.getAttribute('data-doctor-id');
+                            const editDoctorId = target.getAttribute('data-doctor-id');
                             openEditDoctorModal(editDoctorId);
                             break;
                         case 'delete':
-                            const deleteDoctorId = button.getAttribute('data-doctor-id');
-                            const doctorName = button.getAttribute('data-doctor-name');
+                            const deleteDoctorId = target.getAttribute('data-doctor-id');
+                            const doctorName = target.getAttribute('data-doctor-name');
                             confirmDeleteDoctor(deleteDoctorId, doctorName);
                             break;
                         case 'close-modal':
@@ -1292,9 +1271,6 @@
                             break;
                         case 'close-detail-modal':
                             closeDoctorDetailModal();
-                            break;
-                        case 'close-delete-modal':
-                            closeDeleteModal();
                             break;
                         case 'prev-tab':
                             previousDoctorTab();
@@ -1309,12 +1285,29 @@
                 }
                 
                 // Event listener para los tabs
-                if (e.target.closest('[data-tab]')) {
-                    const button = e.target.closest('[data-tab]');
-                    const tabName = button.getAttribute('data-tab');
+                const tabTarget = e.target.closest('[data-tab]');
+                if (tabTarget) {
+                    e.preventDefault();
+                    const tabName = tabTarget.getAttribute('data-tab');
                     showDoctorTab(tabName);
                 }
             });
+            
+            // Verificar que el botón "Nuevo Doctor" existe
+            const createButton = document.querySelector('[data-action="create"]');
+            if (createButton) {
+                console.log('✅ Botón "Nuevo Doctor" encontrado');
+            } else {
+                console.error('❌ Botón "Nuevo Doctor" no encontrado');
+            }
+            
+            // Verificar que el modal existe
+            const modal = document.getElementById('createDoctorModal');
+            if (modal) {
+                console.log('✅ Modal de doctor encontrado');
+            } else {
+                console.error('❌ Modal de doctor no encontrado');
+            }
         });
     </script>
 </body>

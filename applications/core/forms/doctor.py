@@ -99,7 +99,8 @@ class DoctorForm(ModelForm):
             'nombres', 'apellidos', 'ruc', 'fecha_nacimiento', 'direccion',
             'latitud', 'longitud', 'codigo_unico_doctor', 'especialidad',
             'telefonos', 'email', 'horario_atencion', 'duracion_atencion',
-            'curriculum', 'firma_digital', 'foto', 'imagen_receta', 'activo'
+            'curriculum', 'firma_digital', 'foto', 'imagen_receta', 'activo',
+            'especialidad_texto'  # Añadir el campo de texto
         ]
         widgets = {
             'horario_atencion': forms.Textarea(attrs={'rows': 3}),
@@ -132,22 +133,28 @@ class DoctorForm(ModelForm):
 
     def save(self, commit=True):
         """Guardar doctor y manejar especialidades desde texto"""
+        # Remover especialidad_texto de cleaned_data para que no cause error
+        if 'especialidad_texto' in self.cleaned_data:
+            especialidad_texto_value = self.cleaned_data.pop('especialidad_texto')
+        else:
+            especialidad_texto_value = ''
+        
         doctor = super().save(commit=False)
         
         if commit:
             doctor.save()
             
             # Procesar especialidades desde el campo de texto
-            especialidades_nombres = self.cleaned_data.get('especialidad_texto', '')
-            
-            if especialidades_nombres:
+            if especialidad_texto_value:
                 # Si viene como string, procesarlo
-                if isinstance(especialidades_nombres, str):
+                if isinstance(especialidad_texto_value, str):
                     especialidades_nombres = [
                         nombre.strip().title() 
-                        for nombre in especialidades_nombres.split(',') 
+                        for nombre in especialidad_texto_value.split(',') 
                         if nombre.strip()
                     ]
+                else:
+                    especialidades_nombres = especialidad_texto_value
                 
                 # Limpiar especialidades existentes
                 doctor.especialidad.clear()
@@ -160,9 +167,8 @@ class DoctorForm(ModelForm):
                             defaults={'descripcion': f'Especialidad en {nombre_especialidad}'}
                         )
                         doctor.especialidad.add(especialidad)
-            
-            # Llamar save() nuevamente para las relaciones ManyToMany
-            self.save_m2m()
+                        if created:
+                            print(f"✅ Especialidad '{nombre_especialidad}' creada exitosamente")
         
         return doctor
 
@@ -170,6 +176,17 @@ class DoctorForm(ModelForm):
         """Validación personalizada para el RUC"""
         ruc = self.cleaned_data.get('ruc')
         if ruc:
+            # Limpiar el RUC de espacios y caracteres especiales
+            ruc = ruc.strip().replace('-', '').replace(' ', '')
+            
+            # Validar longitud básica
+            if len(ruc) < 10 or len(ruc) > 13:
+                raise forms.ValidationError("El RUC debe tener entre 10 y 13 dígitos.")
+            
+            # Validar que solo contenga números
+            if not ruc.isdigit():
+                raise forms.ValidationError("El RUC debe contener solo números.")
+            
             # Verificar si el RUC ya existe (excepto para el mismo doctor en edición)
             existing = Doctor.objects.filter(ruc=ruc)
             if self.instance and self.instance.pk:
@@ -177,6 +194,7 @@ class DoctorForm(ModelForm):
             
             if existing.exists():
                 raise forms.ValidationError("Ya existe un doctor con este RUC.")
+        
         return ruc
 
     def clean_codigo_unico_doctor(self):

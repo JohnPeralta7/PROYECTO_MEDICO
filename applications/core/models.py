@@ -248,16 +248,15 @@ class Doctor(models.Model):
         max_length=13,
         unique=True,
         verbose_name="Ruc",
-        validators=[valida_ruc],
+        # validators=[valida_ruc],  # Comentado temporalmente para desarrollo
         help_text="Ingrese un RUC válido (persona natural, sociedad o extranjero)."
-
     )
     fecha_nacimiento = models.DateField(
         verbose_name="Fecha de Nacimiento"
     )
     direccion = models.CharField(
         max_length=255,
-        unique=True,
+        # unique=True,  # Comentado temporalmente para desarrollo
         verbose_name="Dirección de Trabajo",
         help_text="Ubicación física donde atiende el doctor."
     )
