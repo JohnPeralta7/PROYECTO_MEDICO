@@ -20,8 +20,14 @@
                             <p class="text-gray-600">Administra el inventario farmacéutico de la clínica</p>
                         </div>
                     </div>
-                    <button onclick="openCreateMedicamentoModal()" 
-                            class="bg-esmerald-perso hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium flex items-center space-x-2 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                    <div class="flex items-center space-x-3">
+                        <a href="{% url 'home' %}"
+                           class="bg-esmerald-perso hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium flex items-center space-x-2 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                            <i class="fas fa-home"></i>
+                            <span>Volver al Inicio</span>
+                        </a>
+                        <button onclick="openCreateMedicamentoModal()" 
+                                class="bg-esmerald-perso hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium flex items-center space-x-2 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
                         <i class="fas fa-plus"></i>
                         <span>Nuevo Medicamento</span>
                     </button>
@@ -774,7 +780,49 @@
     </div>
 
 
-    <!-- Incluir fragment para eliminar -->
+    <!-- Modal de eliminación específico para medicamentos -->
+    <div id="deleteModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-2xl max-w-md w-full">
+            <!-- Header del modal -->
+            <div class="bg-esmerald-perso px-6 py-4 rounded-t-xl">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="p-2 bg-green-500 rounded-lg">
+                            <i class="fas fa-exclamation-triangle text-white text-lg"></i>
+                        </div>
+                        <div>
+                            <h2 id="deleteModalTitle" class="text-xl font-semibold text-white">Confirmar Eliminación</h2>
+                        </div>
+                    </div>
+                    <button onclick="closeDeleteModal()" 
+                            class="text-green-100 hover:text-white p-2 rounded-lg hover:bg-green-500 transition-all duration-200">
+                        <i class="fas fa-times text-lg"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Contenido del modal -->
+            <div class="p-6">
+                <div id="deleteModalMessage" class="mb-6">
+                    <!-- El mensaje se insertará aquí dinámicamente -->
+                </div>
+                
+                <div class="flex justify-end space-x-3">
+                    <button onclick="closeDeleteModal()" 
+                            class="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-lg font-medium transition-all duration-200">
+                        Cancelar
+                    </button>
+                    <button id="confirmDeleteButton" 
+                            class="px-4 py-2 bg-esmerald-perso hover:bg-green-700 text-white rounded-lg font-medium transition-all duration-200">
+                        <i class="fas fa-trash mr-2"></i>
+                        Eliminar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Incluir fragment para eliminar (para otros módulos) -->
     {% include 'fragments/delete.html' %}
 
     <!-- Estilos adicionales -->
@@ -1074,9 +1122,96 @@
         
         // Función para confirmar eliminación
         function confirmDeleteMedicamento(medicamentoId, nombre) {
-            if (confirm(`¿Está seguro de eliminar el medicamento "${nombre}"?`)) {
-                // Aquí harías la petición para eliminar
-                window.location.href = `/core/medicamento/delete/${medicamentoId}/`;
+            // Configurar el modal de confirmación
+            const modal = document.getElementById('deleteModal');
+            const titleElement = document.getElementById('deleteModalTitle');
+            const messageElement = document.getElementById('deleteModalMessage');
+            const confirmButton = document.getElementById('confirmDeleteButton');
+            
+            if (modal && titleElement && messageElement && confirmButton) {
+                titleElement.textContent = 'Eliminar Medicamento';
+                messageElement.innerHTML = `
+                    <p class="text-gray-600 mb-4">
+                        ¿Está seguro de que desea eliminar el medicamento <strong>"${nombre}"</strong>?
+                    </p>
+                    <div class="bg-green-50 border border-green-200 rounded-lg p-3">
+                        <p class="text-green-700 text-sm">
+                            <i class="fas fa-exclamation-triangle mr-2"></i>
+                            Esta acción no se puede deshacer. Se eliminará toda la información del medicamento.
+                        </p>
+                    </div>
+                `;
+                
+                // Configurar el botón de confirmación
+                confirmButton.onclick = function() {
+                    eliminarMedicamento(medicamentoId);
+                };
+                
+                // Mostrar el modal
+                modal.classList.remove('hidden');
+            } else {
+                // Fallback si no existe el modal
+                if (confirm(`¿Está seguro de eliminar el medicamento "${nombre}"?\n\nEsta acción no se puede deshacer.`)) {
+                    eliminarMedicamento(medicamentoId);
+                }
+            }
+        }
+        
+        // Función para eliminar medicamento mediante AJAX
+        function eliminarMedicamento(medicamentoId) {
+            // Mostrar loading en el botón
+            const confirmButton = document.getElementById('confirmDeleteButton');
+            const originalText = confirmButton.innerHTML;
+            confirmButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Eliminando...';
+            confirmButton.disabled = true;
+            
+            // Realizar petición AJAX
+            const xhr = new XMLHttpRequest();
+            const url = '/core/medicamentos_delete_ajax/' + medicamentoId + '/';
+            
+            xhr.open('POST', url, true);
+            xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4) {
+                    // Restaurar botón
+                    confirmButton.innerHTML = originalText;
+                    confirmButton.disabled = false;
+                    
+                    if (xhr.status === 200) {
+                        try {
+                            const response = JSON.parse(xhr.responseText);
+                            if (response.success) {
+                                // Cerrar modal
+                                closeDeleteModal();
+                                
+                                // Mostrar mensaje de éxito y recargar página
+                                alert('Medicamento eliminado exitosamente');
+                                location.reload();
+                            } else {
+                                alert('Error: ' + (response.message || 'No se pudo eliminar el medicamento'));
+                            }
+                        } catch (e) {
+                            console.error('Error parsing response:', e);
+                            alert('Error al procesar la respuesta del servidor');
+                        }
+                    } else {
+                        alert('Error de conexión. Por favor intente nuevamente.');
+                    }
+                }
+            };
+            
+            // Enviar petición con token CSRF
+            const formData = `csrfmiddlewaretoken=${getCsrfToken()}`;
+            xhr.send(formData);
+        }
+        
+        // Función para cerrar el modal de eliminación
+        function closeDeleteModal() {
+            const modal = document.getElementById('deleteModal');
+            if (modal) {
+                modal.classList.add('hidden');
             }
         }
         
@@ -1173,6 +1308,23 @@
             xhr.send(formData);
         }
 
+        // Funciones para el mini-formulario de tipo de medicamento
+        function toggleTipoForm() {
+            const form = document.getElementById('nuevoTipoForm');
+            form.classList.toggle('hidden');
+            
+            if (!form.classList.contains('hidden')) {
+                document.getElementById('nuevoTipoNombre').focus();
+            }
+        }
+        
+        function cancelarNuevoTipo() {
+            document.getElementById('nuevoTipoForm').classList.add('hidden');
+            document.getElementById('nuevoTipoNombre').value = '';
+            document.getElementById('nuevoTipoDescripcion').value = '';
+            hideMessage('nuevoTipoMessage');
+        }
+        
         // Funciones para el mini-formulario de tipo de medicamento
         function toggleTipoForm() {
             const form = document.getElementById('nuevoTipoForm');
@@ -1347,61 +1499,61 @@
                     try {
                         const data = JSON.parse(xhr.responseText);
                         
-                        if (data.success) {
-                            // Actualizar select de tipos
-                            const tipoSelect = document.getElementById('tipoMedicamentoSelect');
-                            if (tipoSelect) {
-                                const selectedTipo = tipoSelect.value;
-                                tipoSelect.innerHTML = '<option value="">Seleccione un tipo</option>';
-                                
-                                data.tipos.forEach(function(tipo) {
-                                    const option = document.createElement('option');
-                                    option.value = tipo.id;
-                                    option.textContent = tipo.nombre;
-                                    tipoSelect.appendChild(option);
-                                });
-                                
-                                // Agregar opción "nuevo"
-                                const nuevaOpcion = document.createElement('option');
-                                nuevaOpcion.value = 'nuevo';
-                                nuevaOpcion.textContent = '+ Crear nuevo tipo';
-                                nuevaOpcion.classList.add('font-bold', 'text-green-600');
-                                tipoSelect.appendChild(nuevaOpcion);
-                                
-                                // Restaurar selección si existía
-                                if (selectedTipo) {
-                                    tipoSelect.value = selectedTipo;
-                                }
-                            }
+                        // Actualizar select de tipos
+                        const tipoSelect = document.getElementById('tipoMedicamentoSelect');
+                        if (tipoSelect && data.tipos) {
+                            const valorActual = tipoSelect.value;
+                            tipoSelect.innerHTML = '<option value="">-- Seleccionar tipo --</option>';
                             
-                            // Actualizar select de marcas
-                            const marcaSelect = document.getElementById('marcaMedicamentoSelect');
-                            if (marcaSelect) {
-                                const selectedMarca = marcaSelect.value;
-                                marcaSelect.innerHTML = '<option value="">Seleccione una marca</option>';
-                                
-                                data.marcas.forEach(function(marca) {
-                                    const option = document.createElement('option');
-                                    option.value = marca.id;
-                                    option.textContent = marca.nombre;
-                                    marcaSelect.appendChild(option);
-                                });
-                                
-                                // Agregar opción "nueva"
-                                const nuevaOpcion = document.createElement('option');
-                                nuevaOpcion.value = 'nueva';
-                                nuevaOpcion.textContent = '+ Crear nueva marca';
-                                nuevaOpcion.classList.add('font-bold', 'text-green-600');
-                                marcaSelect.appendChild(nuevaOpcion);
-                                
-                                // Restaurar selección si existía
-                                if (selectedMarca) {
-                                    marcaSelect.value = selectedMarca;
-                                }
+                            data.tipos.forEach(tipo => {
+                                const option = document.createElement('option');
+                                option.value = tipo.id;
+                                option.textContent = tipo.nombre;
+                                tipoSelect.appendChild(option);
+                            });
+                            
+                            // Agregar opción para crear nuevo
+                            const nuevaOpcion = document.createElement('option');
+                            nuevaOpcion.value = 'nuevo';
+                            nuevaOpcion.textContent = '+ Crear nuevo tipo';
+                            nuevaOpcion.style.fontStyle = 'italic';
+                            nuevaOpcion.style.color = '#3B82F6';
+                            tipoSelect.appendChild(nuevaOpcion);
+                            
+                            // Restaurar valor si existe
+                            if (valorActual) {
+                                tipoSelect.value = valorActual;
+                            }
+                        }
+                        
+                        // Actualizar select de marcas
+                        const marcaSelect = document.getElementById('marcaMedicamentoSelect');
+                        if (marcaSelect && data.marcas) {
+                            const valorActual = marcaSelect.value;
+                            marcaSelect.innerHTML = '<option value="">-- Seleccionar marca --</option>';
+                            
+                            data.marcas.forEach(marca => {
+                                const option = document.createElement('option');
+                                option.value = marca.id;
+                                option.textContent = marca.nombre;
+                                marcaSelect.appendChild(option);
+                            });
+                            
+                            // Agregar opción para crear nueva
+                            const nuevaOpcion = document.createElement('option');
+                            nuevaOpcion.value = 'nueva';
+                            nuevaOpcion.textContent = '+ Crear nueva marca';
+                            nuevaOpcion.style.fontStyle = 'italic';
+                            nuevaOpcion.style.color = '#3B82F6';
+                            marcaSelect.appendChild(nuevaOpcion);
+                            
+                            // Restaurar valor si existe
+                            if (valorActual) {
+                                marcaSelect.value = valorActual;
                             }
                         }
                     } catch (e) {
-                        console.error('Error al procesar la recarga de selects:', e);
+                        console.error('Error al parsear respuesta de recarga:', e);
                     }
                 }
             };
@@ -1409,18 +1561,7 @@
             xhr.send();
         }
 
-        // Cerrar modal al hacer clic fuera
-        document.addEventListener('click', function(event) {
-            const createModal = document.getElementById('createMedicamentoModal');
-            const detailModal = document.getElementById('medicamentoDetailModal');
-            
-            if (event.target === createModal) {
-                closeCreateMedicamentoModal();
-            }
-            
-            if (event.target === detailModal) {
-                closeMedicamentoDetailModal();
-            }
-        });
     </script>
+</body>
+</html>
 {% endblock %}

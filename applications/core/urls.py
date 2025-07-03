@@ -4,7 +4,8 @@ from applications.core.views.paciente import (
     )
 from applications.core.views.medicamento import (
      MedicamentoListView, MedicamentoCreateView, MedicamentoDeleteView, MedicamentoUpdateView,
-     crear_tipo_medicamento_ajax, crear_marca_medicamento_ajax, recargar_tipos_marcas_medicamento
+     crear_tipo_medicamento_ajax, crear_marca_medicamento_ajax, recargar_tipos_marcas_medicamento,
+     eliminar_medicamento_ajax
     )
 from applications.core.views.gasto_mensual import (
      GastoMensualListView, GastoMensualCreateView, GastoMensualDeleteView, GastoMensualUpdateView
@@ -34,6 +35,7 @@ urlpatterns = [
     path('medicamentos_list/', MedicamentoListView.as_view(), name='medicamento_list'),
     path('medicamentos_create/', MedicamentoCreateView.as_view(), name='medicamento_create'),
     path('medicamentos_delete/<int:pk>/', MedicamentoDeleteView.as_view(), name='medicamento_delete'),
+    path('medicamentos_delete_ajax/<int:pk>/', eliminar_medicamento_ajax, name='medicamento_delete_ajax'),
     path('medicamentos_update/<int:pk>/', MedicamentoUpdateView.as_view(), name='medicamento_update'),
     path('crear_tipo_medicamento/', crear_tipo_medicamento_ajax, name='crear_tipo_medicamento'),
     path('crear_marca_medicamento/', crear_marca_medicamento_ajax, name='crear_marca_medicamento'),

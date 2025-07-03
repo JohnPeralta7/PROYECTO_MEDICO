@@ -323,3 +323,56 @@ def recargar_tipos_marcas_medicamento(request):
             'success': False,
             'message': f'Error al recargar datos: {str(e)}'
         })
+
+@csrf_exempt
+def eliminar_medicamento_ajax(request, pk):
+    """
+    Vista AJAX para eliminar un medicamento
+    """
+    if request.method != 'POST':
+        return JsonResponse({
+            'success': False, 
+            'message': 'Método no permitido'
+        }, status=405)
+    
+    try:
+        # Verificar que la petición sea AJAX
+        if not request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({
+                'success': False, 
+                'message': 'Esta vista solo acepta peticiones AJAX'
+            }, status=400)
+        
+        # Buscar el medicamento
+        try:
+            medicamento = Medicamento.objects.get(pk=pk)
+        except Medicamento.DoesNotExist:
+            return JsonResponse({
+                'success': False, 
+                'message': 'Medicamento no encontrado'
+            }, status=404)
+        
+        # Verificar permisos (opcional, dependiendo de tu sistema de permisos)
+        # if not request.user.has_perm('core.delete_medicamento'):
+        #     return JsonResponse({
+        #         'success': False, 
+        #         'message': 'No tiene permisos para eliminar medicamentos'
+        #     }, status=403)
+        
+        # Guardar el nombre para el mensaje de respuesta
+        nombre_medicamento = medicamento.nombre
+        
+        # Eliminar el medicamento
+        medicamento.delete()
+        
+        return JsonResponse({
+            'success': True, 
+            'message': f'Medicamento "{nombre_medicamento}" eliminado exitosamente'
+        })
+        
+    except Exception as e:
+        print(f"Error al eliminar medicamento: {e}")
+        return JsonResponse({
+            'success': False, 
+            'message': 'Error interno del servidor'
+        }, status=500)
