@@ -1,0 +1,1322 @@
+{% extends 'home.html' %}
+{% load static %}
+
+{% block title %}Gestión de Doctores{% endblock %}
+
+{% block content %}
+    <!-- Cargar Font Awesome múltiples métodos para máxima compatibilidad -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v6.4.0/css/all.css">
+    
+    <!-- Verificación y carga alternativa de Font Awesome -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Verificar si Font Awesome está cargado
+            function checkFontAwesome() {
+                const testElement = document.createElement('i');
+                testElement.className = 'fas fa-home';
+                testElement.style.display = 'none';
+                document.body.appendChild(testElement);
+                
+                const computed = window.getComputedStyle(testElement);
+                const isLoaded = computed.fontFamily.includes('Font Awesome') || 
+                                computed.fontFamily.includes('FontAwesome');
+                
+                document.body.removeChild(testElement);
+                
+                if (!isLoaded) {
+                    console.warn('Font Awesome no detectado, cargando alternativo...');
+                    const fallbackLink = document.createElement('link');
+                    fallbackLink.rel = 'stylesheet';
+                    fallbackLink.href = 'https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css';
+                    document.head.appendChild(fallbackLink);
+                } else {
+                    console.log('✓ Font Awesome cargado correctamente');
+                }
+            }
+            
+            // Verificar Font Awesome con delay para permitir carga
+            setTimeout(checkFontAwesome, 100);
+        });
+    </script>
+    
+    {% include 'fragments/messages.html' %}
+    
+    <!-- Header principal -->
+    <div class="relative mb-8">
+        <div class="bg-white shadow-sm border-b border-gray-200">
+            <div class="max-w-7xl mx-auto px-4 py-6">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <div class="p-3 bg-blue-100 rounded-xl">
+                            <i class="fas fa-user-md text-2xl text-blue-600"></i>
+                        </div>
+                        <div>
+                            <h1 class="text-2xl font-bold text-gray-900">Gestión de Doctores</h1>
+                            <p class="text-gray-600">Administra el equipo médico profesional</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <a href="{% url 'home' %}"
+                           class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium flex items-center space-x-2 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                            <i class="fas fa-home"></i>
+                            <span>Volver al Inicio</span>
+                        </a>
+                        <button data-action="create" 
+                                class="btn-action bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium inline-flex items-center space-x-2 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                            <i class="fas fa-plus"></i>
+                            <span>Nuevo Doctor</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Vista principal -->
+    <div class="max-w-7xl mx-auto px-4">
+        <!-- Estadísticas rápidas -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 transform hover:scale-105 transition-all duration-300">
+                <div class="flex items-center">
+                    <div class="p-3 bg-blue-100 rounded-lg">
+                        <i class="fas fa-user-md text-xl text-blue-600"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Total Doctores</p>
+                        <p class="text-2xl font-bold text-gray-900">{{ total_doctor }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 transform hover:scale-105 transition-all duration-300">
+                <div class="flex items-center">
+                    <div class="p-3 bg-green-100 rounded-lg">
+                        <i class="fas fa-heartbeat text-xl text-green-600"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Doctores Activos</p>
+                        <p class="text-2xl font-bold text-gray-900">{{ active_doctor }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 transform hover:scale-105 transition-all duration-300">
+                <div class="flex items-center">
+                    <div class="p-3 bg-yellow-100 rounded-lg">
+                        <i class="fas fa-stethoscope text-xl text-yellow-600"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">En Lista Actual</p>
+                        <p class="text-2xl font-bold text-gray-900">{{ doctor|length }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 transform hover:scale-105 transition-all duration-300">
+                <div class="flex items-center">
+                    <div class="p-3 bg-purple-100 rounded-lg">
+                        <i class="fas fa-hospital text-xl text-purple-600"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Servicio Médico</p>
+                        <p class="text-2xl font-bold text-gray-900">24/7</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filtros y búsqueda -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+            <form method="get" class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <!-- Búsqueda general -->
+                    <div class="lg:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Buscar Doctor</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-search text-gray-400"></i>
+                            </div>
+                            <input type="text" 
+                                   name="q" 
+                                   value="{{ request.GET.q }}"
+                                   placeholder="Buscar por nombre, código, RUC..."
+                                   class="search-input pl-10 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300">
+                        </div>
+                    </div>
+                    
+                    <!-- Filtro por especialidad -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Especialidad</label>
+                        <select name="especialidad" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="">Todas las especialidades</option>
+                            <!-- Aquí irían las especialidades dinámicamente -->
+                        </select>
+                    </div>
+                    
+                    <!-- Filtro por estado -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Estado</label>
+                        <select name="status" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="">Todos los estados</option>
+                            <option value="active" {% if request.GET.status == 'active' %}selected{% endif %}>Solo Activos</option>
+                            <option value="inactive" {% if request.GET.status == 'inactive' %}selected{% endif %}>Solo Inactivos</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <button type="submit" 
+                            class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-all duration-300">
+                        <i class="fas fa-search mr-2"></i>
+                        Buscar
+                    </button>
+                    <a href="{% url 'core:doctor_list' %}"
+                       class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-2 rounded-lg font-medium transition-all duration-300">
+                        <i class="fas fa-refresh mr-2"></i>
+                        Limpiar
+                    </a>
+                </div>
+            </form>
+        </div>
+
+        <!-- Grid de doctores -->
+        {% if doctor %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
+            {% for doc in doctor %}
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-300 transform hover:-translate-y-2 doctor-card">
+                <!-- Imagen del doctor -->
+                <div class="relative h-48 bg-gradient-to-br from-blue-100 to-blue-200">
+                    {% if doc.foto %}
+                        <img src="{{ doc.foto.url }}" alt="Dr. {{ doc.nombre_completo }}" 
+                             class="w-full h-full object-cover">
+                    {% else %}
+                        <div class="w-full h-full flex items-center justify-center">
+                            <div class="w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center">
+                                <i class="fas fa-user-md text-3xl text-white"></i>
+                            </div>
+                        </div>
+                    {% endif %}
+                    
+                    <!-- Badge de estado -->
+                    {% if doc.activo %}
+                        <span class="status-badge status-active absolute top-3 right-3">
+                            <i class="fas fa-check-circle mr-1"></i>
+                            Activo
+                        </span>
+                    {% else %}
+                        <span class="status-badge status-inactive absolute top-3 right-3">
+                            <i class="fas fa-times-circle mr-1"></i>
+                            Inactivo
+                        </span>
+                    {% endif %}
+                </div>
+                
+                <!-- Contenido de la tarjeta -->
+                <div class="p-6">
+                    <div class="mb-4">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-1">Dr. {{ doc.nombre_completo }}</h3>
+                        <p class="text-sm text-gray-600">{{ doc.codigo_unico_doctor }}</p>
+                    </div>
+                    
+                    <!-- Información adicional -->
+                    <div class="space-y-2 mb-4">
+                        <div class="flex items-center text-sm text-gray-600">
+                            <i class="fas fa-id-card w-4 mr-2"></i>
+                            <span>RUC: {{ doc.ruc|default:"No especificado" }}</span>
+                        </div>
+                        <div class="flex items-center text-sm text-gray-600">
+                            <i class="fas fa-clock w-4 mr-2"></i>
+                            <span>Duración: {{ doc.duracion_atencion }} min</span>
+                        </div>
+                        <div class="flex items-center text-sm text-gray-600">
+                            <i class="fas fa-phone w-4 mr-2"></i>
+                            <span>{{ doc.telefonos|default:"No especificado" }}</span>
+                        </div>
+                        {% if doc.email %}
+                        <div class="flex items-center text-sm text-gray-600">
+                            <i class="fas fa-envelope w-4 mr-2"></i>
+                            <span>{{ doc.email }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Especialidades -->
+                    <div class="mb-4">
+                        <div class="flex flex-wrap gap-1">
+                            {% for especialidad in doc.especialidad.all %}
+                                <span class="especialidad-badge">
+                                    {{ especialidad.nombre }}
+                                </span>
+                            {% empty %}
+                                <span class="text-gray-500 text-xs italic">Sin especialidades asignadas</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <!-- Botones de acción -->
+                    <div class="flex items-center justify-between pt-4 border-t border-gray-100">
+                        <button data-action="view-detail" 
+                                data-doctor-id="{{ doc.pk }}"
+                                class="btn-action text-blue-600 hover:text-blue-800 font-medium text-sm transition-colors duration-200">
+                            <i class="fas fa-eye mr-1"></i>
+                            Ver Detalle
+                        </button>
+                        <div class="flex space-x-2">
+                            <button data-action="edit" 
+                                    data-doctor-id="{{ doc.pk }}"
+                                    class="btn-action bg-yellow-100 hover:bg-yellow-200 text-yellow-700 p-2 rounded-lg transition-all duration-200" 
+                                    title="Editar">
+                                <i class="fas fa-edit text-sm"></i>
+                            </button>
+                            <button data-action="delete" 
+                                    data-doctor-id="{{ doc.pk }}" 
+                                    data-doctor-name="{{ doc.nombre_completo }}"
+                                    class="btn-action bg-red-100 hover:bg-red-200 text-red-700 p-2 rounded-lg transition-all duration-200" 
+                                    title="Eliminar">
+                                <i class="fas fa-trash text-sm"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Paginación -->
+        {% if is_paginated %}
+        <div class="bg-white border border-gray-200 rounded-lg px-6 py-4 mb-8">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <p class="text-sm text-gray-700">
+                        Mostrando 
+                        <span class="font-medium">{{ page_obj.start_index }}</span>
+                        a 
+                        <span class="font-medium">{{ page_obj.end_index }}</span>
+                        de 
+                        <span class="font-medium">{{ page_obj.paginator.count }}</span>
+                        doctores
+                    </p>
+                </div>
+                
+                <div class="flex items-center space-x-2">
+                    {% if page_obj.has_previous %}
+                        <a href="?page=1{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.especialidad %}&especialidad={{ request.GET.especialidad }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}" 
+                           class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-l-md hover:bg-gray-50 hover:text-gray-700">
+                            Primera
+                        </a>
+                        <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.especialidad %}&especialidad={{ request.GET.especialidad }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}" 
+                           class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 hover:bg-gray-50 hover:text-gray-700">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                    {% else %}
+                        <span class="px-3 py-2 text-sm font-medium text-gray-300 bg-gray-100 border border-gray-300 rounded-l-md cursor-not-allowed">
+                            Primera
+                        </span>
+                        <span class="px-3 py-2 text-sm font-medium text-gray-300 bg-gray-100 border border-gray-300 cursor-not-allowed">
+                            <i class="fas fa-chevron-left"></i>
+                        </span>
+                    {% endif %}
+                    
+                    <span class="px-3 py-2 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-300">
+                        {{ page_obj.number }}
+                    </span>
+                    
+                    {% if page_obj.has_next %}
+                        <a href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.especialidad %}&especialidad={{ request.GET.especialidad }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}" 
+                           class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 hover:bg-gray-50 hover:text-gray-700">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                        <a href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.especialidad %}&especialidad={{ request.GET.especialidad }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}" 
+                           class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-r-md hover:bg-gray-50 hover:text-gray-700">
+                            Última
+                        </a>
+                    {% else %}
+                        <span class="px-3 py-2 text-sm font-medium text-gray-300 bg-gray-100 border border-gray-300 cursor-not-allowed">
+                            <i class="fas fa-chevron-right"></i>
+                        </span>
+                        <span class="px-3 py-2 text-sm font-medium text-gray-300 bg-gray-100 border border-gray-300 rounded-r-md cursor-not-allowed">
+                            Última
+                        </span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        {% else %}
+        <!-- Estado vacío -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
+            <div class="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                <i class="fas fa-user-md text-2xl text-gray-400"></i>
+            </div>
+            <h3 class="text-lg font-medium text-gray-900 mb-2">No hay doctores registrados</h3>
+            <p class="text-gray-600 mb-6">Comienza agregando el primer doctor al equipo médico</p>
+            <button data-action="create" 
+                    class="btn-action bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium inline-flex items-center space-x-2 transition-all duration-300">
+                <i class="fas fa-plus"></i>
+                <span>Agregar Doctor</span>
+            </button>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Modal de creación/edición de doctor -->
+    <div id="createDoctorModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden modal-content">
+            <!-- Header del modal -->
+            <div class="bg-blue-600 px-6 py-4 border-b border-blue-700">
+                <div class="flex items-center justify-between">
+                    <h2 id="modalTitle" class="text-xl font-bold text-white">Nuevo Doctor</h2>
+                    <button data-action="close-modal" class="text-white hover:text-gray-300 transition-colors duration-200">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                
+                <!-- Tabs de navegación -->
+                <div class="flex space-x-4 mt-4">
+                    <button data-tab="informacion" 
+                            class="doctor-tab active-tab px-4 py-2 rounded-lg font-medium transition-all duration-200">
+                        <i class="fas fa-user mr-2"></i>
+                        Información Personal
+                    </button>
+                    <button data-tab="profesional" 
+                            class="doctor-tab px-4 py-2 rounded-lg font-medium transition-all duration-200">
+                        <i class="fas fa-stethoscope mr-2"></i>
+                        Datos Profesionales
+                    </button>
+                    <button data-tab="adicional" 
+                            class="doctor-tab px-4 py-2 rounded-lg font-medium transition-all duration-200">
+                        <i class="fas fa-cog mr-2"></i>
+                        Configuración
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Contenido del modal -->
+            <div class="p-6 max-h-[60vh] overflow-y-auto">
+                <form id="createDoctorForm" method="post" enctype="multipart/form-data" action="{% url 'core:doctor_create' %}">
+                    {% csrf_token %}
+                    
+                    <!-- Tab: Información Personal -->
+                    <div id="tab-content-informacion" class="tab-content">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Nombres *</label>
+                                <input type="text" name="nombres" required
+                                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Apellidos *</label>
+                                <input type="text" name="apellidos" required
+                                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">RUC *</label>
+                                <input type="text" name="ruc" required
+                                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Fecha de Nacimiento</label>
+                                <input type="date" name="fecha_nacimiento"
+                                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Teléfonos</label>
+                                <input type="text" name="telefonos" placeholder="Ej: 0987654321, 02-234567"
+                                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                                <input type="email" name="email"
+                                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Dirección</label>
+                                <textarea name="direccion" rows="3"
+                                          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Foto</label>
+                                <input type="file" name="foto" accept="image/*"
+                                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Tab: Datos Profesionales -->
+                    <div id="tab-content-profesional" class="tab-content hidden">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Código Único Doctor *</label>
+                                <input type="text" name="codigo_unico_doctor" required
+                                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Duración de Atención (minutos)</label>
+                                <input type="number" name="duracion_atencion" value="30" min="15" max="120"
+                                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Especialidades</label>
+                                <div class="relative">
+                                    <input type="text" 
+                                           id="especialidad_input"
+                                           name="especialidad_texto" 
+                                           placeholder="Ej: Medicina General, Pediatría, Cardiología..."
+                                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                           autocomplete="off">
+                                    
+                                    <!-- Lista de sugerencias -->
+                                    <div id="especialidad_suggestions" class="absolute z-10 w-full bg-white border border-gray-300 rounded-lg shadow-lg hidden max-h-40 overflow-y-auto">
+                                        <!-- Las sugerencias se cargarán dinámicamente -->
+                                    </div>
+                                </div>
+                                <p class="text-xs text-gray-500 mt-1">Escribe especialidades separadas por comas. Se crearán automáticamente si no existen.</p>
+                                
+                                <!-- Chips de especialidades seleccionadas -->
+                                <div id="especialidad_chips" class="mt-2 flex flex-wrap gap-2">
+                                    <!-- Los chips se mostrarán aquí -->
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Horario de Atención</label>
+                                <input type="text" name="horario_atencion" 
+                                       placeholder="Ej: Lunes a Viernes, 08h00 - 13h00"
+                                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Descripción Profesional</label>
+                                <textarea name="descripcion" rows="4" 
+                                          placeholder="Describe la experiencia y logros profesionales del doctor..."
+                                          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Tab: Configuración -->
+                    <div id="tab-content-adicional" class="tab-content hidden">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Estado</label>
+                                <div class="flex items-center space-x-4">
+                                    <label class="flex items-center">
+                                        <input type="checkbox" name="activo" checked 
+                                               class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                        <span class="ml-2 text-sm text-gray-700">Doctor Activo</span>
+                                    </label>
+                                </div>
+                                <p class="text-xs text-gray-500 mt-1">Los doctores inactivos no aparecerán en las listas de selección</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Resumen del doctor -->
+                        <div class="mt-8 p-6 bg-gray-50 rounded-lg">
+                            <h4 class="text-lg font-medium text-gray-900 mb-4">Resumen del Doctor</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                                <div>
+                                    <span class="font-medium text-gray-700">Nombre Completo:</span>
+                                    <span id="summary-nombre" class="text-gray-600 ml-2">-</span>
+                                </div>
+                                <div>
+                                    <span class="font-medium text-gray-700">RUC:</span>
+                                    <span id="summary-ruc" class="text-gray-600 ml-2">-</span>
+                                </div>
+                                <div>
+                                    <span class="font-medium text-gray-700">Código Doctor:</span>
+                                    <span id="summary-codigo" class="text-gray-600 ml-2">-</span>
+                                </div>
+                                <div>
+                                    <span class="font-medium text-gray-700">Duración Atención:</span>
+                                    <span id="summary-duracion" class="text-gray-600 ml-2">-</span>
+                                </div>
+                                <div>
+                                    <span class="font-medium text-gray-700">Teléfono:</span>
+                                    <span id="summary-telefono" class="text-gray-600 ml-2">-</span>
+                                </div>
+                                <div>
+                                    <span class="font-medium text-gray-700">Estado:</span>
+                                    <span id="summary-activo" class="text-gray-600 ml-2">-</span>
+                                </div>
+                                <div class="md:col-span-2">
+                                    <span class="font-medium text-gray-700">Especialidades:</span>
+                                    <span id="summary-especialidades" class="text-gray-600 ml-2">-</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Footer del modal -->
+            <div class="bg-gray-50 px-6 py-4 flex flex-col sm:flex-row justify-between items-center space-y-3 sm:space-y-0 border-t border-gray-200">
+                <button type="button" data-action="close-modal" class="w-full sm:w-auto px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg font-medium flex items-center justify-center transition-all duration-300">
+                    <i class="fas fa-times mr-2"></i>
+                    Cancelar
+                </button>
+                <div class="flex space-x-3">
+                    <button type="button" id="prevDoctorTabBtn" data-action="prev-tab" 
+                            class="hidden px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-medium transition-all duration-300">
+                        <i class="fas fa-arrow-left mr-2"></i>
+                        Anterior
+                    </button>
+                    <button type="button" id="nextDoctorTabBtn" data-action="next-tab" 
+                            class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-all duration-300">
+                        Siguiente
+                        <i class="fas fa-arrow-right ml-2"></i>
+                    </button>
+                    <button type="button" id="submitDoctorBtn" data-action="submit-form"
+                            class="hidden px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-all duration-300">
+                        <i class="fas fa-save mr-2"></i>
+                        Guardar Doctor
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de detalle de doctor -->
+    <div id="doctorDetailModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden">
+            <!-- Header del modal -->
+            <div class="bg-blue-600 px-6 py-4">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-xl font-bold text-white">
+                        <i class="fas fa-user-md mr-2"></i>
+                        Detalle del Doctor
+                    </h2>
+                    <button data-action="close-detail-modal" class="text-white hover:text-gray-300 transition-colors duration-200">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Contenido del modal -->
+            <div id="doctorDetailContent" class="p-6 max-h-[70vh] overflow-y-auto">
+                <!-- El contenido se carga dinámicamente -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de eliminación específico para doctores -->
+    <div id="deleteModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-2xl max-w-md w-full">
+            <!-- Header del modal -->
+            <div class="bg-red-600 px-6 py-4 rounded-t-xl">
+                <div class="flex items-center justify-between">
+                    <h3 id="deleteModalTitle" class="text-lg font-bold text-white">Eliminar Doctor</h3>
+                    <button data-action="close-delete-modal" class="text-white hover:text-gray-300 transition-colors duration-200">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Contenido del modal -->
+            <div class="p-6">
+                <div id="deleteModalMessage" class="mb-6">
+                    <!-- Mensaje dinámico -->
+                </div>
+                
+                <div class="flex justify-end space-x-3">
+                    <button data-action="close-delete-modal" 
+                            class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg font-medium transition-all duration-300">
+                        Cancelar
+                    </button>
+                    <button id="confirmDeleteButton" 
+                            class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-all duration-300">
+                        <i class="fas fa-trash mr-2"></i>
+                        Confirmar Eliminación
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Incluir fragment para eliminar (para otros módulos) -->
+    {% include 'fragments/delete.html' %}
+
+    <!-- Estilos adicionales -->
+    <style>
+        .doctor-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .doctor-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        .modal-content {
+            animation: slideInUp 0.3s ease-out;
+        }
+        
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .doctor-tab {
+            background: rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .doctor-tab:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+        
+        .active-tab {
+            background: rgba(255, 255, 255, 0.9) !important;
+            color: #2563eb !important;
+            border-color: rgba(255, 255, 255, 0.9) !important;
+        }
+        
+        .tab-content {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateX(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        .animate-pulse-slow {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        
+        /* Mejoras adicionales para el diseño moderno */
+        .blue-perso {
+            background-color: #2563eb;
+        }
+        
+        .bg-blue-perso {
+            background-color: #2563eb;
+        }
+        
+        .text-blue-perso {
+            color: #2563eb;
+        }
+        
+        /* Mejoras para los badges de especialidades */
+        .especialidad-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            margin: 2px;
+            box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+        }
+        
+        /* Estilos para autocompletado de especialidades */
+        #especialidad_suggestions {
+            z-index: 1000;
+            border-top: none;
+            border-top-left-radius: 0;
+            border-top-right-radius: 0;
+        }
+        
+        #especialidad_suggestions div:hover {
+            background-color: #eff6ff;
+            transition: background-color 0.2s ease;
+        }
+        
+        /* Chips de especialidades */
+        #especialidad_chips .inline-flex {
+            transition: all 0.2s ease;
+        }
+        
+        #especialidad_chips .inline-flex:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Input focus mejorado */
+        #especialidad_input:focus + #especialidad_suggestions {
+            border-color: #3b82f6;
+        }
+        
+        /* Mejoras para los iconos de estado */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.025em;
+        }
+        
+        .status-active {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+        }
+        
+        .status-inactive {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+        }
+        
+        /* Animación suave para los botones de acción */
+        .btn-action {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .btn-action:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+        
+        /* Mejoras para la búsqueda */
+        .search-input:focus {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.15);
+        }
+    </style>
+
+    <script>
+        let currentDoctorTab = 'informacion';
+        
+        // Función para abrir el modal de creación de doctor
+        function openCreateDoctorModal() {
+            document.getElementById('createDoctorModal').classList.remove('hidden');
+            document.getElementById('modalTitle').textContent = 'Nuevo Doctor';
+            document.getElementById('createDoctorForm').action = "{% url 'core:doctor_create' %}";
+            resetDoctorForm();
+            showDoctorTab('informacion');
+        }
+        
+        // Función para cerrar el modal de creación de doctor
+        function closeCreateDoctorModal() {
+            document.getElementById('createDoctorModal').classList.add('hidden');
+            resetDoctorForm();
+        }
+        
+        // Función para resetear el formulario
+        function resetDoctorForm() {
+            document.getElementById('createDoctorForm').reset();
+            
+            // Limpiar input de especialidades
+            const especialidadInput = document.getElementById('especialidad_input');
+            if (especialidadInput) {
+                especialidadInput.value = '';
+            }
+            
+            // Ocultar sugerencias
+            const suggestions = document.getElementById('especialidad_suggestions');
+            if (suggestions) {
+                suggestions.classList.add('hidden');
+            }
+            
+            // Limpiar chips (si los hubiera)
+            const chipsContainer = document.getElementById('especialidad_chips');
+            if (chipsContainer) {
+                chipsContainer.innerHTML = '';
+            }
+            
+            updateDoctorSummary();
+        }
+        
+        // Función para mostrar tabs en el modal de doctor
+        function showDoctorTab(tabName) {
+            // Ocultar todos los contenidos de tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.add('hidden');
+            });
+            
+            // Remover clase activa de todos los tabs
+            document.querySelectorAll('.doctor-tab').forEach(tab => {
+                tab.classList.remove('active-tab');
+            });
+            
+            // Mostrar el tab seleccionado
+            document.getElementById(`tab-content-${tabName}`).classList.remove('hidden');
+            document.querySelector(`button[data-tab="${tabName}"]`).classList.add('active-tab');
+            
+            currentDoctorTab = tabName;
+            updateDoctorNavigation();
+            
+            if (tabName === 'adicional') {
+                updateDoctorSummary();
+            }
+        }
+        
+        // Función para navegación entre tabs
+        function nextDoctorTab() {
+            if (currentDoctorTab === 'informacion') {
+                showDoctorTab('profesional');
+            } else if (currentDoctorTab === 'profesional') {
+                showDoctorTab('adicional');
+            }
+        }
+        
+        function previousDoctorTab() {
+            if (currentDoctorTab === 'profesional') {
+                showDoctorTab('informacion');
+            } else if (currentDoctorTab === 'adicional') {
+                showDoctorTab('profesional');
+            }
+        }
+        
+        // Función para actualizar la navegación de botones
+        function updateDoctorNavigation() {
+            const prevBtn = document.getElementById('prevDoctorTabBtn');
+            const nextBtn = document.getElementById('nextDoctorTabBtn');
+            const submitBtn = document.getElementById('submitDoctorBtn');
+            
+            if (currentDoctorTab === 'informacion') {
+                prevBtn.classList.add('hidden');
+                nextBtn.classList.remove('hidden');
+                submitBtn.classList.add('hidden');
+            } else if (currentDoctorTab === 'profesional') {
+                prevBtn.classList.remove('hidden');
+                nextBtn.classList.remove('hidden');
+                submitBtn.classList.add('hidden');
+            } else if (currentDoctorTab === 'adicional') {
+                prevBtn.classList.remove('hidden');
+                nextBtn.classList.add('hidden');
+                submitBtn.classList.remove('hidden');
+            }
+        }
+        
+        // Función para actualizar el resumen del doctor
+        function updateDoctorSummary() {
+            const form = document.getElementById('createDoctorForm');
+            const formData = new FormData(form);
+            
+            const nombres = formData.get('nombres') || '';
+            const apellidos = formData.get('apellidos') || '';
+            document.getElementById('summary-nombre').textContent = 
+                nombres && apellidos ? `${nombres} ${apellidos}` : '-';
+            
+            document.getElementById('summary-ruc').textContent = formData.get('ruc') || '-';
+            document.getElementById('summary-codigo').textContent = formData.get('codigo_unico_doctor') || '-';
+            
+            const duracion = formData.get('duracion_atencion');
+            document.getElementById('summary-duracion').textContent = 
+                duracion ? `${duracion} minutos` : '-';
+            
+            document.getElementById('summary-telefono').textContent = formData.get('telefonos') || '-';
+            document.getElementById('summary-activo').textContent = 
+                formData.get('activo') ? 'Activo' : 'Inactivo';
+            
+            // Actualizar especialidades en el resumen
+            const summaryEspecialidades = document.getElementById('summary-especialidades');
+            if (summaryEspecialidades) {
+                const especialidadTexto = document.getElementById('especialidad_input')?.value || '';
+                if (especialidadTexto.trim()) {
+                    summaryEspecialidades.textContent = especialidadTexto;
+                } else {
+                    summaryEspecialidades.textContent = '-';
+                }
+            }
+        }
+        
+        // Función para abrir modal de detalle de doctor
+        function openDoctorDetailModal(doctorId) {
+            document.getElementById('doctorDetailModal').classList.remove('hidden');
+            
+            // Mostrar loading
+            document.getElementById('doctorDetailContent').innerHTML = `
+                <div class="flex items-center justify-center py-12">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                    <span class="ml-3 text-gray-600">Cargando información del doctor...</span>
+                </div>
+            `;
+            
+            // Simular carga de datos (aquí harías una petición AJAX real)
+            setTimeout(() => {
+                loadDoctorDetail(doctorId);
+            }, 500);
+        }
+        
+        // Función para cargar detalle del doctor
+        function loadDoctorDetail(doctorId) {
+            // Aquí harías una petición AJAX para obtener los datos del doctor
+            // Por ahora simularemos con datos estáticos
+            const content = `
+                <div class="space-y-6">
+                    <div class="text-center">
+                        <div class="w-24 h-24 bg-blue-600 rounded-full mx-auto mb-4 flex items-center justify-center">
+                            <i class="fas fa-user-md text-3xl text-white"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900">Dr. Juan Pérez</h3>
+                        <p class="text-gray-600">Código: DOC001</p>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <h4 class="font-medium text-gray-900 mb-2">Información Personal</h4>
+                            <div class="space-y-1 text-sm">
+                                <p><span class="font-medium">Cédula:</span> 1234567890</p>
+                                <p><span class="font-medium">Email:</span> juan.perez@email.com</p>
+                                <p><span class="font-medium">Teléfono:</span> 0987654321</p>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <h4 class="font-medium text-gray-900 mb-2">Datos Profesionales</h4>
+                            <div class="space-y-1 text-sm">
+                                <p><span class="font-medium">RUC:</span> 1234567890001</p>
+                                <p><span class="font-medium">Duración:</span> 30 minutos</p>
+                                <p><span class="font-medium">Estado:</span> <span class="text-green-600">Activo</span></p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h4 class="font-medium text-gray-900 mb-2">Especialidades</h4>
+                        <div class="flex flex-wrap gap-2">
+                            <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">Medicina General</span>
+                            <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">Pediatría</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('doctorDetailContent').innerHTML = content;
+        }
+        
+        // Función para cerrar modal de detalle
+        function closeDoctorDetailModal() {
+            document.getElementById('doctorDetailModal').classList.add('hidden');
+        }
+        
+        // Función para abrir modal de edición
+        function openEditDoctorModal(doctorId) {
+            document.getElementById('createDoctorModal').classList.remove('hidden');
+            document.getElementById('modalTitle').textContent = 'Editar Doctor';
+            document.getElementById('createDoctorForm').action = `{% url 'core:doctor_update' 0 %}`.replace('0', doctorId);
+            
+            // Aquí cargarías los datos del doctor para edición
+            // loadDoctorForEdit(doctorId);
+            
+            showDoctorTab('informacion');
+        }
+        
+        // Función para confirmar eliminación
+        function confirmDeleteDoctor(doctorId, nombre) {
+            const modal = document.getElementById('deleteModal');
+            const titleElement = document.getElementById('deleteModalTitle');
+            const messageElement = document.getElementById('deleteModalMessage');
+            const confirmButton = document.getElementById('confirmDeleteButton');
+            
+            if (modal && titleElement && messageElement && confirmButton) {
+                titleElement.textContent = 'Eliminar Doctor';
+                messageElement.innerHTML = `
+                    <div class="text-center">
+                        <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
+                            <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
+                        </div>
+                        <h3 class="text-lg font-medium text-gray-900 mb-2">¿Eliminar al Dr. ${nombre}?</h3>
+                        <p class="text-sm text-gray-600">
+                            Esta acción desactivará al doctor del sistema. No se podrá deshacer esta acción.
+                        </p>
+                    </div>
+                `;
+                
+                // Configurar el botón de confirmación
+                confirmButton.onclick = function() {
+                    eliminarDoctor(doctorId);
+                };
+                
+                // Mostrar el modal
+                modal.classList.remove('hidden');
+            } else {
+                // Fallback si no existe el modal
+                if (confirm(`¿Está seguro de eliminar al Dr. "${nombre}"?\n\nEsta acción no se puede deshacer.`)) {
+                    window.location.href = `{% url 'core:doctor_delete' 0 %}`.replace('0', doctorId);
+                }
+            }
+        }
+        
+        // Función para eliminar doctor
+        function eliminarDoctor(doctorId) {
+            // Mostrar loading en el botón
+            const confirmButton = document.getElementById('confirmDeleteButton');
+            const originalText = confirmButton.innerHTML;
+            confirmButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Eliminando...';
+            confirmButton.disabled = true;
+            
+            // Simular proceso y redirigir
+            setTimeout(() => {
+                window.location.href = `{% url 'core:doctor_delete' 0 %}`.replace('0', doctorId);
+            }, 1000);
+        }
+        
+        // Función para cerrar el modal de eliminación
+        function closeDeleteModal() {
+            const modal = document.getElementById('deleteModal');
+            if (modal) {
+                modal.classList.add('hidden');
+            }
+        }
+        
+        // Variables globales para especialidades
+        const especialidadesComunes = [
+            'Medicina General', 'Pediatría', 'Cardiología', 'Dermatología', 
+            'Ginecología', 'Neurología', 'Oftalmología', 'Ortopedia', 
+            'Psiquiatría', 'Radiología', 'Urología', 'Endocrinología',
+            'Gastroenterología', 'Neumología', 'Oncología', 'Reumatología',
+            'Otorrinolaringología', 'Anestesiología', 'Cirugía General',
+            'Medicina Interna', 'Medicina Familiar', 'Geriatría'
+        ];
+        
+        // Función para inicializar autocompletado de especialidades
+        function initEspecialidadAutocomplete() {
+            const input = document.getElementById('especialidad_input');
+            const suggestions = document.getElementById('especialidad_suggestions');
+            
+            if (!input || !suggestions) return;
+            
+            input.addEventListener('input', function() {
+                const query = this.value.toLowerCase();
+                
+                // Dividir por comas y obtener el último término
+                const terms = query.split(',');
+                const lastTerm = terms[terms.length - 1].trim();
+                
+                if (lastTerm.length < 2) {
+                    suggestions.classList.add('hidden');
+                    return;
+                }
+                
+                const filteredEspecialidades = especialidadesComunes.filter(esp => 
+                    esp.toLowerCase().includes(lastTerm)
+                );
+                
+                if (filteredEspecialidades.length > 0) {
+                    suggestions.innerHTML = filteredEspecialidades.map(esp => 
+                        `<div class="px-4 py-2 hover:bg-blue-50 cursor-pointer border-b border-gray-100 last:border-b-0" 
+                              onclick="selectEspecialidad('${esp}')">${esp}</div>`
+                    ).join('');
+                    suggestions.classList.remove('hidden');
+                } else {
+                    suggestions.classList.add('hidden');
+                }
+            });
+            
+            input.addEventListener('blur', function() {
+                // Delay para permitir clicks en sugerencias
+                setTimeout(() => {
+                    suggestions.classList.add('hidden');
+                }, 200);
+            });
+        }
+        
+        // Función para seleccionar especialidad de las sugerencias
+        function selectEspecialidad(especialidad) {
+            const input = document.getElementById('especialidad_input');
+            if (!input) return;
+            
+            const currentValue = input.value;
+            const terms = currentValue.split(',');
+            
+            // Reemplazar el último término incompleto
+            terms[terms.length - 1] = especialidad;
+            
+            input.value = terms.join(', ') + ', ';
+            input.focus();
+            
+            const suggestions = document.getElementById('especialidad_suggestions');
+            if (suggestions) {
+                suggestions.classList.add('hidden');
+            }
+        }
+        function submitDoctorForm() {
+            const form = document.getElementById('createDoctorForm');
+            const submitBtn = document.getElementById('submitDoctorBtn');
+            
+            if (!form) {
+                console.error('Formulario no encontrado');
+                alert('Error: Formulario no encontrado');
+                return;
+            }
+            
+            // Mostrar loading en el botón
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Guardando...';
+            submitBtn.disabled = true;
+            
+            // Validar campos requeridos básicos
+            const nombres = form.querySelector('[name="nombres"]')?.value?.trim() || '';
+            const apellidos = form.querySelector('[name="apellidos"]')?.value?.trim() || '';
+            const ruc = form.querySelector('[name="ruc"]')?.value?.trim() || '';
+            const codigo = form.querySelector('[name="codigo_unico_doctor"]')?.value?.trim() || '';
+            const fechaNacimiento = form.querySelector('[name="fecha_nacimiento"]')?.value || '';
+            
+            // Validaciones
+            if (!nombres || !apellidos || !ruc || !codigo || !fechaNacimiento) {
+                alert('Por favor completa todos los campos requeridos:\n- Nombres\n- Apellidos\n- RUC\n- Código Único Doctor\n- Fecha de Nacimiento');
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+                return;
+            }
+            
+            // Validar RUC (formato básico)
+            if (ruc.length < 10 || ruc.length > 13) {
+                alert('El RUC debe tener entre 10 y 13 dígitos');
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+                return;
+            }
+            
+            // Preparar FormData para AJAX
+            const formData = new FormData(form);
+            
+            // Enviar por AJAX
+            fetch('{% url "core:doctor_create_ajax" %}', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Éxito - mostrar mensaje y cerrar modal
+                    alert('✓ ' + data.message);
+                    closeCreateDoctorModal();
+                    
+                    // Recargar la página para mostrar el nuevo doctor
+                    window.location.reload();
+                } else {
+                    // Error - mostrar errores
+                    let errorMessage = 'Errores en el formulario:\n';
+                    for (const [field, errors] of Object.entries(data.errors)) {
+                        errorMessage += `• ${field}: ${errors.join(', ')}\n`;
+                    }
+                    alert(errorMessage);
+                }
+            })
+            .catch(error => {
+                console.error('Error al enviar formulario:', error);
+                alert('Error al enviar el formulario. Por favor intenta de nuevo.\n\nDetalle técnico: ' + error.message);
+            })
+            .finally(() => {
+                // Restaurar botón
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            });
+        }
+            fetch('{% url "core:doctor_create_ajax" %}', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Éxito - mostrar mensaje y cerrar modal
+                    alert('✓ ' + data.message);
+                    closeCreateDoctorModal();
+                    
+                    // Recargar la página para mostrar el nuevo doctor
+                    window.location.reload();
+                } else {
+                    // Error - mostrar errores
+                    let errorMessage = 'Errores en el formulario:\n';
+                    for (const [field, errors] of Object.entries(data.errors)) {
+                        errorMessage += `• ${field}: ${errors.join(', ')}\n`;
+                    }
+                    alert(errorMessage);
+                }
+            })
+            .catch(error => {
+                console.error('Error al enviar formulario:', error);
+                alert('Error al enviar el formulario. Por favor intenta de nuevo.\n\nDetalle técnico: ' + error.message);
+            })
+            .finally(() => {
+                // Restaurar botón
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            });
+        }
+        
+        // Event listeners para actualizar resumen en tiempo real
+        document.addEventListener('DOMContentLoaded', function() {
+            // Inicializar autocompletado de especialidades
+            initEspecialidadAutocomplete();
+            
+            const form = document.getElementById('createDoctorForm');
+            if (form) {
+                form.addEventListener('input', updateDoctorSummary);
+                form.addEventListener('change', updateDoctorSummary);
+            }
+            
+            // Event delegation para todos los botones de acción
+            document.addEventListener('click', function(e) {
+                if (e.target.closest('[data-action]')) {
+                    const button = e.target.closest('[data-action]');
+                    const action = button.getAttribute('data-action');
+                    
+                    switch(action) {
+                        case 'create':
+                            openCreateDoctorModal();
+                            break;
+                        case 'view-detail':
+                            const doctorId = button.getAttribute('data-doctor-id');
+                            openDoctorDetailModal(doctorId);
+                            break;
+                        case 'edit':
+                            const editDoctorId = button.getAttribute('data-doctor-id');
+                            openEditDoctorModal(editDoctorId);
+                            break;
+                        case 'delete':
+                            const deleteDoctorId = button.getAttribute('data-doctor-id');
+                            const doctorName = button.getAttribute('data-doctor-name');
+                            confirmDeleteDoctor(deleteDoctorId, doctorName);
+                            break;
+                        case 'close-modal':
+                            closeCreateDoctorModal();
+                            break;
+                        case 'close-detail-modal':
+                            closeDoctorDetailModal();
+                            break;
+                        case 'close-delete-modal':
+                            closeDeleteModal();
+                            break;
+                        case 'prev-tab':
+                            previousDoctorTab();
+                            break;
+                        case 'next-tab':
+                            nextDoctorTab();
+                            break;
+                        case 'submit-form':
+                            submitDoctorForm();
+                            break;
+                    }
+                }
+                
+                // Event listener para los tabs
+                if (e.target.closest('[data-tab]')) {
+                    const button = e.target.closest('[data-tab]');
+                    const tabName = button.getAttribute('data-tab');
+                    showDoctorTab(tabName);
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+{% endblock %}

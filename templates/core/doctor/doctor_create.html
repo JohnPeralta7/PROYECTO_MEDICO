@@ -1,0 +1,275 @@
+{% extends 'home.html' %}
+{% load static %}
+
+{% block title %}Crear Doctor{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 py-8">
+    <!-- Header -->
+    <div class="bg-white shadow-sm rounded-lg mb-6">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="p-2 bg-blue-100 rounded-lg">
+                        <i class="fas fa-user-md text-blue-600 text-xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-900">Crear Nuevo Doctor</h1>
+                        <p class="text-gray-600">Agrega un nuevo profesional médico al equipo</p>
+                    </div>
+                </div>
+                <a href="{% url 'core:doctor_list' %}" 
+                   class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors duration-200">
+                    <i class="fas fa-arrow-left mr-2"></i>
+                    Volver a Lista
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Formulario -->
+    <div class="bg-white shadow-sm rounded-lg">
+        <form method="post" enctype="multipart/form-data" class="p-6">
+            {% csrf_token %}
+            
+            {% if form.errors %}
+                <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+                    <div class="flex items-center">
+                        <i class="fas fa-exclamation-triangle text-red-500 mr-2"></i>
+                        <h3 class="font-medium text-red-800">Por favor corrige los siguientes errores:</h3>
+                    </div>
+                    <ul class="mt-2 list-disc list-inside text-red-700">
+                        {% for field, errors in form.errors.items %}
+                            {% for error in errors %}
+                                <li>{{ field|title }}: {{ error }}</li>
+                            {% endfor %}
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+
+            <!-- Información Personal -->
+            <div class="mb-8">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                    <i class="fas fa-user mr-2 text-blue-600"></i>
+                    Información Personal
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Nombres *
+                        </label>
+                        {{ form.nombres }}
+                        {% if form.nombres.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.nombres.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Apellidos *
+                        </label>
+                        {{ form.apellidos }}
+                        {% if form.apellidos.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.apellidos.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            RUC *
+                        </label>
+                        {{ form.ruc }}
+                        {% if form.ruc.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.ruc.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Fecha de Nacimiento *
+                        </label>
+                        {{ form.fecha_nacimiento }}
+                        {% if form.fecha_nacimiento.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.fecha_nacimiento.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Teléfonos
+                        </label>
+                        {{ form.telefonos }}
+                        {% if form.telefonos.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.telefonos.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Email
+                        </label>
+                        {{ form.email }}
+                        {% if form.email.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.email.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Dirección *
+                        </label>
+                        {{ form.direccion }}
+                        {% if form.direccion.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.direccion.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información Profesional -->
+            <div class="mb-8 border-t pt-8">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                    <i class="fas fa-stethoscope mr-2 text-blue-600"></i>
+                    Información Profesional
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Código Único Doctor *
+                        </label>
+                        {{ form.codigo_unico_doctor }}
+                        {% if form.codigo_unico_doctor.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.codigo_unico_doctor.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Duración de Atención (minutos)
+                        </label>
+                        {{ form.duracion_atencion }}
+                        {% if form.duracion_atencion.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.duracion_atencion.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Especialidades
+                        </label>
+                        {{ form.especialidad }}
+                        {% if form.especialidad.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.especialidad.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Horario de Atención
+                        </label>
+                        {{ form.horario_atencion }}
+                        {% if form.horario_atencion.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.horario_atencion.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Archivos y Estado -->
+            <div class="mb-8 border-t pt-8">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                    <i class="fas fa-cog mr-2 text-blue-600"></i>
+                    Archivos y Configuración
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Foto
+                        </label>
+                        {{ form.foto }}
+                        {% if form.foto.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.foto.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Currículum
+                        </label>
+                        {{ form.curriculum }}
+                        {% if form.curriculum.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.curriculum.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Firma Digital
+                        </label>
+                        {{ form.firma_digital }}
+                        {% if form.firma_digital.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.firma_digital.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <div class="flex items-center">
+                            {{ form.activo }}
+                            <label class="ml-2 text-sm font-medium text-gray-700">
+                                Doctor Activo
+                            </label>
+                        </div>
+                        {% if form.activo.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.activo.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botones de acción -->
+            <div class="flex justify-end space-x-4 pt-6 border-t">
+                <a href="{% url 'core:doctor_list' %}" 
+                   class="px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg font-medium transition-colors duration-200">
+                    <i class="fas fa-times mr-2"></i>
+                    Cancelar
+                </a>
+                <button type="submit" 
+                        class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors duration-200">
+                    <i class="fas fa-save mr-2"></i>
+                    Guardar Doctor
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+/* Mejorar apariencia de los campos del formulario */
+.form-control {
+    width: 100%;
+    padding: 8px 16px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+
+.form-control:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px #3b82f6;
+    border-color: transparent;
+}
+
+.form-check-input {
+    height: 16px;
+    width: 16px;
+    accent-color: #3b82f6;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+}
+
+/* Estilo para checkboxes de especialidades */
+input[type="checkbox"] {
+    height: 16px;
+    width: 16px;
+    accent-color: #3b82f6;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    margin-right: 8px;
+}
+
+/* Mejorar textarea */
+textarea.form-control {
+    resize: none;
+}
+</style>
+{% endblock %}
+

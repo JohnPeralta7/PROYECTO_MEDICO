@@ -15,7 +15,7 @@ from applications.core.views.empleado import (
      EmpleadoListView, EmpleadoCreateView, EmpleadoDeleteView, EmpleadoUpdateView
     )
 from applications.core.views.doctor import (
-     DoctorListView, DoctorCreateView, DoctorDeleteView, DoctorUpdateView
+     DoctorListView, DoctorCreateView, DoctorDeleteView, DoctorUpdateView, doctor_create_ajax
     )
 from applications.core.views.diagnostico import (
      DiagnosticoListView, DiagnosticoCreateView, DiagnosticoDeleteView, DiagnosticoUpdateView
@@ -67,6 +67,7 @@ urlpatterns = [
     #path('p_find/', paciente_find, name="paciente_find"),
     path('doctor_list/', DoctorListView.as_view(), name='doctor_list'),
     path('doctor_create/', DoctorCreateView.as_view(), name='doctor_create'),
+    path('doctor_create_ajax/', doctor_create_ajax, name='doctor_create_ajax'),
     path('doctor_delete/<int:pk>/', DoctorDeleteView.as_view(), name='doctor_delete'),
     path('doctor_update/<int:pk>/', DoctorUpdateView.as_view(), name='doctor_update'),
 
@@ -79,4 +80,4 @@ urlpatterns = [
     path('diagnostico_update/<int:pk>/', DiagnosticoUpdateView.as_view(), name='diagnostico_update'),
 
 ]
-#tengo que hacer 
+#tengo que hacer
