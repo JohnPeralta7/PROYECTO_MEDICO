@@ -254,11 +254,10 @@ def crear_marca_medicamento_ajax(request):
     
     try:
         nombre = request.POST.get('nombre', '').strip()
-        pais_origen = request.POST.get('pais_origen', '').strip()
         descripcion = request.POST.get('descripcion', '').strip()
         
         # Debug - Imprimir datos recibidos
-        print(f"Datos recibidos - Nombre: '{nombre}', País: '{pais_origen}', Descripción: '{descripcion}'")
+        print(f"Datos recibidos - Nombre: '{nombre}', Descripción: '{descripcion}'")
         print(f"Usuario: {request.user}")
         print(f"POST data: {request.POST}")
         
@@ -279,7 +278,6 @@ def crear_marca_medicamento_ajax(request):
         # Crear la nueva marca de medicamento
         nueva_marca = MarcaMedicamento.objects.create(
             nombre=nombre.title(),  # Capitalizar primera letra
-            pais_origen=pais_origen.title() if pais_origen else '',
             descripcion=descripcion,
             activo=True
         )
@@ -292,7 +290,6 @@ def crear_marca_medicamento_ajax(request):
             'marca': {
                 'id': nueva_marca.id,
                 'nombre': nueva_marca.nombre,
-                'pais_origen': nueva_marca.pais_origen or '',
                 'descripcion': nueva_marca.descripcion or ''
             }
         })

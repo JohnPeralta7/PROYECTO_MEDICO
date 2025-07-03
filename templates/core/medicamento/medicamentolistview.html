@@ -484,18 +484,9 @@
                                             
                                             <div>
                                                 <label class="block mb-1 text-xs font-medium text-gray-700">
-                                                    País de origen
-                                                </label>
-                                                <input type="text" id="nuevaMarcaPais" 
-                                                       placeholder="Ej: Estados Unidos, Alemania, etc."
-                                                       class="block w-full py-2 px-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
-                                            </div>
-                                            
-                                            <div>
-                                                <label class="block mb-1 text-xs font-medium text-gray-700">
                                                     Descripción
                                                 </label>
-                                                <textarea id="nuevaMarcaDescripcion" rows="2" 
+                                                <textarea id="nuevaMarcaDescripcion" rows="3" 
                                                           placeholder="Información adicional sobre la marca..."
                                                           class="block w-full py-2 px-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"></textarea>
                                             </div>
@@ -1102,17 +1093,15 @@
         function cancelarNuevaMarca() {
             document.getElementById('nuevaMarcaForm').classList.add('hidden');
             document.getElementById('nuevaMarcaNombre').value = '';
-            document.getElementById('nuevaMarcaPais').value = '';
             document.getElementById('nuevaMarcaDescripcion').value = '';
             hideMessage('nuevaMarcaMessage');
         }
         
         function crearNuevaMarca() {
             const nombre = document.getElementById('nuevaMarcaNombre').value.trim();
-            const pais = document.getElementById('nuevaMarcaPais').value.trim();
             const descripcion = document.getElementById('nuevaMarcaDescripcion').value.trim();
             
-            console.log('Datos del formulario de marca:', { nombre, pais, descripcion });
+            console.log('Datos del formulario de marca:', { nombre, descripcion });
             
             // Validación básica
             if (!nombre) {
@@ -1177,7 +1166,6 @@
             // Preparar datos
             const formData = new FormData();
             formData.append('nombre', nombre);
-            formData.append('pais_origen', pais);
             formData.append('descripcion', descripcion);
             formData.append('csrfmiddlewaretoken', getCsrfToken());
             
@@ -1399,9 +1387,9 @@
                                     marcaSelect.appendChild(option);
                                 });
                                 
-                                // Agregar opción "nuevo"
+                                // Agregar opción "nueva"
                                 const nuevaOpcion = document.createElement('option');
-                                nuevaOpcion.value = 'nuevo';
+                                nuevaOpcion.value = 'nueva';
                                 nuevaOpcion.textContent = '+ Crear nueva marca';
                                 nuevaOpcion.classList.add('font-bold', 'text-green-600');
                                 marcaSelect.appendChild(nuevaOpcion);
