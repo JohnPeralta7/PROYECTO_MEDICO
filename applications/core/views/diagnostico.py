@@ -1,9 +1,12 @@
+from django.contrib import messages
 from django.http import JsonResponse
 from django.urls import reverse_lazy
 from django.db.models import Q
+from applications.core.forms.diagnostico import DiagnosticoForm
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required
 from django.views.generic import ListView, CreateView, DeleteView, UpdateView
+from applications.security.components.mixin_crud import CreateViewMixin, DeleteViewMixin, ListViewMixin, PermissionMixin, UpdateViewMixin
 from applications.core.models import (
     Paciente, Doctor, Empleado, Medicamento, Diagnostico, GastoMensual
     )
@@ -11,7 +14,8 @@ from applications.core.models import (
 
 #VISTAS DE DIAGNOSTICO
 
-class DiagnosticoListView(ListView):
+
+class DiagnosticoListView(PermissionMixin, ListViewMixin, ListView):
     model = Diagnostico
     template_name = 'core/diagnostico/diagnosticolistview.html'
     context_object_name = 'diagnostico'
@@ -40,18 +44,63 @@ class DiagnosticoListView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['create_url'] = reverse_lazy('core:diagnosis_create')
-        
-        
-        
+        context['create_url'] = reverse_lazy('core:diagnosis_create')       
         return context
 
 
-class DiagnosticoCreateView(CreateView):
-    ...
+class DiagnosticoCreateView(PermissionMixin, CreateViewMixin, CreateView):
+    model = Diagnostico
+    template_name = 'core/diagnostico/diagnosticocreate.html'
+    form_class = DiagnosticoForm
+    success_url = reverse_lazy('core:diagnostico_list')
+    permission_required = 'add_diagnostico'
 
-class DiagnosticoUpdateView(UpdateView):
-    ...
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['grabar'] = 'Grabar Diagnóstico'
+        context['back_url'] = self.success_url
+        return context
 
-class DiagnosticoDeleteView(DeleteView):
-    ...
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        messages.success(self.request, f"Éxito al crear el diagnóstico {self.object.codigo}.")
+        return response
+
+
+class DiagnosticoUpdateView(PermissionMixin, UpdateViewMixin, UpdateView):
+    model = Diagnostico
+    template_name = 'core/diagnostico/diagnosticoupdate.html'
+    form_class = DiagnosticoForm
+    success_url = reverse_lazy('core:diagnostico_list')
+    permission_required = 'change_diagnostico'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['grabar'] = 'Actualizar Diagnóstico'
+        context['back_url'] = self.success_url
+        return context
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        messages.success(self.request, f"Éxito al actualizar el diagnóstico {self.object.codigo}.")
+        return response
+
+
+class DiagnosticoDeleteView(PermissionMixin, DeleteViewMixin, DeleteView):
+    model = Diagnostico
+    template_name = 'core/delete.html'
+    success_url = reverse_lazy('core:diagnostico_list')
+    permission_required = 'delete_diagnostico'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['grabar'] = 'Eliminar Diagnóstico'
+        context['description'] = f"¿Desea eliminar el diagnóstico: {self.object.codigo} - {self.object.descripcion}?"
+        context['back_url'] = self.success_url
+        return context
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        messages.success(self.request, f"Éxito al eliminar el diagnóstico {self.object.codigo}.")
+        return response
+

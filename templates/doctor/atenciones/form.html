@@ -5,6 +5,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
 {%  endblock css %}
 {% block content %}
+<<<<<<< HEAD
 <section class="bg-gray-50 min-h-screen">
    <!-- Header -->
    <!-- Navigation Tabs -->
@@ -12,6 +13,15 @@
         <div class="container mx-auto px-6">
             <div class="flex space-x-0">
                 <button onclick="showTab('paciente')" id="tab-paciente" class="tab-button flex-1 py-4 px-6 text-center border-b-3 border-blue-500 text-blue-600 font-semibold transition-all duration-300 hover:bg-blue-50">
+=======
+<section class="bg-cyan-50 min-h-screen">
+   <!-- Header -->
+   <!-- Navigation Tabs -->
+    <nav class="bg-cyan-100 shadow-lg sticky top-0 z-10">
+        <div class="container mx-auto px-6">
+            <div class="flex space-x-0">
+                <button onclick="showTab('paciente')" id="tab-paciente" class="tab-button flex-1 py-4 px-6 text-center border-b-3 border-cyan-500 text-cyan-700 font-semibold transition-all duration-300 hover:bg-cyan-50">
+>>>>>>> c8f22bc0467a96966b05af9ed354b5f1d6c751b6
                     <div class="flex items-center justify-center space-x-2">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
@@ -19,7 +29,11 @@
                         <span>Datos del Paciente</span>
                     </div>
                 </button>
+<<<<<<< HEAD
                 <button onclick="showTab('consultas')" id="tab-consultas" class="tab-button flex-1 py-4 px-6 text-center border-b-3 border-transparent text-gray-500 font-semibold transition-all duration-300 hover:bg-gray-50 hover:text-gray-700">
+=======
+                <button onclick="showTab('consultas')" id="tab-consultas" class="tab-button flex-1 py-4 px-6 text-center border-b-3 border-transparent text-cyan-500 font-semibold transition-all duration-300 hover:bg-cyan-50 hover:text-cyan-700">
+>>>>>>> c8f22bc0467a96966b05af9ed354b5f1d6c751b6
                     <div class="flex items-center justify-center space-x-2">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
@@ -27,7 +41,11 @@
                         <span>Consultas Anteriores</span>
                     </div>
                 </button>
+<<<<<<< HEAD
                 <button onclick="showTab('atencion')" id="tab-atencion" class="tab-button flex-1 py-4 px-6 text-center border-b-3 border-transparent text-gray-500 font-semibold transition-all duration-300 hover:bg-gray-50 hover:text-gray-700">
+=======
+                <button onclick="showTab('atencion')" id="tab-atencion" class="tab-button flex-1 py-4 px-6 text-center border-b-3 border-transparent text-cyan-500 font-semibold transition-all duration-300 hover:bg-cyan-50 hover:text-cyan-700">
+>>>>>>> c8f22bc0467a96966b05af9ed354b5f1d6c751b6
                     <div class="flex items-center justify-center space-x-2">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
@@ -45,6 +63,7 @@
         <div id="content-paciente" class="tab-content active">
             <!-- Selector de Paciente -->
             <div class="bg-white rounded-2xl shadow-xl p-8 mb-8 card-hover transition-all duration-300">
+<<<<<<< HEAD
         <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
             <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center mr-4">
                 <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -53,6 +72,16 @@
             </div>
             Selección de Paciente
         </h2>
+=======
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center animate-pulse">
+                    <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center mr-4 animate-bounce">
+                        <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                    </div>
+                    Selección de Paciente
+                </h2>
+>>>>>>> c8f22bc0467a96966b05af9ed354b5f1d6c751b6
 
         <div class="flex flex-col md:flex-row gap-4 items-end">
             <div class="flex-1 relative">
@@ -124,7 +153,11 @@
 
             <button
                 onclick="mostrarFormularioNuevoPaciente()"
+<<<<<<< HEAD
                 class="bg-green-600 hover:bg-green-700 text-white px-6 py-4 rounded-xl transition-colors duration-200 flex items-center space-x-2 font-semibold"
+=======
+                class="bg-cyan-600 hover:bg-cyan-700 text-white px-6 py-4 rounded-xl transition-colors duration-200 flex items-center space-x-2 font-semibold"
+>>>>>>> c8f22bc0467a96966b05af9ed354b5f1d6c751b6
             >
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
@@ -135,6 +168,7 @@
     </div>
 
     <!-- Datos del Paciente Seleccionado -->
+<<<<<<< HEAD
     <div id="datos-paciente-container" class="bg-white rounded-2xl shadow-xl p-8 mb-8 hidden">
         <h3 class="text-xl font-bold text-gray-800 mb-6 flex items-center">
             <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center mr-3">
@@ -221,6 +255,82 @@
             </div>
         </div>
     </div>
+=======
+    <div class="flex justify-center">
+  <div id="datos-paciente-container" class="bg-white rounded-2xl shadow-xl p-8 mb-8 hidden w-full max-w-4xl">
+      <h3 class="text-xl font-bold text-gray-800 mb-6 flex items-center">
+          <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center mr-3">
+              <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+              </svg>
+          </div>
+          Datos del Paciente
+      </h3>
+
+      <!-- Información Personal -->
+      <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-8 mb-8">
+          <div class="flex flex-col items-center mb-6">
+  <div id="paciente-avatar" class="w-20 h-20 rounded-full overflow-hidden border-2 border-blue-200 shadow mb-2">
+    <img id="paciente-foto" src="" alt="Foto del paciente" class="w-full h-full object-cover">
+  </div>
+  <div class="text-center">
+    <div id="paciente-nombre" class="font-semibold text-gray-800 text-lg">Nombre del Paciente</div>
+    <div id="paciente-cedula" class="text-sm text-gray-500">CI: 0000000000</div>
+    <div id="paciente-edad" class="text-sm text-gray-500">Edad: --</div>
+  </div>
+</div>
+          <div>
+              <div class="text-sm text-gray-500">Teléfono</div>
+              <div id="paciente-telefono" class="font-medium text-gray-800">--</div>
+          </div>
+          <div>
+              <div class="text-sm text-gray-500">Email</div>
+              <div id="paciente-email" class="font-medium text-gray-800">--</div>
+          </div>
+          <div>
+              <div class="text-sm text-gray-500">Dirección</div>
+              <div id="paciente-direccion" class="font-medium text-gray-800">--</div>
+          </div>
+      </div>
+
+      <!-- Historia Clínica -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-2">Antecedentes Personales</label>
+              <textarea id="antecedentes-personales" rows="3" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" readonly></textarea>
+          </div>
+          <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-2">Antecedentes Quirúrgicos</label>
+              <textarea id="antecedentes-quirurgicos" rows="3" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" readonly></textarea>
+          </div>
+          <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-2">Antecedentes Familiares</label>
+              <textarea id="antecedentes-familiares" rows="3" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" readonly></textarea>
+          </div>
+          <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-2">Alergias</label>
+              <textarea id="alergias" rows="3" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" readonly></textarea>
+          </div>
+          <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-2">Medicamentos Actuales</label>
+              <textarea id="medicamentos-actuales" rows="3" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" readonly></textarea>
+          </div>
+          <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-2">Hábitos Tóxicos</label>
+              <textarea id="habitos-toxicos" rows="3" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" readonly></textarea>
+          </div>
+          <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-2">Vacunas</label>
+              <textarea id="vacunas" rows="3" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" readonly></textarea>
+          </div>
+          <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-2">Antecedentes Gineco-obstétricos</label>
+              <textarea id="antecedentes-gineco" rows="3" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" readonly></textarea>
+          </div>
+      </div>
+  </div>
+</div>
+>>>>>>> c8f22bc0467a96966b05af9ed354b5f1d6c751b6
 
     <!-- Mensaje cuando no hay paciente seleccionado -->
     <div id="no-paciente-mensaje" class="bg-white rounded-2xl shadow-xl p-8 text-center">
@@ -239,8 +349,13 @@
         <!-- Consultas Anteriores -->
           <div id="content-consultas" class="tab-content p-8">
         <div class="mb-8">
+<<<<<<< HEAD
             <h2 class="text-2xl font-bold text-gray-800 mb-2 flex items-center">
                 <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center mr-4">
+=======
+            <h2 class="text-2xl font-bold text-gray-800 mb-2 flex items-center animate-pulse">
+                <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center mr-4 animate-bounce">
+>>>>>>> c8f22bc0467a96966b05af9ed354b5f1d6c751b6
                     <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                     </svg>
@@ -268,6 +383,7 @@
 
         <!-- Atención Actual -->
          <div id="content-atencion" class="tab-content">
+<<<<<<< HEAD
             <div class="space-y-8">
                 <!-- Identificación -->
               <form id="atencion-form" onsubmit="event.preventDefault(); grabarAtencion();">
@@ -544,6 +660,299 @@
                 </form>
             </div>
         </div>
+=======
+  <div class="flex justify-center">
+    <form id="atencion-form" onsubmit="event.preventDefault(); grabarAtencion();"
+          class="w-full max-w-4xl space-y-10">
+      {% csrf_token %}
+      <div class="bg-white rounded-2xl shadow-xl p-8">
+  <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center animate-pulse">
+    <div class="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center mr-4 animate-bounce">
+      <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+      </svg>
+    </div>
+    Identificación de la Atención
+  </h2>
+  <div class="flex flex-col md:flex-row items-center justify-center gap-8">
+    <div class="bg-blue-50 p-4 rounded-xl border-l-4 border-blue-400 flex flex-col items-center w-full md:w-1/2">
+      <div id="paciente-avatar2" class="w-24 h-24 rounded-full overflow-hidden mb-3">
+        <img id="paciente-foto2" src="" alt="Foto del paciente" class="w-full h-full object-cover">
+      </div>
+      <h3 class="font-semibold text-blue-800 text-lg mb-1" id="paciente-nombre2">--</h3>
+      <div class="text-sm text-blue-700 mb-1">ID: <span id="paciente-id2">--</span></div>
+      <div class="text-sm text-blue-700" id="paciente-edad2">Edad</div>
+    </div>
+  </div>
+  <input type="hidden" id="id_paciente" name="id_paciente">
+  <input type="hidden" id="id_doctor" value="1">
+</div>
+
+      <!-- Signos Vitales -->
+      <div class="bg-white rounded-2xl shadow-xl p-8">
+        <h3 class="text-xl font-bold text-gray-800 mb-6 flex items-center">
+          <div class="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center mr-3">
+            <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+            </svg>
+          </div>
+          Signos Vitales y Mediciones
+        </h3>
+
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div class="bg-red-50 p-4 rounded-xl text-center">
+            <h4 class="font-semibold text-red-800 text-sm">Presión Arterial</h4>
+            <input type="text" id="id_presion_arterial" value="{{ atencion.presion_arterial|default:'' }}" class="w-full mt-2 p-2 border border-red-200 rounded-lg text-center font-bold text-red-700" placeholder="120/80">
+          </div>
+          <div class="bg-pink-50 p-4 rounded-xl text-center">
+            <h4 class="font-semibold text-pink-800 text-sm">Pulso (ppm)</h4>
+            <input type="number" id="id_pulso" value="{{ atencion.pulso|default:'' }}" class="w-full mt-2 p-2 border border-pink-200 rounded-lg text-center font-bold text-pink-700" placeholder="72">
+          </div>
+          <div class="bg-orange-50 p-4 rounded-xl text-center">
+            <h4 class="font-semibold text-orange-800 text-sm">Temperatura (°C)</h4>
+            <input type="number" step="0.1" id="id_temperatura" value="{{ atencion.temperatura|stringformat:'g'|default:'' }}" class="w-full mt-2 p-2 border border-orange-200 rounded-lg text-center font-bold text-orange-700" placeholder="36.5">
+          </div>
+          <div class="bg-blue-50 p-4 rounded-xl text-center">
+            <h4 class="font-semibold text-blue-800 text-sm">Freq. Respiratoria</h4>
+            <input type="number" id="id_frecuencia_respiratoria" value="{{ atencion.frecuencia_respiratoria|stringformat:'g'|default:'' }}" class="w-full mt-2 p-2 border border-blue-200 rounded-lg text-center font-bold text-blue-700" placeholder="16">
+          </div>
+          <div class="bg-green-50 p-4 rounded-xl text-center">
+            <h4 class="font-semibold text-green-800 text-sm">Saturación O2 (%)</h4>
+            <input type="number" id="id_saturacion_oxigeno" value="{{ atencion.saturacion_oxigeno|stringformat:'g'|default:'' }}" class="w-full mt-2 p-2 border border-green-200 rounded-lg text-center font-bold text-green-700" placeholder="98">
+          </div>
+          <div class="bg-purple-50 p-4 rounded-xl text-center">
+            <h4 class="font-semibold text-purple-800 text-sm">Peso (kg)</h4>
+            <input type="number" step="0.1" id="id_peso" value="{{ atencion.peso|stringformat:'g'|default:'' }}" class="w-full mt-2 p-2 border border-purple-200 rounded-lg text-center font-bold text-purple-700" placeholder="70.5">
+          </div>
+          <div class="bg-indigo-50 p-4 rounded-xl text-center">
+            <h4 class="font-semibold text-indigo-800 text-sm">Altura (m)</h4>
+            <input type="number" step="0.01" id="id_altura" value="{{ atencion.altura|stringformat:'g' }}" class="w-full mt-2 p-2 border border-indigo-200 rounded-lg text-center font-bold text-indigo-700" placeholder="1.75">
+          </div>
+          <div class="bg-teal-50 p-4 rounded-xl text-center">
+            <h4 class="font-semibold text-teal-800 text-sm mb-3">Consulta Control</h4>
+            <div class="flex items-center justify-center">
+              <label class="flex items-center cursor-pointer">
+                <input type="checkbox" id="id_consulta_control" {% if atencion.es_control %}checked{% endif %} class="sr-only">
+                <div class="relative">
+                  <div class="w-10 h-6 bg-teal-200 rounded-full shadow-inner transition-colors duration-200 ease-in-out"></div>
+                  <div class="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transform transition-transform duration-200 ease-in-out"></div>
+                </div>
+                <span class="ml-3 text-sm font-medium text-teal-700">¿Es consulta de control?</span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Evaluación Clínica -->
+      <div class="bg-white rounded-2xl shadow-xl p-8">
+        <h3 class="text-xl font-bold text-gray-800 mb-6 flex items-center">
+          <div class="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center mr-3">
+            <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+          </div>
+          Evaluación Clínica
+        </h3>
+
+        <div class="space-y-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-2">Motivo de Consulta *</label>
+              <textarea id="id_motivo_consulta" class="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent" rows="3" placeholder="Ingrese el motivo de la consulta...">{{ atencion.motivo_consulta|default:'' }}</textarea> <button type="button"
+          class="mic-btn mt-1 text-cyan-600 hover:text-red-600 text-2xl"
+          data-target="id_motivo_consulta"
+          title="Dictar por voz">
+    <i class="fas fa-microphone"></i>
+  </button>
+            </div>
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-2">Síntomas *</label>
+              <textarea id="id_sintomas" class="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent" rows="3" placeholder="Describa los síntomas presentados...">{{ atencion.sintomas|default:'' }}</textarea><button type="button" class="mic-btn ml-2 text-cyan-600 hover:text-red-600 text-2xl" data-target="id_sintomas" title="Dictar por voz">
+  <i class="fas fa-microphone"></i>
+</button>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">Examen Físico</label>
+            <textarea id="id_examen_fisico" class="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent" rows="4" placeholder="Hallazgos del examen físico...">{{ atencion.examen_fisico|default:'' }}</textarea><button type="button" class="mic-btn ml-2 text-cyan-600 hover:text-red-600 text-2xl" data-target="id_examen_fisico" title="Dictar por voz">
+  <i class="fas fa-microphone"></i>
+</button>
+          </div>
+         <!-- diagnosticos-->
+         <div class="bg-pink-50 border border-gray-300 rounded-lg ">
+           <label class="block text-sm font-semibold text-pink-800 mb-2">Diagnotico(s) *</label>
+            <div class="bg-gray-50 p-4 rounded-xl">
+              <div class="flex items-center space-x-3 mb-3">
+                  <select
+                      id="id_diagnostico"
+                      multiple
+                      class="flex-1 p-3 border border-gray-300 rounded-lg h-32 bg-white"
+                      size="5">
+                      {% for diagnostico in diagnosticos %}
+                          <option
+                              value="{{ diagnostico.id }}"
+                              {% if atencion and diagnostico in atencion.diagnostico.all %}selected{% endif %}
+                              title="{{ diagnostico.datos_adicionales|default:'' }}">
+                           {{ diagnostico.codigo }} - {{ diagnostico.descripcion }}
+                          </option>
+                      {% empty %}
+                          <option value="" disabled>No hay diagnósticos disponibles</option>
+                      {% endfor %}
+                  </select>
+              </div>
+              <div id="diagnosticos-lista" class="text-sm text-gray-600">
+                <!-- Aquí aparecerán los diagnósticos seleccionados -->
+              </div>
+            </div>
+            </div>
+           <!-- fin diagnosticos-->
+
+     </div>
+      </div>
+
+      <!-- Plan Terapéutico -->
+      <div class="bg-white rounded-2xl shadow-xl p-8">
+        <h3 class="text-xl font-bold text-gray-800 mb-6 flex items-center">
+          <div class="w-8 h-8 bg-cyan-100 rounded-lg flex items-center justify-center mr-3">
+            <svg class="w-4 h-4 text-cyan-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+            </svg>
+          </div>
+          Plan Terapéutico
+        </h3>
+
+        <div class="space-y-6">
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">Plan de Tratamiento *</label>
+            <textarea id="id_tratamiento" class="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent" rows="4" placeholder="Detalle el plan de tratamiento...">{{ atencion.tratamiento|default:'' }}</textarea><button type="button" class="mic-btn ml-2 text-cyan-600 hover:text-red-600 text-2xl" data-target="id_tratamiento" title="Dictar por voz">
+  <i class="fas fa-microphone"></i>
+</button>
+          </div>
+
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">Exámenes Solicitados</label>
+            <textarea id="id_examenes_enviados" class="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent" rows="3" placeholder="Lista de exámenes solicitados...">{{ atencion.examenes_enviados|default:'' }}</textarea>
+          </div>
+
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">Comentario Adicional</label>
+            <textarea id="id_comentario_adicional" class="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent" rows="3" placeholder="Comentarios adicionales...">{{ atencion.comentario_adicional|default:'' }}</textarea><button type="button" class="mic-btn ml-2 text-cyan-600 hover:text-red-600 text-2xl" data-target="id_comentario_adicional" title="Dictar por voz">
+  <i class="fas fa-microphone"></i>
+</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Prescripción de Medicamentos -->
+      <div class="bg-white rounded-2xl shadow-xl p-8">
+        <h3 class="text-xl font-bold text-gray-800 mb-6 flex items-center">
+          <div class="w-8 h-8 bg-rose-100 rounded-lg flex items-center justify-center mr-3">
+            <svg class="w-4 h-4 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path>
+            </svg>
+          </div>
+          Prescripción de Medicamentos
+        </h3>
+
+        <!-- Formulario de agregar medicamento -->
+        <div class="bg-gray-50 p-6 rounded-xl mb-6">
+          <h4 class="font-semibold text-gray-800 mb-4">Agregar Medicamento</h4>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+         <!-- select dinamico -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Medicamento *</label>
+              <select id="medicamento-select" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500" name="medicamento_id" required>
+                  <option value="">Seleccione medicamento...</option>
+                  {% for medicamento in medicamentos %}
+                      <option value="{{ medicamento.id }}"
+                              title="{{ medicamento.nombre }} {{ medicamento.concentracion }} - {{ medicamento.tipo.nombre }} ({{ medicamento.marca_medicamento.nombre }}) - ${{ medicamento.precio }} - Stock: {{ medicamento.cantidad }}">
+                          {{ medicamento.nombre }}
+                      </option>
+                  {% empty %}
+                      <option value="" disabled>No hay medicamentos disponibles</option>
+                  {% endfor %}
+              </select>
+          </div>
+          <!-- fin select -->
+          <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Cantidad *</label>
+              <input type="number" id="cantidad-input" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500" placeholder="30">
+          </div>
+          <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Prescripción *</label>
+              <input type="text" id="prescripcion-input" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500" placeholder="1 cada 8 horas">
+          </div>
+          <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Duración (días) *</label>
+              <input type="number" id="duracion-input" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500" placeholder="7">
+          </div>
+          <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Frecuencia diaria *</label>
+              <input type="number" id="frecuencia-input" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500" placeholder="3">
+          </div>
+        </div>
+        <div class="mt-4 flex space-x-3">
+            <button type="button" onclick="agregarMedicamento()" class="bg-rose-600 hover:bg-rose-700 text-white px-6 py-3 rounded-lg transition-colors duration-200 flex items-center space-x-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                </svg>
+                <span>Add Prescripcion</span>
+            </button>
+            <button type="button" onclick="verDatos()" class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg transition-colors duration-200">
+                Crear Medicamentos
+            </button>
+        </div>
+    </div>
+
+    <!-- Tabla de medicamentos -->
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead>
+                <tr class="border-b-2 border-gray-200">
+                    <th class="text-left py-4 px-4 font-semibold text-gray-700">Medicamento</th>
+                    <th class="text-left py-4 px-4 font-semibold text-gray-700">Cantidad</th>
+                    <th class="text-left py-4 px-4 font-semibold text-gray-700">Prescripción</th>
+                    <th class="text-left py-4 px-4 font-semibold text-gray-700">Duración (días)</th>
+                    <th class="text-left py-4 px-4 font-semibold text-gray-700">Frecuencia</th>
+                    <th class="text-left py-4 px-4 font-semibold text-gray-700">Acción</th>
+                </tr>
+            </thead>
+            <tbody id="medicamentos-table">
+                <!-- Los medicamentos se agregarán aquí dinámicamente -->
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Botones de acción mejorados visualmente -->
+<div class="bg-white rounded-2xl shadow-xl p-8 mt-8">
+  <div class="flex flex-col md:flex-row justify-center items-center gap-4">
+    <!-- Botón Guardar -->
+    <button type="submit"
+      class="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-8 py-4 rounded-xl text-lg font-semibold transition-all duration-200 flex items-center gap-3 shadow-lg focus:ring-2 focus:ring-green-400 animate-pulse"
+      id="btn-guardar-atencion">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+      </svg>
+      <span>Guardar Atención Médica</span>
+    </button>
+    <!-- Botón Cancelar -->
+    <button type="button"
+      onclick="window.history.back()"
+      class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-8 py-4 rounded-xl text-lg font-semibold transition-all duration-200 flex items-center gap-2 shadow focus:ring-2 focus:ring-gray-400">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+      </svg>
+      <span>Cancelar</span>
+    </button>
+  </div>
+</div>
+    </form>
+  </div>
+</div>
+>>>>>>> c8f22bc0467a96966b05af9ed354b5f1d6c751b6
 
     </main>
 
@@ -777,9 +1186,132 @@
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
             transform: translateY(-2px);
         }
+<<<<<<< HEAD
  </style>
 
  <script>
+=======
+
+        /* Animación de fondo y glassmorphism */
+body {
+  background: linear-gradient(120deg, #e0e7ff 0%, #f0fdfa 100%);
+  min-height: 100vh;
+}
+.animated-bg {
+  background: linear-gradient(120deg, #e0e7ff 0%, #f0fdfa 100%);
+  animation: gradientMove 8s ease-in-out infinite alternate;
+}
+@keyframes gradientMove {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 100% 50%; }
+}
+.glass {
+  background: rgba(255,255,255,0.85);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.10);
+  backdrop-filter: blur(8px);
+  border-radius: 1.5rem;
+  border: 1px solid rgba(255,255,255,0.18);
+}
+.glow-btn {
+  box-shadow: 0 0 16px 2px #34d399, 0 0 32px 4px #10b981;
+  animation: glowPulse 2s infinite alternate;
+}
+@keyframes glowPulse {
+  0% { box-shadow: 0 0 8px 2px #34d399, 0 0 16px 4px #10b981; }
+  100% { box-shadow: 0 0 24px 6px #34d399, 0 0 48px 12px #10b981; }
+}
+.divider-anim {
+  height: 3px;
+  background: linear-gradient(90deg, #06b6d4 0%, #a78bfa 100%);
+  border-radius: 9999px;
+  width: 0;
+  animation: dividerGrow 1s forwards;
+  margin: 2rem auto;
+}
+@keyframes dividerGrow {
+  to { width: 90%; }
+}
+.tooltip {
+  position: relative;
+  cursor: pointer;
+}
+.tooltip .tooltip-text {
+  visibility: hidden;
+  opacity: 0;
+  width: 180px;
+  background: #0ea5e9;
+  color: #fff;
+  text-align: center;
+  border-radius: 0.5rem;
+  padding: 0.5rem;
+  position: absolute;
+  z-index: 10;
+  bottom: 120%;
+  left: 50%;
+  transform: translateX(-50%);
+  transition: opacity 0.3s;
+  font-size: 0.95rem;
+  font-weight: 500;
+  box-shadow: 0 2px 8px rgba(14,165,233,0.15);
+}
+.tooltip:hover .tooltip-text {
+  visibility: visible;
+  opacity: 1;
+}
+
+body, html, input, textarea, select, button {
+  font-family: 'Inter', 'Nunito', 'Poppins', 'Montserrat', Arial, sans-serif !important;
+  letter-spacing: 0.01em;
+  font-smooth: always;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+</style>
+
+ <script>
+    document.addEventListener('DOMContentLoaded', function () {
+  const micButtons = document.querySelectorAll('.mic-btn');
+
+  if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+    console.warn('SpeechRecognition API no soportada en este navegador');
+    micButtons.forEach(btn => btn.style.display = 'none');
+    return;
+  }
+
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+  micButtons.forEach(btn => {
+    const targetId = btn.getAttribute('data-target');
+    const input = document.getElementById(targetId);
+
+    if (!input) return;
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'es-EC';
+    recognition.continuous = false;
+    recognition.interimResults = false;
+
+    btn.addEventListener('click', () => {
+      recognition.start();
+      btn.classList.add('animate-pulse', 'text-red-600');
+    });
+
+    recognition.onresult = (event) => {
+      const texto = event.results[0][0].transcript;
+      input.value += (input.value ? ' ' : '') + texto;
+      btn.classList.remove('animate-pulse', 'text-red-600');
+    };
+
+    recognition.onerror = () => {
+      btn.classList.remove('animate-pulse', 'text-red-600');
+    };
+
+    recognition.onend = () => {
+      btn.classList.remove('animate-pulse', 'text-red-600');
+    };
+  });
+});
+>>>>>>> c8f22bc0467a96966b05af9ed354b5f1d6c751b6
  // Recibir el contexto del paciente desde Django
  const pacienteDesdeServidor = {{ paciente_json|safe }};
  const medicamentosDesdeServidor = {{ medicamentos_json|safe }};
@@ -948,6 +1480,7 @@ class GestorAtencionMedica {
      * Método para agregar medicamento a la tabla
      */
     agregarMedicamento() {
+<<<<<<< HEAD
         console.log('💊 Agregando medicamento...');
 
         // Obtener valores de los campos de forma segura
@@ -1007,6 +1540,67 @@ class GestorAtencionMedica {
         console.log('📊 Total medicamentos:', this.medicamentos.length);
     }
 
+=======
+    console.log('💊 Agregando medicamento...');
+
+    // Obtener valores de los campos de forma segura
+    const select = document.getElementById('medicamento-select');
+    const medicamento = select.options[select.selectedIndex].text;
+    const cantidad = this.obtenerValorSeguro('cantidad-input');
+    const prescripcion = this.obtenerValorSeguro('prescripcion-input');
+    const duracion = this.obtenerValorSeguro('duracion-input');
+    const frecuencia = this.obtenerValorSeguro('frecuencia-input');
+
+    console.log('📋 Valores capturados:', {medicamento, cantidad, prescripcion, duracion, frecuencia});
+
+    // Validar que todos los campos estén llenos
+    if (!medicamento || !cantidad || !prescripcion || !duracion || !frecuencia) {
+        alert('Por favor, complete todos los campos obligatorios del medicamento.');
+        return;
+    }
+
+    // Validar que los números sean válidos
+    if (isNaN(cantidad) || isNaN(duracion) || isNaN(frecuencia)) {
+        alert('La cantidad, duración y frecuencia deben ser números válidos.');
+        return;
+    }
+
+    // Verificar si el medicamento ya existe en la lista
+    const medicamentoId = select.value;
+    const indiceExistente = this.medicamentos.findIndex(med => med.id === medicamentoId);
+
+    if (indiceExistente !== -1) {
+        console.log('🔄 Medicamento ya existe, reemplazando...', this.medicamentos[indiceExistente]);
+        // Eliminar el medicamento existente sin confirmación
+        this.medicamentos.splice(indiceExistente, 1);
+        console.log('🗑️ Medicamento anterior eliminado. Total restante:', this.medicamentos.length);
+    }
+
+    // Crear objeto medicamento
+    const nuevoMedicamento = {
+        id: medicamentoId,
+        medicamento: medicamento,
+        cantidad: parseInt(cantidad),
+        prescripcion: prescripcion,
+        duracion: parseInt(duracion),
+        frecuencia: parseInt(frecuencia)
+    };
+
+    // Agregar a la lista
+    this.medicamentos.push(nuevoMedicamento);
+
+    // Actualizar la tabla
+    this.actualizarTablaMedicamentos();
+
+    // Limpiar campos
+    this.limpiarCamposMedicamentos();
+
+    const accion = indiceExistente !== -1 ? 'actualizado' : 'agregado';
+    console.log(`✅ Medicamento ${accion}:`, nuevoMedicamento);
+    console.log('📊 Total medicamentos:', this.medicamentos.length);
+}
+
+>>>>>>> c8f22bc0467a96966b05af9ed354b5f1d6c751b6
     /**
      * Método para actualizar la tabla de medicamentos
      */
@@ -1052,7 +1646,11 @@ class GestorAtencionMedica {
      * Método para limpiar campos de medicamentos
      */
     limpiarCamposMedicamentos() {
+<<<<<<< HEAD
         const campos = ['medicamento-select', 'cantidad-input', 'prescripcion-input', 'duracion-input', 'frecuencia-input'];
+=======
+        const campos = [ 'cantidad-input', 'prescripcion-input', 'duracion-input', 'frecuencia-input'];
+>>>>>>> c8f22bc0467a96966b05af9ed354b5f1d6c751b6
 
         campos.forEach(id => {
             const elemento = this.obtenerElementoSeguro(id);
@@ -1291,7 +1889,11 @@ inicializarDiagnosticos() {
             botonGuardar.innerHTML = `
                 <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+<<<<<<< HEAD
                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+=======
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" class="opacity-75"></path>
+>>>>>>> c8f22bc0467a96966b05af9ed354b5f1d6c751b6
                 </svg>
                 Guardando...
             `;
@@ -1304,14 +1906,22 @@ inicializarDiagnosticos() {
                 <span>Guardar Atención Médica</span>
             `;
         }
+<<<<<<< HEAD
     }
 
+=======
+ }
+>>>>>>> c8f22bc0467a96966b05af9ed354b5f1d6c751b6
     /**
      * Método para mostrar mensaje de éxito
      * @param {Object} resultado - Resultado del servidor
      */
     mostrarMensajeExito(resultado) {
+<<<<<<< HEAD
         const mensaje = resultado.message || 'Atención médica guardada exitosamente';
+=======
+               const mensaje = resultado.message || 'Atención médica guardada exitosamente';
+>>>>>>> c8f22bc0467a96966b05af9ed354b5f1d6c751b6
         const id = resultado.id || 'N/A';
 
         alert(`✅ ${mensaje}\n\n` +
@@ -1418,6 +2028,11 @@ inicializarDiagnosticos() {
         if (!this.sintomas.trim()) errores.push('- Síntomas');
         if (this.diagnostico.length === 0) errores.push('- Diagnósticos');
         if (!this.tratamiento.trim()) errores.push('- Plan de Tratamiento');
+<<<<<<< HEAD
+=======
+        if (this.medicamentos.length === 0) errores.push('- Debe agregar al menos un medicamento');
+        console.log('Medicamentos antes de guardar:', this.medicamentos);
+>>>>>>> c8f22bc0467a96966b05af9ed354b5f1d6c751b6
 
         return errores;
     }
@@ -1705,6 +2320,10 @@ function cargarDatosPaciente(paciente) {
     document.getElementById('paciente-nombre2').textContent =
         `${paciente.nombres || ''} ${paciente.apellidos || ''}`;
     document.getElementById('id_paciente').textContent = paciente.id;
+<<<<<<< HEAD
+=======
+    document.getElementById('paciente-id2').textContent = paciente.id;
+>>>>>>> c8f22bc0467a96966b05af9ed354b5f1d6c751b6
 
     // Actualizar historia clínica
     document.getElementById('antecedentes-personales').value = paciente.antecedentes_personales || '';
@@ -1869,7 +2488,10 @@ function crearConsultaElement(atencion, index) {
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+<<<<<<< HEAD
                 </svg>
+=======
+>>>>>>> c8f22bc0467a96966b05af9ed354b5f1d6c751b6
             </button>
         </div>
 
@@ -2014,7 +2636,10 @@ function crearPrescripcionesHTML(prescripciones) {
                 <div class="flex-shrink-0">
                     <svg class="w-5 h-5 text-orange-400" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+<<<<<<< HEAD
                     </svg>
+=======
+>>>>>>> c8f22bc0467a96966b05af9ed354b5f1d6c751b6
                 </div>
                 <div class="ml-3 flex-1">
                     <h6 class="text-sm font-semibold text-orange-800">${prescripcion.medicamento || 'Medicamento no especificado'}</h6>

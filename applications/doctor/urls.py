@@ -12,11 +12,19 @@ from applications.doctor.views.horario_atencion import (
 )
 
 from applications.doctor.views.pago import (
+<<<<<<< HEAD
     PagoListView, PagoFacturacionView, PagoDeleteView, PagoProcesarPagoView, PayPalConfirmView, PagoDetailView
 )
 
 from applications.doctor.views.servicios_adicionales import (
     ServiciosAdicionalesListView, ServiciosAdicionalesCreateView, ServiciosAdicionalesDeleteView, ServiciosAdicionalesUpdateView
+=======
+    PagoListView, PagoCreateView, PagoDeleteView, PagoUpdateView
+)
+
+from applications.doctor.views.servicios_adicionales import (
+    ServiciosAdicionalesListView, ServiciosAdicionalesCreateView, ServiciosAdicionalesDeleteView, ServiciosAdicionalesUpdateView,
+>>>>>>> c8f22bc0467a96966b05af9ed354b5f1d6c751b6
 )
 
 
@@ -31,12 +39,18 @@ urlpatterns = [
     # Rutas CITA MEDICA
     path('citas_list/', CitaMedicaListView.as_view(), name="cita_medica_list"),
     path('citas_create/', CitaMedicaCreateView.as_view(), name="cita_medica_create"),
+<<<<<<< HEAD
     path('citas_update/<int:pk>/', CitaMedicaDeleteView.as_view(), name="cita_medica_update"),
     path('citas_delete/<int:pk>/', CitaMedicaUpdateView.as_view(), name="cita_medica_delete"),
+=======
+    path('citas_delete/<int:pk>/', CitaMedicaDeleteView.as_view(), name="cita_medica_delete"),
+    path('citas_update/<int:pk>/', CitaMedicaUpdateView.as_view(), name="cita_medica_update"),
+>>>>>>> c8f22bc0467a96966b05af9ed354b5f1d6c751b6
 
     # Rutas HORARIO ATENCION
     path('horario_atencion_list/', HorarioAtencionListView.as_view(), name="horario_atencion_list"),
     path('horario_atencion_create/', HorarioAtencionCreateView.as_view(), name="horario_atencion_create"),
+<<<<<<< HEAD
     path('horario_atencion_update/<int:pk>/', HorarioAtencionDeleteView.as_view(), name="horario_atencion_update"),
     path('horario_atencion_delete/<int:pk>/', HorarioAtencionUpdateView.as_view(), name="horario_atencion_delete"),
 
@@ -45,12 +59,27 @@ urlpatterns = [
     path('pago_fact/', PagoFacturacionView.as_view(), name="pago_facturacion"),
     path('pago_delete/<int:pk>/', PagoDeleteView.as_view(), name="pago_delete"),
     path('pago_/<int:pk>/', PagoProcesarPagoView.as_view(), name="pago_procesar_pago"),
+=======
+    path('horario_atencion_delete/<int:pk>/', HorarioAtencionDeleteView.as_view(), name="horario_atencion_delete"),
+    path('horario_atencion_update/<int:pk>/', HorarioAtencionUpdateView.as_view(), name="horario_atencion_update"),
+
+    # Rutas  PAGO
+    path('pago_list/', PagoListView.as_view(), name="pago_list"),
+    path('pago_create/', PagoCreateView.as_view(), name="pago_create"),
+    path('pago_update/<int:pk>/', PagoDeleteView.as_view(), name="pago_update"),
+    path('pago_delete/<int:pk>/', PagoUpdateView.as_view(), name="pago_delete"),
+>>>>>>> c8f22bc0467a96966b05af9ed354b5f1d6c751b6
 
 
     # Rutas  SERVICIOS ADICIONALES
     path('servicio_adicional_list/', ServiciosAdicionalesListView.as_view(), name="servicios_adicionales_list"),
     path('servicio_adicional_create/', ServiciosAdicionalesCreateView.as_view(), name="servicios_adicionales_create"),
+<<<<<<< HEAD
     path('servicio_adicional_update/<int:pk>/', ServiciosAdicionalesDeleteView.as_view(), name="servicios_adicionales_update"),
     path('servicio_adicional_delete/<int:pk>/', ServiciosAdicionalesUpdateView.as_view(), name="servicios_adicionales_delete"),
+=======
+    path('servicio_adicional_delete/<int:pk>/', ServiciosAdicionalesDeleteView.as_view(), name="servicios_adicionales_delete"),
+    path('servicio_adicional_update/<int:pk>/', ServiciosAdicionalesUpdateView.as_view(), name="servicios_adicionales_update"),
+>>>>>>> c8f22bc0467a96966b05af9ed354b5f1d6c751b6
 
 ]

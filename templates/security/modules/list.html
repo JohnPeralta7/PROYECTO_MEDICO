@@ -54,6 +54,7 @@
                         </thead>
                         <tbody>
                             {% for item in modules %}
+<<<<<<< HEAD
                             <tr class="dark:text-gray-400 bg-gray-50 border-t border-b border-gray-200 dark:bg-principal dark:border-secundario hover:bg-gray-100 dark:hover:bg-secundario transition-colors duration-200"
                                 data-id="{{ item.id }}"
                                 data-name="{{ item.name }}"
@@ -64,13 +65,20 @@
                                 data-menu-name="{{ item.menu.name }}"
                                 data-description="{{ item.description|default:'' }}"
                                 data-is-active="{{ item.is_active|yesno:'true,false' }}">
+=======
+                            <tr class="dark:text-gray-400 bg-white border-b dark:bg-[#0b1121] dark:border-secundario hover:bg-gray-50 dark:hover:bg-[#121c33]">
+>>>>>>> c8f22bc0467a96966b05af9ed354b5f1d6c751b6
                                 <td class="px-6 py-4">{{ item.id }}</td>
                                 <td class="px-6 py-4">
                                     <i class="{{ item.icon }} text-2xl text-blue-600 dark:text-blue-400"></i>
                                 </td>
                                 <td class="px-6 py-4 font-semibold">{{ item.name }}</td>
                                 <td class="px-6 py-4">
+<<<<<<< HEAD
                                     <code class="bg-white dark:bg-secundario px-2 py-1 rounded text-sm border border-gray-300 dark:border-gray-600">
+=======
+                                    <code class="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded text-sm">
+>>>>>>> c8f22bc0467a96966b05af9ed354b5f1d6c751b6
                                         {{ item.url }}
                                     </code>
                                 </td>
@@ -87,7 +95,11 @@
                                     {% endif %}
                                 </td>
                                 <td class="px-6 py-4">
+<<<<<<< HEAD
                                     <span class="bg-white dark:bg-secundario px-2 py-1 rounded-full text-sm border border-gray-300 dark:border-gray-600">
+=======
+                                    <span class="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-full text-sm">
+>>>>>>> c8f22bc0467a96966b05af9ed354b5f1d6c751b6
                                         {{ item.order }}
                                     </span>
                                 </td>
@@ -109,8 +121,13 @@
                                 </td>
                                 <td class="px-6 py-4">
                                   {% if permissions.change_module %}
+<<<<<<< HEAD
                                     <a href="#"
                                         class="text-blue-600 dark:text-blue-500 hover:text-blue-800 mx-1 edit-btn">
+=======
+                                    <a href="{% url 'security:module_update' item.id %}"
+                                        class="text-blue-600 dark:text-blue-500 hover:text-blue-800 mx-1">
+>>>>>>> c8f22bc0467a96966b05af9ed354b5f1d6c751b6
                                         <i class="fa-solid fa-edit text-lg"></i>
                                     </a>
                                   {% endif%}  
@@ -159,8 +176,13 @@
                 <!-- Enlaces adicionales -->
                 <div class="flex flex-col md:flex-row justify-center form-group text-center p-4">
                     {% if permissions.add_module %}
+<<<<<<< HEAD
                     <a href="#" onclick="openCreateModal()"
                         class="bg-blue-700 hover:bg-blue-800 text-white py-2 px-4 rounded-full mr-0 md:mr-2 mb-2 md:mb-0 flex items-center justify-center transition-colors duration-300">
+=======
+                    <a class="bg-blue-700 hover:bg-blue-800 text-white py-2 px-4 rounded-full mr-0 md:mr-2 mb-2 md:mb-0 flex items-center justify-center transition-colors duration-300"
+                        href="{% url 'security:module_create' %}">
+>>>>>>> c8f22bc0467a96966b05af9ed354b5f1d6c751b6
                         <i class="fa-solid fa-plus mr-2"></i> Nuevo Módulo
                     </a>
                     {% endif %}
@@ -174,6 +196,7 @@
     </section>
 
     {% include 'fragments/delete.html' %}
+<<<<<<< HEAD
     
     <!-- Modal de edición -->
     <div id="editModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
@@ -426,6 +449,8 @@
             </div>
         </div>
     </div>
+=======
+>>>>>>> c8f22bc0467a96966b05af9ed354b5f1d6c751b6
    <script>
 function openDeleteModal(id, name) {
     const deleteForm = document.getElementById('deleteForm');
@@ -438,6 +463,7 @@ function closeModal() {
     document.getElementById('deleteModal').classList.add('hidden');
 }
 
+<<<<<<< HEAD
 function openEditModal(moduleRow) {
     // Obtener datos del módulo desde los atributos data
     const id = moduleRow.dataset.id;
@@ -614,6 +640,11 @@ function loadMenusForCreate() {
 document.addEventListener('DOMContentLoaded', function() {
     const deleteForm = document.getElementById('deleteForm');
     const editForm = document.getElementById('editForm');
+=======
+// ✅ AGREGAR: Asegurar redirección correcta
+document.addEventListener('DOMContentLoaded', function() {
+    const deleteForm = document.getElementById('deleteForm');
+>>>>>>> c8f22bc0467a96966b05af9ed354b5f1d6c751b6
     
     if (deleteForm) {
         deleteForm.addEventListener('submit', function(e) {
@@ -628,6 +659,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Django manejará la redirección automáticamente
         });
     }
+<<<<<<< HEAD
     
     if (editForm) {
         editForm.addEventListener('submit', function(e) {
@@ -710,6 +742,8 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+=======
+>>>>>>> c8f22bc0467a96966b05af9ed354b5f1d6c751b6
 });
 </script>
 {% endblock %}

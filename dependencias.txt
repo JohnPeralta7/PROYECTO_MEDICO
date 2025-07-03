@@ -26,7 +26,11 @@ mdurl==0.1.2
 parso==0.8.4
 pillow==11.2.1
 prompt_toolkit==3.0.51
+<<<<<<< HEAD
 psycopg2-binary==2.9.10
+=======
+psycopg2==2.9.10
+>>>>>>> c8f22bc0467a96966b05af9ed354b5f1d6c751b6
 pure_eval==0.2.3
 Pygments==2.19.1
 python-dateutil==2.9.0.post0

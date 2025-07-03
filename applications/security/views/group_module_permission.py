@@ -27,6 +27,7 @@ class GroupModulePermissionListView( PermissionMixin, ListViewMixin, ListView):
         grupo = self.request.GET.get('grupo')
         modulo = self.request.GET.get('modulo')
         
+<<<<<<< HEAD
         # Iniciar con la consulta base - CARGAR TODOS LOS REGISTROS
         queryset = self.model.objects.select_related('group', 'module').prefetch_related('permissions', 'module__permissions')
         
@@ -91,6 +92,30 @@ class GroupModulePermissionListView( PermissionMixin, ListViewMixin, ListView):
         print(f"Grupos disponibles: {[g.name for g in context['all_groups']]}")
         print("=== FIN DEBUG VISTA ===")
         
+=======
+        # Iniciar con la consulta base
+        queryset = self.model.objects.select_related('group', 'module')
+        
+        # Filtrar por término de búsqueda
+        if q:
+            self.query.add(Q(group__name__icontains=q) | 
+                           Q(module__name__icontains=q) |
+                           Q(module__menu__name__icontains=q), Q.AND)
+        
+        # Filtrar por grupo
+        if grupo:
+            self.query.add(Q(group__id=grupo), Q.AND)
+        
+        # Filtrar por módulo
+        if modulo:
+            self.query.add(Q(module__id=modulo), Q.AND)
+            
+        return queryset.filter(self.query).order_by('group__name', 'module__name')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['create_url'] = reverse_lazy('security:group_module_permission_create')
+>>>>>>> c8f22bc0467a96966b05af9ed354b5f1d6c751b6
         return context
 
 

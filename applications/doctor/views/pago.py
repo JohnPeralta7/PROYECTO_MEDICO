@@ -1,4 +1,5 @@
 from django.http import JsonResponse
+<<<<<<< HEAD
 from django.contrib import messages
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy, reverse
@@ -13,18 +14,36 @@ from applications.doctor.models import (
     Pago, DetallePago, ServiciosAdicionales
     )
 import json
+=======
+from django.urls import reverse_lazy
+from django.db.models import Q
+from django.views.decorators.http import require_http_methods
+from django.contrib.auth.decorators import login_required
+from django.views.generic import ListView, CreateView, DeleteView, UpdateView
+from applications.doctor.models import (
+    Pago
+    )
+>>>>>>> c8f22bc0467a96966b05af9ed354b5f1d6c751b6
 
 
 #VISTAS DE EMPLEADO
 
+<<<<<<< HEAD
 class PagoListView(PermissionRequiredMixin, ListView):
     model = Pago
     template_name = 'doctor/pago/pagolistview.html'
     context_object_name = 'pagos'
+=======
+class PagoListView(ListView):
+    model = Pago
+    template_name = 'doctor/pago/pagolistview.html'
+    context_object_name = 'pago'
+>>>>>>> c8f22bc0467a96966b05af9ed354b5f1d6c751b6
     permission_required = 'view_pago'
     
 
     def get_queryset(self):
+<<<<<<< HEAD
         # Iniciar con la consulta base
         queryset = Pago.objects.select_related('atencion__paciente').prefetch_related('detalles').all()
         
@@ -49,18 +68,37 @@ class PagoListView(PermissionRequiredMixin, ListView):
             queryset = queryset.filter(metodo_pago=metodo)
         
         return queryset.order_by('-fecha_creacion')
+=======
+        self.query = Q()
+        q = self.request.GET.get('q')
+        status = self.request.GET.get('status')
+        
+        # Iniciar con la consulta base
+        queryset = self.model.objects.all()
+        
+        # Filtrar por término de búsqueda
+        
+        
+        # Filtrar por estado (activo/inactivo)
+        return queryset.filter(self.query).order_by('id')
+>>>>>>> c8f22bc0467a96966b05af9ed354b5f1d6c751b6
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['create_pago'] = reverse_lazy('doctor:pago_create')
         
+<<<<<<< HEAD
         # Estadísticas
         context['total_pendiente'] = Pago.objects.filter(estado='pendiente').aggregate(Sum('monto_total'))['monto_total__sum'] or 0
         context['total_pagado'] = Pago.objects.filter(estado='pagado').aggregate(Sum('monto_total'))['monto_total__sum'] or 0
+=======
+        
+>>>>>>> c8f22bc0467a96966b05af9ed354b5f1d6c751b6
         
         return context
 
 
+<<<<<<< HEAD
 class PagoFacturacionView(PermissionRequiredMixin, View):
     """Vista principal de facturación"""
     permission_required = 'doctor.change_pago'
@@ -213,4 +251,13 @@ class PagoDetailView(PermissionRequiredMixin, View):
     
     
 class PagoDeleteView(PermissionRequiredMixin, DeleteView):
+=======
+class PagoCreateView(CreateView):
+    ...
+
+class PagoUpdateView(UpdateView):
+    ...
+
+class PagoDeleteView(DeleteView):
+>>>>>>> c8f22bc0467a96966b05af9ed354b5f1d6c751b6
     ...
