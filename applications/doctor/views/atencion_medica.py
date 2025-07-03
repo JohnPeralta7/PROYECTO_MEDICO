@@ -153,11 +153,7 @@ class AtencionCreateView(PermissionMixin, CreateViewMixin, CreateView):
 
 class AtencionUpdateView(PermissionMixin, UpdateViewMixin, UpdateView):
     model = Atencion
-<<<<<<< HEAD
-    template_name = 'doctor/atenciones/form.html'
-=======
     template_name = 'doctor/atenciones/form_update.html'
->>>>>>> c8f22bc0467a96966b05af9ed354b5f1d6c751b6
     form_class = AtencionForm
     success_url = reverse_lazy('doctor:atencion_list')
     permission_required = 'change_atencion'
@@ -207,10 +203,8 @@ class AtencionUpdateView(PermissionMixin, UpdateViewMixin, UpdateView):
 
         # Solo los medicamentos en JSON para JavaScript
         context['medicamentos_json'] = json.dumps(medicamentos)
-<<<<<<< HEAD
-=======
         context['modo_edicion'] = True
->>>>>>> c8f22bc0467a96966b05af9ed354b5f1d6c751b6
+
 
         return context
 
@@ -430,9 +424,7 @@ def obtener_contexto_paciente(id_paciente):
         return {
             'paciente_data': '',
             'paciente_json': 'null'
-<<<<<<< HEAD
+
         }
-=======
-        }
-        
->>>>>>> c8f22bc0467a96966b05af9ed354b5f1d6c751b6
+
+

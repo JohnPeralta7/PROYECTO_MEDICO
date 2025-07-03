@@ -1,10 +1,5 @@
 from django.http import JsonResponse
 from django.urls import reverse_lazy
-<<<<<<< HEAD
-from django.db.models import Q
-from django.views.decorators.http import require_http_methods
-from django.contrib.auth.decorators import login_required
-=======
 from django.contrib import messages
 from django.db.models import Q
 from django.views.decorators.csrf import csrf_exempt
@@ -14,7 +9,6 @@ from applications.security.components.mixin_crud import CreateViewMixin, DeleteV
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required
 from applications.core.forms.paciente import PacienteForm
->>>>>>> c8f22bc0467a96966b05af9ed354b5f1d6c751b6
 from applications.core.models import Paciente
 from django.views.generic import ListView, CreateView, DeleteView, UpdateView
 from applications.core.models import (
@@ -168,11 +162,7 @@ def paciente_find(request):
 
 
 
-<<<<<<< HEAD
-class PacienteListView(ListView):
-=======
 class PacienteListView(PermissionMixin, ListViewMixin, ListView):
->>>>>>> c8f22bc0467a96966b05af9ed354b5f1d6c751b6
     model = Paciente
     template_name = 'core/paciente/pacientelistview.html'
     context_object_name = 'pacientes'
@@ -210,29 +200,11 @@ class PacienteListView(PermissionMixin, ListViewMixin, ListView):
         # Agregamos estadísticas para el dashboard
         context['total_patient'] = Paciente.objects.count()
         context['active_patient'] = Paciente.objects.filter(activo=True).count()
-<<<<<<< HEAD
-        
-        
-=======
->>>>>>> c8f22bc0467a96966b05af9ed354b5f1d6c751b6
         return context
     
 
 
 
-<<<<<<< HEAD
-class PacienteDeleteView(DeleteView):
-    ...
-
-
-
-class PacienteUpdateView(UpdateView):
-    ...
-
-
-class PacienteCreateView(CreateView):
-    ...
-=======
 class PacienteDeleteView(PermissionMixin, DeleteViewMixin, DeleteView):
     model = Paciente
     template_name = 'core/delete.html'
@@ -353,4 +325,4 @@ def paciente_json(request, pk):
         "activo": paciente.activo,
     }
     return JsonResponse(data)
->>>>>>> c8f22bc0467a96966b05af9ed354b5f1d6c751b6
+

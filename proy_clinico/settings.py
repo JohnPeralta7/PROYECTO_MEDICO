@@ -37,10 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-<<<<<<< HEAD
-=======
     "widget_tweaks",
->>>>>>> c8f22bc0467a96966b05af9ed354b5f1d6c751b6
 ]
 # Aplicaciones de terceros
 THIRD_PARTY_APPS = [
@@ -107,11 +104,8 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'medicos_jk',
         'USER': 'postgres',
-<<<<<<< HEAD
         'PASSWORD': '1234',
-=======
-        'PASSWORD': 'kjlove',
->>>>>>> c8f22bc0467a96966b05af9ed354b5f1d6c751b6
+
         'HOST': 'localhost',  # o la IP del servidor de base de datos
         'PORT': '5432',        # puerto por defecto de PostgreSQL
     }
