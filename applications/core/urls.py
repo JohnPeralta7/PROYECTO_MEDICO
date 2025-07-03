@@ -3,7 +3,8 @@ from applications.core.views.paciente import (
     paciente_find, PacienteListView, PacienteCreateView, PacienteDeleteView, PacienteUpdateView
     )
 from applications.core.views.medicamento import (
-     MedicamentoListView, MedicamentoCreateView, MedicamentoDeleteView, MedicamentoUpdateView
+     MedicamentoListView, MedicamentoCreateView, MedicamentoDeleteView, MedicamentoUpdateView,
+     crear_tipo_medicamento_ajax, crear_marca_medicamento_ajax, recargar_tipos_marcas_medicamento
     )
 from applications.core.views.gasto_mensual import (
      GastoMensualListView, GastoMensualCreateView, GastoMensualDeleteView, GastoMensualUpdateView
@@ -34,6 +35,9 @@ urlpatterns = [
     path('medicamentos_create/', MedicamentoCreateView.as_view(), name='medicamento_create'),
     path('medicamentos_delete/<int:pk>/', MedicamentoDeleteView.as_view(), name='medicamento_delete'),
     path('medicamentos_update/<int:pk>/', MedicamentoUpdateView.as_view(), name='medicamento_update'),
+    path('crear_tipo_medicamento/', crear_tipo_medicamento_ajax, name='crear_tipo_medicamento'),
+    path('crear_marca_medicamento/', crear_marca_medicamento_ajax, name='crear_marca_medicamento'),
+    path('recargar_tipos_marcas/', recargar_tipos_marcas_medicamento, name='recargar_tipos_marcas'),
 
     #RUTAS DE Gasto Mensual
     #path('gasto_mensual_find/', paciente_find, name="paciente_find"),

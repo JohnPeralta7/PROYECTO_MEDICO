@@ -12,7 +12,7 @@ from applications.doctor.views.horario_atencion import (
 )
 
 from applications.doctor.views.pago import (
-    PagoListView, PagoCreateView, PagoDeleteView, PagoUpdateView
+    PagoListView, PagoFacturacionView, PagoDeleteView, PagoProcesarPagoView, PayPalConfirmView, PagoDetailView
 )
 
 from applications.doctor.views.servicios_adicionales import (
@@ -42,9 +42,9 @@ urlpatterns = [
 
     # Rutas  PAGO
     path('pago_list/', PagoListView.as_view(), name="pago_list"),
-    path('pago_create/', PagoCreateView.as_view(), name="pago_create"),
-    path('pago_update/<int:pk>/', PagoDeleteView.as_view(), name="pago_update"),
-    path('pago_delete/<int:pk>/', PagoUpdateView.as_view(), name="pago_delete"),
+    path('pago_fact/', PagoFacturacionView.as_view(), name="pago_facturacion"),
+    path('pago_delete/<int:pk>/', PagoDeleteView.as_view(), name="pago_delete"),
+    path('pago_/<int:pk>/', PagoProcesarPagoView.as_view(), name="pago_procesar_pago"),
 
 
     # Rutas  SERVICIOS ADICIONALES

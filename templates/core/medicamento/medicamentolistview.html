@@ -1,0 +1,1438 @@
+{% extends 'home.html' %}
+{% load static %}
+
+<title>{% block title %}Gestión de Medicamentos{% endblock %}</title>
+
+{% block content %}
+    {% include 'fragments/messages.html' %}
+    
+    <!-- Header principal -->
+    <div class="relative mb-8">
+        <div class="bg-white shadow-sm border-b border-gray-200">
+            <div class="max-w-7xl mx-auto px-4 py-6">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <div class="p-3 bg-green-100 rounded-xl">
+                            <i class="fas fa-pills text-2xl text-green-600"></i>
+                        </div>
+                        <div>
+                            <h1 class="text-2xl font-bold text-gray-900">Gestión de Medicamentos</h1>
+                            <p class="text-gray-600">Administra el inventario farmacéutico de la clínica</p>
+                        </div>
+                    </div>
+                    <button onclick="openCreateMedicamentoModal()" 
+                            class="bg-esmerald-perso hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium flex items-center space-x-2 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                        <i class="fas fa-plus"></i>
+                        <span>Nuevo Medicamento</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Vista principal -->
+    <div class="max-w-7xl mx-auto px-4">
+        <!-- Estadísticas rápidas -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 transform hover:scale-105 transition-all duration-300">
+                <div class="flex items-center">
+                    <div class="p-3 bg-blue-100 rounded-lg">
+                        <i class="fas fa-capsules text-xl text-blue-600"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Total Medicamentos</p>
+                        <p class="text-2xl font-bold text-gray-900">{{ total_medicamentos }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 transform hover:scale-105 transition-all duration-300">
+                <div class="flex items-center">
+                    <div class="p-3 bg-green-100 rounded-lg">
+                        <i class="fas fa-check-circle text-xl text-green-600"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Activos</p>
+                        <p class="text-2xl font-bold text-gray-900">{{ active_medicamentos }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 transform hover:scale-105 transition-all duration-300">
+                <div class="flex items-center">
+                    <div class="p-3 bg-red-100 rounded-lg">
+                        <i class="fas fa-exclamation-triangle text-xl text-red-600"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Stock Bajo</p>
+                        <p class="text-2xl font-bold text-gray-900">{{ low_stock_medicamentos }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 transform hover:scale-105 transition-all duration-300">
+                <div class="flex items-center">
+                    <div class="p-3 bg-purple-100 rounded-lg">
+                        <i class="fas fa-industry text-xl text-purple-600"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Marcas</p>
+                        <p class="text-2xl font-bold text-gray-900">{{ marcas_medicamento.count }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filtros y búsqueda -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+            <form method="get" class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                    <!-- Búsqueda general -->
+                    <div class="lg:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Buscar medicamento</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-search text-gray-400"></i>
+                            </div>
+                            <input type="text" name="q" value="{{ request.GET.q }}"
+                                   placeholder="Nombre, marca o tipo..."
+                                   class="pl-10 block w-full py-3 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200">
+                        </div>
+                    </div>
+                    
+                    <!-- Filtro por tipo -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Tipo</label>
+                        <select name="tipo" class="block w-full py-3 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                            <option value="">Todos los tipos</option>
+                            {% for tipo in tipos_medicamento %}
+                            <option value="{{ tipo.id }}" {% if request.GET.tipo == tipo.id|slugify %}selected{% endif %}>
+                                {{ tipo.nombre }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <!-- Filtro por marca -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Marca</label>
+                        <select name="marca" class="block w-full py-3 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                            <option value="">Todas las marcas</option>
+                            {% for marca in marcas_medicamento %}
+                            <option value="{{ marca.id }}" {% if request.GET.marca == marca.id|slugify %}selected{% endif %}>
+                                {{ marca.nombre }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <!-- Filtro por estado -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Estado</label>
+                        <select name="status" class="block w-full py-3 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                            <option value="">Todos</option>
+                            <option value="active" {% if request.GET.status == 'active' %}selected{% endif %}>Activos</option>
+                            <option value="inactive" {% if request.GET.status == 'inactive' %}selected{% endif %}>Inactivos</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <button type="submit" 
+                            class="bg-esmerald-perso hover:bg-green-700 text-white px-6 py-2 rounded-lg font-medium flex items-center space-x-2 transition-all duration-200">
+                        <i class="fas fa-filter"></i>
+                        <span>Filtrar</span>
+                    </button>
+                    <a href="{% url 'core:medicamento_list' %}"
+                       class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-2 rounded-lg font-medium flex items-center space-x-2 transition-all duration-200">
+                        <i class="fas fa-refresh"></i>
+                        <span>Limpiar</span>
+                    </a>
+                </div>
+            </form>
+        </div>
+
+        <!-- Grid de medicamentos -->
+        {% if medicamentos %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
+            {% for medicamento in medicamentos %}
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-300 transform hover:-translate-y-2 medicamento-card">
+                <!-- Imagen del medicamento -->
+                <div class="relative h-48 bg-gray-100">
+                    {% if medicamento.foto %}
+                        <img src="{{ medicamento.foto.url }}" alt="{{ medicamento.nombre }}" 
+                             class="w-full h-full object-cover">
+                    {% else %}
+                        <div class="w-full h-full flex items-center justify-center">
+                            <i class="fas fa-pills text-4xl text-gray-400"></i>
+                        </div>
+                    {% endif %}
+                    
+                    <!-- Badge de estado -->
+                    {% if medicamento.activo %}
+                        <span class="absolute top-3 right-3 bg-green-100 text-green-800 text-xs font-medium px-2 py-1 rounded-full">
+                            Activo
+                        </span>
+                    {% else %}
+                        <span class="absolute top-3 right-3 bg-red-100 text-red-800 text-xs font-medium px-2 py-1 rounded-full">
+                            Inactivo
+                        </span>
+                    {% endif %}
+                    
+                    <!-- Badge de stock bajo -->
+                    {% if medicamento.cantidad < 10 %}
+                        <span class="absolute top-3 left-3 bg-orange-100 text-orange-800 text-xs font-medium px-2 py-1 rounded-full">
+                            Stock bajo
+                        </span>
+                    {% endif %}
+                </div>
+                
+                <!-- Contenido de la tarjeta -->
+                <div class="p-6">
+                    <div class="mb-4">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-1">{{ medicamento.nombre }}</h3>
+                        <p class="text-sm text-gray-600">{{ medicamento.tipo.nombre }}</p>
+                        {% if medicamento.marca_medicamento %}
+                            <p class="text-xs text-gray-500">{{ medicamento.marca_medicamento.nombre }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Información adicional -->
+                    <div class="space-y-2 mb-4">
+                        {% if medicamento.concentracion %}
+                        <div class="flex items-center text-sm text-gray-600">
+                            <i class="fas fa-flask w-4 mr-2"></i>
+                            <span>{{ medicamento.concentracion }}</span>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="flex items-center text-sm text-gray-600">
+                            <i class="fas fa-syringe w-4 mr-2"></i>
+                            <span>{{ medicamento.get_via_administracion_display }}</span>
+                        </div>
+                        
+                        <div class="flex items-center text-sm text-gray-600">
+                            <i class="fas fa-boxes w-4 mr-2"></i>
+                            <span>Stock: {{ medicamento.cantidad }}</span>
+                        </div>
+                        
+                        <div class="flex items-center text-sm font-medium text-esmerald-perso">
+                            <i class="fas fa-dollar-sign w-4 mr-2"></i>
+                            <span>${{ medicamento.precio }}</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Botones de acción -->
+                    <div class="flex items-center justify-between pt-4 border-t border-gray-100">
+                        <button onclick="openMedicamentoDetailModal({{ medicamento.id }})"
+                                class="text-blue-600 hover:text-blue-700 text-sm font-medium flex items-center space-x-1 transition-colors duration-200">
+                            <i class="fas fa-eye"></i>
+                            <span>Ver</span>
+                        </button>
+                        
+                        <div class="flex items-center space-x-2">
+                            <button onclick="openEditMedicamentoModal({{ medicamento.id }})"
+                                    class="text-yellow-600 hover:text-yellow-700 p-2 rounded-lg hover:bg-yellow-50 transition-all duration-200">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            
+                            <button onclick="confirmDeleteMedicamento({{ medicamento.id }}, '{{ medicamento.nombre }}')"
+                                    class="text-red-600 hover:text-red-700 p-2 rounded-lg hover:bg-red-50 transition-all duration-200">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Paginación -->
+        {% if is_paginated %}
+        <div class="bg-white border border-gray-200 rounded-lg px-6 py-4 mb-8">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <p class="text-sm text-gray-700">
+                        Mostrando {{ page_obj.start_index }} - {{ page_obj.end_index }} de {{ page_obj.paginator.count }} medicamentos
+                    </p>
+                </div>
+                
+                <div class="flex items-center space-x-2">
+                    {% if page_obj.has_previous %}
+                        <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.previous_page_number }}"
+                           class="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors duration-200">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                    {% endif %}                        {% for page in page_obj.paginator.page_range %}
+                        {% if page == page_obj.number %}
+                            <span class="px-3 py-2 text-sm font-medium text-white bg-esmerald-perso border border-green-600 rounded-md">
+                                {{ page }}
+                            </span>
+                        {% elif page == page_obj.paginator.page_range.0 or page == page_obj.paginator.page_range.last or page|add:"-2" <= page_obj.number <= page|add:"2" %}
+                            <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page }}"
+                               class="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors duration-200">
+                                {{ page }}
+                            </a>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if page_obj.has_next %}
+                        <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.next_page_number }}"
+                           class="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors duration-200">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        {% else %}
+        <!-- Estado vacío -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
+            <div class="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                <i class="fas fa-pills text-2xl text-gray-400"></i>
+            </div>
+            <h3 class="text-lg font-medium text-gray-900 mb-2">No hay medicamentos registrados</h3>
+            <p class="text-gray-600 mb-6">Comienza agregando tu primer medicamento al inventario</p>
+            <button onclick="openCreateMedicamentoModal()" 
+                    class="bg-esmerald-perso hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium inline-flex items-center space-x-2 transition-all duration-300">
+                <i class="fas fa-plus"></i>
+                <span>Agregar Medicamento</span>
+            </button>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Modal de creación/edición de medicamento -->
+    <div id="createMedicamentoModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden modal-content">
+            <!-- Header del modal -->
+            <div class="bg-esmerald-perso px-6 py-4 border-b border-green-700">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="p-2 bg-green-500 rounded-lg">
+                            <i class="fas fa-pills text-white text-lg"></i>
+                        </div>
+                        <div>
+                            <h2 id="modalTitle" class="text-xl font-semibold text-white">Nuevo Medicamento</h2>
+                            <p class="text-green-100 text-sm">Completa la información del medicamento</p>
+                        </div>
+                    </div>
+                    <button onclick="closeCreateMedicamentoModal()" 
+                            class="text-green-100 hover:text-white p-2 rounded-lg hover:bg-green-500 transition-all duration-200">
+                        <i class="fas fa-times text-lg"></i>
+                    </button>
+                </div>
+                
+                <!-- Tabs de navegación -->
+                <div class="flex space-x-4 mt-4">
+                    <button onclick="showMedicamentoTab('informacion')" 
+                            class="medicamento-tab active-tab px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200">
+                        <i class="fas fa-info-circle mr-2"></i>
+                        Información Básica
+                    </button>
+                    <button onclick="showMedicamentoTab('inventario')" 
+                            class="medicamento-tab px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200">
+                        <i class="fas fa-boxes mr-2"></i>
+                        Inventario y Precio
+                    </button>
+                    <button onclick="showMedicamentoTab('adicional')" 
+                            class="medicamento-tab px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200">
+                        <i class="fas fa-clipboard-check mr-2"></i>
+                        Revisión Final
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Contenido del modal -->
+            <div class="p-6 max-h-[60vh] overflow-y-auto">
+                <form id="createMedicamentoForm" method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <!-- Tab: Información Básica -->
+                    <div id="tab-content-informacion" class="tab-content">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Columna izquierda -->
+                            <div class="space-y-4">
+                                <!-- Nombre del medicamento -->
+                                <div>
+                                    <label class="block mb-2 text-sm font-medium text-gray-700">
+                                        Nombre del medicamento <span class="text-red-500">*</span>
+                                    </label>
+                                    <div class="relative">
+                                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                            <i class="fas fa-pills text-gray-400"></i>
+                                        </div>
+                                        <input type="text" name="nombre" required
+                                            class="pl-10 block w-full py-3 px-4 border border-gray-200 rounded-lg bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm shadow-sm"
+                                            placeholder="Ej: Ibuprofeno">
+                                    </div>
+                                </div>
+                                
+                                <!-- Tipo de medicamento -->
+                                <div>
+                                    <label class="block mb-2 text-sm font-medium text-gray-700">
+                                        Tipo de medicamento <span class="text-red-500">*</span>
+                                    </label>
+                                    <div class="relative">
+                                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                            <i class="fas fa-tag text-gray-400"></i>
+                                        </div>
+                                        <select name="tipo" id="tipoMedicamentoSelect" required
+                                            class="pl-10 pr-10 block w-full py-3 px-4 border border-gray-200 rounded-lg bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm shadow-sm">
+                                            <option value="">Seleccione un tipo</option>
+                                            {% for tipo in tipos_medicamento %}
+                                            <option value="{{ tipo.id }}">{{ tipo.nombre }}</option>
+                                            {% endfor %}
+                                            <option value="nuevo">+ Crear nuevo tipo</option>
+                                        </select>
+                                        <button type="button" onclick="toggleTipoForm()" 
+                                                class="absolute inset-y-0 right-0 flex items-center pr-3 text-esmerald-perso hover:text-green-700 transition-colors duration-200">
+                                            <i class="fas fa-plus text-sm"></i>
+                                        </button>
+                                    </div>
+                                    
+                                    <!-- Mini formulario para crear nuevo tipo -->
+                                    <div id="nuevoTipoForm" class="hidden mt-3 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                                        <h5 class="text-sm font-medium text-gray-800 mb-3 flex items-center">
+                                            <i class="fas fa-plus-circle text-green-600 mr-2"></i>
+                                            Crear nuevo tipo de medicamento
+                                        </h5>
+                                        <div class="space-y-3">
+                                            <div>
+                                                <label class="block text-xs font-medium text-gray-700 mb-1">
+                                                    Nombre del tipo <span class="text-red-500">*</span>
+                                                </label>
+                                                <input type="text" id="nuevoTipoNombre" 
+                                                       placeholder="Ej: Analgésico, Antibiótico..."
+                                                       class="block w-full py-2 px-3 border border-gray-200 rounded-md bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm">
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs font-medium text-gray-700 mb-1">
+                                                    Descripción (opcional)
+                                                </label>
+                                                <textarea id="nuevoTipoDescripcion" rows="2"
+                                                          placeholder="Descripción del tipo de medicamento..."
+                                                          class="block w-full py-2 px-3 border border-gray-200 rounded-md bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm"></textarea>
+                                            </div>
+                                            <div class="flex items-center space-x-2">
+                                                <button type="button" onclick="crearNuevoTipo()" 
+                                                        class="px-3 py-2 bg-esmerald-perso hover:bg-green-700 text-white text-xs font-medium rounded-md flex items-center space-x-1 transition-colors">
+                                                    <i class="fas fa-save"></i>
+                                                    <span>Guardar</span>
+                                                </button>
+                                                <button type="button" onclick="cancelarNuevoTipo()" 
+                                                        class="px-3 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs font-medium rounded-md flex items-center space-x-1 transition-colors">
+                                                    <i class="fas fa-times"></i>
+                                                    <span>Cancelar</span>
+                                                </button>
+                                            </div>
+                                            
+                                            <!-- Mensaje de estado -->
+                                            <div id="nuevoTipoMessage" class="hidden"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Marca del medicamento -->
+                                <div>
+                                    <label class="block mb-2 text-sm font-medium text-gray-700">
+                                        Marca
+                                    </label>
+                                    <div class="relative">
+                                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                            <i class="fas fa-industry text-gray-400"></i>
+                                        </div>
+                                        <select name="marca_medicamento" id="marcaMedicamentoSelect"
+                                            class="pl-10 pr-12 block w-full py-3 px-4 border border-gray-200 rounded-lg bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm shadow-sm">
+                                            <option value="">Seleccione una marca (opcional)</option>
+                                            {% for marca in marcas_medicamento %}
+                                            <option value="{{ marca.id }}">{{ marca.nombre }}</option>
+                                            {% endfor %}
+                                            <option value="nueva">+ Crear nueva marca</option>
+                                        </select>
+                                        <button type="button" onclick="toggleMarcaForm()" 
+                                                class="absolute inset-y-0 right-0 flex items-center pr-3 text-esmerald-perso hover:text-green-700 transition-colors duration-200" 
+                                                title="Crear nueva marca">
+                                            <i class="fas fa-plus text-sm"></i>
+                                        </button>
+                                    </div>
+                                    
+                                    <!-- Mini-formulario para crear nueva marca -->
+                                    <div id="nuevaMarcaForm" class="hidden mt-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                                        <div class="flex items-center justify-between mb-3">
+                                            <h5 class="text-sm font-medium text-blue-800">
+                                                <i class="fas fa-plus-circle mr-1"></i>
+                                                Crear nueva marca de medicamento
+                                            </h5>
+                                            <button type="button" onclick="toggleMarcaForm()" 
+                                                    class="text-blue-600 hover:text-blue-800 transition-colors duration-200">
+                                                <i class="fas fa-times text-sm"></i>
+                                            </button>
+                                        </div>
+                                        
+                                        <div class="space-y-3">
+                                            <div>
+                                                <label class="block mb-1 text-xs font-medium text-gray-700">
+                                                    Nombre de la marca <span class="text-red-500">*</span>
+                                                </label>
+                                                <input type="text" id="nuevaMarcaNombre" 
+                                                       placeholder="Ej: Pfizer, Bayer, Roche, etc."
+                                                       class="block w-full py-2 px-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
+                                            </div>
+                                            
+                                            <div>
+                                                <label class="block mb-1 text-xs font-medium text-gray-700">
+                                                    País de origen
+                                                </label>
+                                                <input type="text" id="nuevaMarcaPais" 
+                                                       placeholder="Ej: Estados Unidos, Alemania, etc."
+                                                       class="block w-full py-2 px-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
+                                            </div>
+                                            
+                                            <div>
+                                                <label class="block mb-1 text-xs font-medium text-gray-700">
+                                                    Descripción
+                                                </label>
+                                                <textarea id="nuevaMarcaDescripcion" rows="2" 
+                                                          placeholder="Información adicional sobre la marca..."
+                                                          class="block w-full py-2 px-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"></textarea>
+                                            </div>
+                                            
+                                            <div class="flex items-center space-x-2 pt-2">
+                                                <button type="button" onclick="crearNuevaMarca()" 
+                                                        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium flex items-center space-x-1 transition-all duration-200">
+                                                    <i class="fas fa-save text-xs"></i>
+                                                    <span>Crear Marca</span>
+                                                </button>
+                                                <button type="button" onclick="cancelarNuevaMarca()" 
+                                                        class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200">
+                                                    Cancelar
+                                                </button>
+                                            </div>
+                                            
+                                            <!-- Mensaje de estado -->
+                                            <div id="nuevaMarcaMessage" class="hidden"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Concentración -->
+                                <div>
+                                    <label class="block mb-2 text-sm font-medium text-gray-700">
+                                        Concentración
+                                    </label>
+                                    <div class="relative">
+                                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                            <i class="fas fa-flask text-gray-400"></i>
+                                        </div>
+                                        <input type="text" name="concentracion"
+                                            class="pl-10 block w-full py-3 px-4 border border-gray-200 rounded-lg bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm shadow-sm"
+                                            placeholder="Ej: 500mg, 1g, 5%">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Columna derecha -->
+                            <div class="space-y-4">
+                                <!-- Vía de administración -->
+                                <div>
+                                    <label class="block mb-2 text-sm font-medium text-gray-700">
+                                        Vía de administración <span class="text-red-500">*</span>
+                                    </label>
+                                    <div class="relative">
+                                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                            <i class="fas fa-syringe text-gray-400"></i>
+                                        </div>
+                                        <select name="via_administracion" required
+                                            class="pl-10 block w-full py-3 px-4 border border-gray-200 rounded-lg bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm shadow-sm">
+                                            <option value="">Seleccione una vía</option>
+                                            <option value="oral">Oral</option>
+                                            <option value="sublingual">Sublingual</option>
+                                            <option value="topica">Tópica</option>
+                                            <option value="inhalatoria">Inhalatoria</option>
+                                            <option value="intravenosa">Intravenosa</option>
+                                            <option value="intramuscular">Intramuscular</option>
+                                            <option value="subcutanea">Subcutánea</option>
+                                            <option value="intratecal">Intratecal</option>
+                                            <option value="intraarticular">Intraarticular</option>
+                                            <option value="rectal">Rectal</option>
+                                            <option value="vaginal">Vaginal</option>
+                                            <option value="oftalmica">Oftálmica</option>
+                                            <option value="otic">Ótica</option>
+                                            <option value="nasal">Nasal</option>
+                                            <option value="otra">Otra</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <!-- Descripción -->
+                                <div>
+                                    <label class="block mb-2 text-sm font-medium text-gray-700">
+                                        Descripción
+                                    </label>
+                                    <textarea name="descripcion" rows="3"
+                                        class="block w-full py-3 px-4 border border-gray-200 rounded-lg bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm shadow-sm"
+                                        placeholder="Descripción del medicamento, indicaciones, precauciones..."></textarea>
+                                </div>
+                                
+                                <!-- Foto del medicamento -->
+                                <div>
+                                    <label class="block mb-2 text-sm font-medium text-gray-700">
+                                        Foto del medicamento
+                                    </label>
+                                    <input type="file" name="foto" accept="image/*"
+                                        class="block w-full py-3 px-4 border border-gray-200 rounded-lg bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm shadow-sm">
+                                    <p class="text-xs text-gray-500 mt-1">Formatos permitidos: JPG, PNG, GIF. Tamaño máximo: 5MB</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Tab: Inventario y Precio -->
+                    <div id="tab-content-inventario" class="tab-content hidden">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Columna izquierda -->
+                            <div class="space-y-4">
+                                <h3 class="text-lg font-semibold text-gray-800 pb-2 border-b border-gray-200 flex items-center">
+                                    <i class="fas fa-boxes text-esmerald-perso mr-2"></i>
+                                    Información de inventario
+                                </h3>
+                                
+                                <!-- Stock inicial -->
+                                <div>
+                                    <label class="block mb-2 text-sm font-medium text-gray-700">
+                                        Stock inicial <span class="text-red-500">*</span>
+                                    </label>
+                                    <div class="relative">
+                                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                            <i class="fas fa-boxes text-gray-400"></i>
+                                        </div>
+                                        <input type="number" name="cantidad" required min="0"
+                                            class="pl-10 block w-full py-3 px-4 border border-gray-200 rounded-lg bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm shadow-sm"
+                                            placeholder="Cantidad inicial en inventario">
+                                    </div>
+                                </div>
+                                
+                                <!-- Estado activo -->
+                                <div class="flex items-start">
+                                    <div class="flex items-center h-5">
+                                        <input id="activo" name="activo" type="checkbox" checked
+                                            class="focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300 rounded">
+                                    </div>
+                                    <div class="ml-3 text-sm">
+                                        <label for="activo" class="font-medium text-gray-700">Medicamento activo</label>
+                                        <p class="text-gray-500">Si está desmarcado, el medicamento no estará disponible</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Columna derecha -->
+                            <div class="space-y-4">
+                                <h3 class="text-lg font-semibold text-gray-800 pb-2 border-b border-gray-200 flex items-center">
+                                    <i class="fas fa-dollar-sign text-esmerald-perso mr-2"></i>
+                                    Información de precio
+                                </h3>
+                                
+                                <!-- Precio unitario -->
+                                <div>
+                                    <label class="block mb-2 text-sm font-medium text-gray-700">
+                                        Precio unitario <span class="text-red-500">*</span>
+                                    </label>
+                                    <div class="relative">
+                                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                            <span class="text-gray-400">$</span>
+                                        </div>
+                                        <input type="number" name="precio" required min="0" step="0.01"
+                                            class="pl-10 block w-full py-3 px-4 border border-gray-200 rounded-lg bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm shadow-sm"
+                                            placeholder="0.00">
+                                    </div>
+                                </div>
+                                
+                                <!-- Es comercial -->
+                                <div class="flex items-start">
+                                    <div class="flex items-center h-5">
+                                        <input id="comercial" name="comercial" type="checkbox" checked
+                                            class="focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300 rounded">
+                                    </div>
+                                    <div class="ml-3 text-sm">
+                                        <label for="comercial" class="font-medium text-gray-700">Es medicamento comercial</label>
+                                        <p class="text-gray-500">Marque si es un medicamento de marca (no genérico)</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Tab: Información Adicional -->
+                    <div id="tab-content-adicional" class="tab-content hidden">
+                        <div class="space-y-6">
+                            <h3 class="text-lg font-semibold text-gray-800 pb-2 border-b border-gray-200 flex items-center">
+                                <i class="fas fa-info-circle text-esmerald-perso mr-2"></i>
+                                Información adicional del medicamento
+                            </h3>
+                            
+                            <div class="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-r-lg">
+                                <div class="flex">
+                                    <div class="ml-3">
+                                        <p class="text-sm text-blue-700">
+                                            <strong>Revisión final:</strong> Verifique que toda la información ingresada sea correcta antes de guardar el medicamento.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="bg-gray-50 rounded-lg p-4">
+                                    <h4 class="font-medium text-gray-800 mb-3">Resumen del medicamento</h4>
+                                    <div class="space-y-2 text-sm">
+                                        <div class="flex justify-between">
+                                            <span class="text-gray-600">Nombre:</span>
+                                            <span id="summary-nombre" class="font-medium">-</span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span class="text-gray-600">Tipo:</span>
+                                            <span id="summary-tipo" class="font-medium">-</span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span class="text-gray-600">Vía:</span>
+                                            <span id="summary-via" class="font-medium">-</span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span class="text-gray-600">Precio:</span>
+                                            <span id="summary-precio" class="font-medium text-esmerald-perso">-</span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span class="text-gray-600">Stock:</span>
+                                            <span id="summary-stock" class="font-medium">-</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="bg-gray-50 rounded-lg p-4">
+                                    <h4 class="font-medium text-gray-800 mb-3">Estados</h4>
+                                    <div class="space-y-2 text-sm">
+                                        <div class="flex justify-between">
+                                            <span class="text-gray-600">Estado:</span>
+                                            <span id="summary-activo" class="font-medium">-</span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span class="text-gray-600">Tipo producto:</span>
+                                            <span id="summary-comercial" class="font-medium">-</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Footer del modal -->
+            <div class="bg-gray-50 px-6 py-4 flex flex-col sm:flex-row justify-between items-center space-y-3 sm:space-y-0 border-t border-gray-200">
+                <button onclick="closeCreateMedicamentoModal()" class="w-full sm:w-auto px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg font-medium flex items-center justify-center transition-all duration-300">
+                    <i class="fas fa-times mr-2"></i>
+                    <span>Cancelar</span>
+                </button>
+                <div class="flex space-x-3">
+                    <button type="button" onclick="previousMedicamentoTab()" id="prevMedicamentoTabBtn" class="hidden px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium flex items-center transition-all duration-300">
+                        <i class="fas fa-arrow-left mr-2"></i>
+                        <span>Anterior</span>
+                    </button>
+                    <button type="button" onclick="nextMedicamentoTab()" id="nextMedicamentoTabBtn" class="px-6 py-3 bg-esmerald-perso hover:bg-green-700 text-white rounded-lg font-medium flex items-center transition-all duration-300">
+                        <span>Siguiente</span>
+                        <i class="fas fa-arrow-right ml-2"></i>
+                    </button>
+                    <button type="submit" form="createMedicamentoForm" id="submitMedicamentoBtn" class="hidden px-8 py-3 bg-esmerald-perso hover:bg-green-700 text-white rounded-lg font-medium flex items-center shadow-lg transition-all duration-300">
+                        <i class="fas fa-save mr-2"></i>
+                        <span>Crear Medicamento</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de detalle de medicamento -->
+    <div id="medicamentoDetailModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden">
+            <!-- Header del modal -->
+            <div class="bg-blue-600 px-6 py-4">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="p-2 bg-blue-500 rounded-lg">
+                            <i class="fas fa-eye text-white text-lg"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-xl font-semibold text-white">Detalle del Medicamento</h2>
+                            <p class="text-blue-100 text-sm">Información completa del medicamento</p>
+                        </div>
+                    </div>
+                    <button onclick="closeMedicamentoDetailModal()" 
+                            class="text-blue-100 hover:text-white p-2 rounded-lg hover:bg-blue-500 transition-all duration-200">
+                        <i class="fas fa-times text-lg"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Contenido del modal -->
+            <div id="medicamentoDetailContent" class="p-6 max-h-[70vh] overflow-y-auto">
+                <!-- El contenido se carga dinámicamente -->
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Incluir fragment para eliminar -->
+    {% include 'fragments/delete.html' %}
+
+    <!-- Estilos adicionales -->
+    <style>
+        .medicamento-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .medicamento-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        .esmerald-perso {
+            background-color: #27cb79;
+        }
+        
+        .bg-esmerald-perso {
+            background-color: #27cb79;
+        }
+        
+        .text-esmerald-perso {
+            color: #27cb79;
+        }
+        
+        .modal-content {
+            animation: slideInUp 0.3s ease-out;
+        }
+        
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .medicamento-tab {
+            background: rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .medicamento-tab:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+        
+        .active-tab {
+            background: rgba(255, 255, 255, 0.9) !important;
+            color: #27cb79 !important;
+            border-color: rgba(255, 255, 255, 0.9) !important;
+        }
+        
+        .tab-content {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateX(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        .animate-pulse-slow {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+    </style>
+
+    <script>
+        let currentMedicamentoTab = 'informacion';
+        
+        // Función para abrir el modal de creación de medicamento
+        function openCreateMedicamentoModal() {
+            document.getElementById('createMedicamentoModal').classList.remove('hidden');
+            document.getElementById('modalTitle').textContent = 'Nuevo Medicamento';
+            document.getElementById('createMedicamentoForm').action = "{% url 'core:medicamento_create' %}";
+            resetMedicamentoForm();
+            showMedicamentoTab('informacion');
+            
+            // Recargar los selects para asegurar que tengan los datos más actualizados
+            recargarSelectsTiposMarcas();
+        }
+        
+        // Función para cerrar el modal de creación de medicamento
+        function closeCreateMedicamentoModal() {
+            document.getElementById('createMedicamentoModal').classList.add('hidden');
+            resetMedicamentoForm();
+        }
+        
+        // Función para resetear el formulario
+        function resetMedicamentoForm() {
+            document.getElementById('createMedicamentoForm').reset();
+            updateMedicamentoSummary();
+        }
+        
+        // Función para mostrar tabs en el modal de medicamento
+        function showMedicamentoTab(tabName) {
+            // Ocultar todos los contenidos de tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.add('hidden');
+            });
+            
+            // Remover clase activa de todos los tabs
+            document.querySelectorAll('.medicamento-tab').forEach(tab => {
+                tab.classList.remove('active-tab');
+            });
+            
+            // Mostrar el tab seleccionado
+            document.getElementById(`tab-content-${tabName}`).classList.remove('hidden');
+            document.querySelector(`button[onclick="showMedicamentoTab('${tabName}')"]`).classList.add('active-tab');
+            
+            currentMedicamentoTab = tabName;
+            updateMedicamentoNavigation();
+            
+            if (tabName === 'adicional') {
+                updateMedicamentoSummary();
+            }
+        }
+        
+        // Función para navegación entre tabs
+        function nextMedicamentoTab() {
+            if (currentMedicamentoTab === 'informacion') {
+                showMedicamentoTab('inventario');
+            } else if (currentMedicamentoTab === 'inventario') {
+                showMedicamentoTab('adicional');
+            }
+        }
+        
+        function previousMedicamentoTab() {
+            if (currentMedicamentoTab === 'inventario') {
+                showMedicamentoTab('informacion');
+            } else if (currentMedicamentoTab === 'adicional') {
+                showMedicamentoTab('inventario');
+            }
+        }
+        
+        // Función para actualizar la navegación de botones
+        function updateMedicamentoNavigation() {
+            const prevBtn = document.getElementById('prevMedicamentoTabBtn');
+            const nextBtn = document.getElementById('nextMedicamentoTabBtn');
+            const submitBtn = document.getElementById('submitMedicamentoBtn');
+            
+            if (currentMedicamentoTab === 'informacion') {
+                prevBtn.classList.add('hidden');
+                nextBtn.classList.remove('hidden');
+                submitBtn.classList.add('hidden');
+            } else if (currentMedicamentoTab === 'inventario') {
+                prevBtn.classList.remove('hidden');
+                nextBtn.classList.remove('hidden');
+                submitBtn.classList.add('hidden');
+            } else if (currentMedicamentoTab === 'adicional') {
+                prevBtn.classList.remove('hidden');
+                nextBtn.classList.add('hidden');
+                submitBtn.classList.remove('hidden');
+            }
+        }
+        
+        // Función para actualizar el resumen del medicamento
+        function updateMedicamentoSummary() {
+            const form = document.getElementById('createMedicamentoForm');
+            const formData = new FormData(form);
+            
+            document.getElementById('summary-nombre').textContent = formData.get('nombre') || '-';
+            
+            const tipoSelect = form.querySelector('[name="tipo"]');
+            document.getElementById('summary-tipo').textContent = 
+                tipoSelect.selectedOptions[0]?.textContent || '-';
+            
+            const viaSelect = form.querySelector('[name="via_administracion"]');
+            document.getElementById('summary-via').textContent = 
+                viaSelect.selectedOptions[0]?.textContent || '-';
+            
+            const precio = formData.get('precio');
+            document.getElementById('summary-precio').textContent = 
+                precio ? `$${precio}` : '-';
+            
+            document.getElementById('summary-stock').textContent = formData.get('cantidad') || '-';
+            
+            document.getElementById('summary-activo').textContent = 
+                formData.get('activo') ? 'Activo' : 'Inactivo';
+            
+            document.getElementById('summary-comercial').textContent = 
+                formData.get('comercial') ? 'Comercial' : 'Genérico';
+        }
+        
+        // Función para abrir modal de detalle de medicamento
+        function openMedicamentoDetailModal(medicamentoId) {
+            document.getElementById('medicamentoDetailModal').classList.remove('hidden');
+            
+            // Mostrar loading
+            document.getElementById('medicamentoDetailContent').innerHTML = `
+                <div class="flex items-center justify-center py-12">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                    <span class="ml-3 text-gray-600">Cargando información...</span>
+                </div>
+            `;
+            
+            // Simular carga de datos (aquí harías una petición AJAX real)
+            setTimeout(() => {
+                loadMedicamentoDetail(medicamentoId);
+            }, 500);
+        }
+        
+        // Función para cargar detalle del medicamento
+        function loadMedicamentoDetail(medicamentoId) {
+            // Aquí harías una petición AJAX para obtener los datos del medicamento
+            // Por ahora simularemos con datos estáticos
+            const content = `
+                <div class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-4">
+                            <h3 class="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-2">
+                                Información General
+                            </h3>
+                            <div class="space-y-3">
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Nombre:</span>
+                                    <span class="font-medium">Medicamento #${medicamentoId}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Tipo:</span>
+                                    <span class="font-medium">Analgésico</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Marca:</span>
+                                    <span class="font-medium">Pfizer</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Concentración:</span>
+                                    <span class="font-medium">500mg</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-4">
+                            <h3 class="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-2">
+                                Inventario y Precio
+                            </h3>
+                            <div class="space-y-3">
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Stock:</span>
+                                    <span class="font-medium">150 unidades</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Precio:</span>
+                                    <span class="font-medium text-green-600">$5.50</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Estado:</span>
+                                    <span class="inline-flex px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">
+                                        Activo
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-2 mb-4">
+                            Descripción
+                        </h3>
+                        <p class="text-gray-600">
+                            Este es un medicamento analgésico de alta calidad utilizado para el tratamiento del dolor moderado.
+                        </p>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('medicamentoDetailContent').innerHTML = content;
+        }
+        
+        // Función para cerrar modal de detalle
+        function closeMedicamentoDetailModal() {
+            document.getElementById('medicamentoDetailModal').classList.add('hidden');
+        }
+        
+        // Función para abrir modal de edición
+        function openEditMedicamentoModal(medicamentoId) {
+            document.getElementById('createMedicamentoModal').classList.remove('hidden');
+            document.getElementById('modalTitle').textContent = 'Editar Medicamento';
+            document.getElementById('createMedicamentoForm').action = `/core/medicamento/update/${medicamentoId}/`;
+            
+            // Aquí cargarías los datos del medicamento para edición
+            // loadMedicamentoForEdit(medicamentoId);
+            
+            showMedicamentoTab('informacion');
+        }
+        
+        // Función para confirmar eliminación
+        function confirmDeleteMedicamento(medicamentoId, nombre) {
+            if (confirm(`¿Está seguro de eliminar el medicamento "${nombre}"?`)) {
+                // Aquí harías la petición para eliminar
+                window.location.href = `/core/medicamento/delete/${medicamentoId}/`;
+            }
+        }
+        
+        // Funciones para el mini-formulario de marca de medicamento
+        function toggleMarcaForm() {
+            const form = document.getElementById('nuevaMarcaForm');
+            form.classList.toggle('hidden');
+            
+            if (!form.classList.contains('hidden')) {
+                document.getElementById('nuevaMarcaNombre').focus();
+            }
+        }
+        
+        function cancelarNuevaMarca() {
+            document.getElementById('nuevaMarcaForm').classList.add('hidden');
+            document.getElementById('nuevaMarcaNombre').value = '';
+            document.getElementById('nuevaMarcaPais').value = '';
+            document.getElementById('nuevaMarcaDescripcion').value = '';
+            hideMessage('nuevaMarcaMessage');
+        }
+        
+        function crearNuevaMarca() {
+            const nombre = document.getElementById('nuevaMarcaNombre').value.trim();
+            const pais = document.getElementById('nuevaMarcaPais').value.trim();
+            const descripcion = document.getElementById('nuevaMarcaDescripcion').value.trim();
+            
+            console.log('Datos del formulario de marca:', { nombre, pais, descripcion });
+            
+            // Validación básica
+            if (!nombre) {
+                showMessage('nuevaMarcaMessage', 'Por favor ingrese el nombre de la marca.', 'error');
+                return;
+            }
+            
+            // Mostrar loading
+            showMessage('nuevaMarcaMessage', 'Creando marca de medicamento...', 'info');
+            
+            // Crear XMLHttpRequest
+            const xhr = new XMLHttpRequest();
+            const url = '{% url "core:crear_marca_medicamento" %}';
+            
+            xhr.open('POST', url, true);
+            xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+            
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4) {
+                    console.log('Response status (marca):', xhr.status);
+                    console.log('Response text (marca):', xhr.responseText);
+                    
+                    if (xhr.status === 200) {
+                        try {
+                            const data = JSON.parse(xhr.responseText);
+                            console.log('Response data (marca):', data);
+                            
+                            if (data.success) {
+                                // Recargar todos los selects para asegurar consistencia
+                                recargarSelectsTiposMarcas();
+                                
+                                // Seleccionar la nueva opción después de recargar
+                                setTimeout(() => {
+                                    const select = document.getElementById('marcaMedicamentoSelect');
+                                    if (select) {
+                                        select.value = data.marca.id;
+                                    }
+                                }, 100);
+                                
+                                // Limpiar y ocultar formulario
+                                cancelarNuevaMarca();
+                                
+                                // Mostrar mensaje de éxito
+                                showMessage('nuevaMarcaMessage', 'Marca de medicamento creada exitosamente.', 'success');
+                                setTimeout(() => hideMessage('nuevaMarcaMessage'), 3000);
+                                
+                                // Actualizar resumen
+                                updateMedicamentoSummary();
+                            } else {
+                                showMessage('nuevaMarcaMessage', data.message || 'Error al crear la marca de medicamento.', 'error');
+                            }
+                        } catch (e) {
+                            console.error('Error parsing JSON (marca):', e);
+                            showMessage('nuevaMarcaMessage', 'Error al procesar la respuesta del servidor.', 'error');
+                        }
+                    } else {
+                        showMessage('nuevaMarcaMessage', `Error del servidor (${xhr.status}). Intente nuevamente.`, 'error');
+                    }
+                }
+            };
+            
+            // Preparar datos
+            const formData = new FormData();
+            formData.append('nombre', nombre);
+            formData.append('pais_origen', pais);
+            formData.append('descripcion', descripcion);
+            formData.append('csrfmiddlewaretoken', getCsrfToken());
+            
+            // Enviar petición
+            xhr.send(formData);
+        }
+
+        // Funciones para el mini-formulario de tipo de medicamento
+        function toggleTipoForm() {
+            const form = document.getElementById('nuevoTipoForm');
+            form.classList.toggle('hidden');
+            
+            if (!form.classList.contains('hidden')) {
+                document.getElementById('nuevoTipoNombre').focus();
+            }
+        }
+        
+        function cancelarNuevoTipo() {
+            document.getElementById('nuevoTipoForm').classList.add('hidden');
+            document.getElementById('nuevoTipoNombre').value = '';
+            document.getElementById('nuevoTipoDescripcion').value = '';
+            hideMessage('nuevoTipoMessage');
+        }
+        
+        function crearNuevoTipo() {
+            const nombre = document.getElementById('nuevoTipoNombre').value.trim();
+            const descripcion = document.getElementById('nuevoTipoDescripcion').value.trim();
+            
+            console.log('Datos del formulario:', { nombre, descripcion });
+            
+            // Validación básica
+            if (!nombre) {
+                showMessage('nuevoTipoMessage', 'Por favor ingrese el nombre del tipo.', 'error');
+                return;
+            }
+            
+            // Mostrar loading
+            showMessage('nuevoTipoMessage', 'Creando tipo de medicamento...', 'info');
+            
+            // Crear XMLHttpRequest
+            const xhr = new XMLHttpRequest();
+            const url = '{% url "core:crear_tipo_medicamento" %}';
+            
+            xhr.open('POST', url, true);
+            xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+            
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4) {
+                    console.log('Response status:', xhr.status);
+                    console.log('Response text:', xhr.responseText);
+                    
+                    if (xhr.status === 200) {
+                        try {
+                            const data = JSON.parse(xhr.responseText);
+                            console.log('Response data:', data);
+                            
+                            if (data.success) {
+                                // Recargar todos los selects para asegurar consistencia
+                                recargarSelectsTiposMarcas();
+                                
+                                // Seleccionar la nueva opción después de recargar
+                                setTimeout(() => {
+                                    const select = document.getElementById('tipoMedicamentoSelect');
+                                    if (select) {
+                                        select.value = data.tipo.id;
+                                    }
+                                }, 100);
+                                
+                                // Limpiar y ocultar formulario
+                                cancelarNuevoTipo();
+                                
+                                // Mostrar mensaje de éxito
+                                showMessage('nuevoTipoMessage', 'Tipo de medicamento creado exitosamente.', 'success');
+                                setTimeout(() => hideMessage('nuevoTipoMessage'), 3000);
+                                
+                                // Actualizar resumen
+                                updateMedicamentoSummary();
+                            } else {
+                                showMessage('nuevoTipoMessage', data.message || 'Error al crear el tipo de medicamento.', 'error');
+                            }
+                        } catch (e) {
+                            console.error('Error parsing JSON:', e);
+                            showMessage('nuevoTipoMessage', 'Error al procesar la respuesta del servidor.', 'error');
+                        }
+                    } else {
+                        showMessage('nuevoTipoMessage', `Error del servidor (${xhr.status}). Intente nuevamente.`, 'error');
+                    }
+                }
+            };
+            
+            // Preparar datos
+            const formData = new FormData();
+            formData.append('nombre', nombre);
+            formData.append('descripcion', descripcion);
+            formData.append('csrfmiddlewaretoken', getCsrfToken());
+            
+            // Enviar petición
+            xhr.send(formData);
+        }
+        
+        // Función para mostrar mensajes
+        function showMessage(elementId, message, type) {
+            const messageEl = document.getElementById(elementId);
+            messageEl.className = `mt-2 p-2 rounded text-sm ${getMessageClasses(type)}`;
+            messageEl.textContent = message;
+            messageEl.classList.remove('hidden');
+        }
+        
+        // Función para ocultar mensajes
+        function hideMessage(elementId) {
+            document.getElementById(elementId).classList.add('hidden');
+        }
+        
+        // Función para obtener clases CSS según el tipo de mensaje
+        function getMessageClasses(type) {
+            switch(type) {
+                case 'success':
+                    return 'bg-green-100 border border-green-300 text-green-700';
+                case 'error':
+                    return 'bg-red-100 border border-red-300 text-red-700';
+                case 'info':
+                    return 'bg-blue-100 border border-blue-300 text-blue-700';
+                default:
+                    return 'bg-gray-100 border border-gray-300 text-gray-700';
+            }
+        }
+        
+        // Función para obtener el token CSRF
+        function getCsrfToken() {
+            const tokenElement = document.querySelector('[name=csrfmiddlewaretoken]');
+            if (!tokenElement) {
+                console.error('Token CSRF no encontrado');
+                return '';
+            }
+            return tokenElement.value;
+        }
+
+        // Event listeners para actualizar resumen en tiempo real
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('createMedicamentoForm');
+            if (form) {
+                form.addEventListener('input', updateMedicamentoSummary);
+                form.addEventListener('change', updateMedicamentoSummary);
+            }
+            
+            // Event listener para el select de tipo de medicamento
+            const tipoSelect = document.getElementById('tipoMedicamentoSelect');
+            if (tipoSelect) {
+                tipoSelect.addEventListener('change', function() {
+                    if (this.value === 'nuevo') {
+                        this.value = ''; // Resetear selección
+                        toggleTipoForm();
+                    }
+                });
+            }
+            
+            // Event listener para el select de marca de medicamento
+            const marcaSelect = document.getElementById('marcaMedicamentoSelect');
+            if (marcaSelect) {
+                marcaSelect.addEventListener('change', function() {
+                    if (this.value === 'nueva') {
+                        this.value = ''; // Resetear selección
+                        toggleMarcaForm();
+                    }
+                });
+            }
+        });
+        
+        // Función para recargar los selects de tipos y marcas
+        function recargarSelectsTiposMarcas() {
+            const xhr = new XMLHttpRequest();
+            const url = '{% url "core:recargar_tipos_marcas" %}';
+            
+            xhr.open('GET', url, true);
+            xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+            
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    try {
+                        const data = JSON.parse(xhr.responseText);
+                        
+                        if (data.success) {
+                            // Actualizar select de tipos
+                            const tipoSelect = document.getElementById('tipoMedicamentoSelect');
+                            if (tipoSelect) {
+                                const selectedTipo = tipoSelect.value;
+                                tipoSelect.innerHTML = '<option value="">Seleccione un tipo</option>';
+                                
+                                data.tipos.forEach(function(tipo) {
+                                    const option = document.createElement('option');
+                                    option.value = tipo.id;
+                                    option.textContent = tipo.nombre;
+                                    tipoSelect.appendChild(option);
+                                });
+                                
+                                // Agregar opción "nuevo"
+                                const nuevaOpcion = document.createElement('option');
+                                nuevaOpcion.value = 'nuevo';
+                                nuevaOpcion.textContent = '+ Crear nuevo tipo';
+                                nuevaOpcion.classList.add('font-bold', 'text-green-600');
+                                tipoSelect.appendChild(nuevaOpcion);
+                                
+                                // Restaurar selección si existía
+                                if (selectedTipo) {
+                                    tipoSelect.value = selectedTipo;
+                                }
+                            }
+                            
+                            // Actualizar select de marcas
+                            const marcaSelect = document.getElementById('marcaMedicamentoSelect');
+                            if (marcaSelect) {
+                                const selectedMarca = marcaSelect.value;
+                                marcaSelect.innerHTML = '<option value="">Seleccione una marca</option>';
+                                
+                                data.marcas.forEach(function(marca) {
+                                    const option = document.createElement('option');
+                                    option.value = marca.id;
+                                    option.textContent = marca.nombre;
+                                    marcaSelect.appendChild(option);
+                                });
+                                
+                                // Agregar opción "nuevo"
+                                const nuevaOpcion = document.createElement('option');
+                                nuevaOpcion.value = 'nuevo';
+                                nuevaOpcion.textContent = '+ Crear nueva marca';
+                                nuevaOpcion.classList.add('font-bold', 'text-green-600');
+                                marcaSelect.appendChild(nuevaOpcion);
+                                
+                                // Restaurar selección si existía
+                                if (selectedMarca) {
+                                    marcaSelect.value = selectedMarca;
+                                }
+                            }
+                        }
+                    } catch (e) {
+                        console.error('Error al procesar la recarga de selects:', e);
+                    }
+                }
+            };
+            
+            xhr.send();
+        }
+
+        // Cerrar modal al hacer clic fuera
+        document.addEventListener('click', function(event) {
+            const createModal = document.getElementById('createMedicamentoModal');
+            const detailModal = document.getElementById('medicamentoDetailModal');
+            
+            if (event.target === createModal) {
+                closeCreateMedicamentoModal();
+            }
+            
+            if (event.target === detailModal) {
+                closeMedicamentoDetailModal();
+            }
+        });
+    </script>
+{% endblock %}
