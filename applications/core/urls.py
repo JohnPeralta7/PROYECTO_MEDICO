@@ -9,13 +9,14 @@ from applications.core.views.medicamento import (
 
     )
 from applications.core.views.gasto_mensual import (
-     GastoMensualListView, GastoMensualCreateView, GastoMensualDeleteView, GastoMensualUpdateView
+     GastoMensualListView, GastoMensualCreateView, GastoMensualDeleteView, GastoMensualUpdateView, 
+     gasto_mensual_json, gasto_mensual_chart_data, tipo_gasto_create_ajax
     )
 from applications.core.views.empleado import (
      EmpleadoListView, EmpleadoCreateView, EmpleadoDeleteView, EmpleadoUpdateView
     )
 from applications.core.views.doctor import (
-     DoctorListView, DoctorCreateView, DoctorDeleteView, DoctorUpdateView, doctor_create_ajax
+     DoctorListView, DoctorCreateView, DoctorDeleteView, DoctorUpdateView, doctor_create_ajax, doctor_update_ajax, doctor_detail_ajax
     )
 from applications.core.views.diagnostico import (
      DiagnosticoListView, DiagnosticoCreateView, DiagnosticoDeleteView, DiagnosticoUpdateView
@@ -49,10 +50,13 @@ urlpatterns = [
 
     #RUTAS DE Gasto Mensual
     #path('gasto_mensual_find/', paciente_find, name="paciente_find"),
-    path('gastos_mensual_list/', GastoMensualListView.as_view(), name='gasto_mensual_list'),
+path('gastos_mensual_list/', GastoMensualListView.as_view(), name='gasto_mensual_list'),
     path('gastos_mensual_create/', GastoMensualCreateView.as_view(), name='gasto_mensual_create'),
     path('gastos_mensual_delete/<int:pk>/', GastoMensualDeleteView.as_view(), name='gasto_mensual_delete'),
     path('gastos_mensual_update/<int:pk>/', GastoMensualUpdateView.as_view(), name='gasto_mensual_update'),
+    path('gastos_mensual_json/', gasto_mensual_json, name='gasto_mensual_json'),
+    path('gastos_mensual_chart_data/', gasto_mensual_chart_data, name='gasto_mensual_chart_data'),
+    path('tipo_gasto_create_ajax/', tipo_gasto_create_ajax, name='tipo_gasto_create_ajax'),
 
 
     #RUTAS DE EMPLEADO
@@ -68,8 +72,10 @@ urlpatterns = [
     path('doctor_list/', DoctorListView.as_view(), name='doctor_list'),
     path('doctor_create/', DoctorCreateView.as_view(), name='doctor_create'),
     path('doctor_create_ajax/', doctor_create_ajax, name='doctor_create_ajax'),
+    path('doctor/update/<int:pk>/ajax/', doctor_update_ajax, name='doctor_update_ajax'),
     path('doctor_delete/<int:pk>/', DoctorDeleteView.as_view(), name='doctor_delete'),
     path('doctor_update/<int:pk>/', DoctorUpdateView.as_view(), name='doctor_update'),
+    path('doctor/<int:pk>/detail/ajax/', doctor_detail_ajax, name='doctor_detail_ajax'),
 
 
     #RUTAS DE DIAGNOSTICO

@@ -58,6 +58,7 @@ class DoctorForm(ModelForm):
             'placeholder': 'Código único del doctor'
         })
         # Ocultar el campo original de especialidad
+        self.fields['especialidad'].required = False  
         self.fields['especialidad'].widget = forms.HiddenInput()
         
         self.fields['telefonos'].widget.attrs.update({
@@ -100,7 +101,6 @@ class DoctorForm(ModelForm):
             'latitud', 'longitud', 'codigo_unico_doctor', 'especialidad',
             'telefonos', 'email', 'horario_atencion', 'duracion_atencion',
             'curriculum', 'firma_digital', 'foto', 'imagen_receta', 'activo',
-            'especialidad_texto'  # Añadir el campo de texto
         ]
         widgets = {
             'horario_atencion': forms.Textarea(attrs={'rows': 3}),

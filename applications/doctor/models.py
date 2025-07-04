@@ -285,12 +285,13 @@ class Pago(models.Model):
     atencion = models.ForeignKey(Atencion, on_delete=models.PROTECT,
                                  verbose_name="Atención", related_name="pagos",
                                  null=True, blank=True)
-
+    
     # Información del pago
     metodo_pago = models.CharField(max_length=20, choices=MetodoPagoChoices.choices,
                                    verbose_name="Método de Pago")
     monto_total = models.DecimalField(max_digits=10, decimal_places=2,
                                       verbose_name="Monto Total")
+    
     estado = models.CharField(max_length=20, choices=EstadoPagoChoices.choices,
                               default=EstadoPagoChoices.PENDIENTE, verbose_name="Estado")
 
@@ -316,6 +317,44 @@ class Pago(models.Model):
     observaciones = models.TextField(verbose_name="Observaciones", blank=True, null=True)
 
     activo = models.BooleanField(default=True, verbose_name="Activo")
+    
+    def get_paypal_order_id(self):
+        """Obtiene el PayPal Order ID desde referencia_externa"""
+        if self.metodo_pago == 'paypal' and self.referencia_externa:
+            parts = self.referencia_externa.split('|')
+            return parts[0] if len(parts) > 0 else self.referencia_externa
+        return None
+    
+    def get_paypal_transaction_id(self):
+        """Obtiene el PayPal Transaction ID desde referencia_externa"""
+        if self.metodo_pago == 'paypal' and self.referencia_externa:
+            parts = self.referencia_externa.split('|')
+            return parts[1] if len(parts) > 1 else None
+        return None
+    
+    def set_paypal_references(self, order_id, transaction_id):
+        """Guarda ambas referencias de PayPal en un solo campo"""
+        self.referencia_externa = f"{order_id}|{transaction_id}"
+    
+    @property
+    def get_paciente(self):
+        """Obtiene el paciente desde atención"""
+        if self.atencion:
+            return self.atencion.paciente
+        return None
+    
+    @property
+    def get_monto_consulta(self):
+        """Obtiene el monto de consulta (siempre 0 por ahora)"""
+        return 0
+    
+    @property
+    def total_servicios(self):
+        """Calcula el total de servicios adicionales"""
+        return self.detalles.aggregate(
+            total=models.Sum('subtotal')
+        )['total'] or 0
+
 
     def __str__(self):
         return f"Pago {self.id} - {self.atencion} - {self.monto_total}"
@@ -414,14 +453,15 @@ class DetallePago(models.Model):
         # Determinar precio base (seguro o normal)
         precio_base = self.valor_seguro if self.aplica_seguro and self.valor_seguro is not None else self.precio_unitario
 
-        # Aplicar descuento
-        descuento = (self.descuento_porcentaje / Decimal(100)) * precio_base
+        # Aplicar descuento - CORREGIR AQUÍ
+        descuento = (Decimal(str(self.descuento_porcentaje)) / Decimal('100')) * precio_base
         precio_con_descuento = precio_base - descuento
 
         # Calcular subtotal final
-        self.subtotal = round(precio_con_descuento * self.cantidad, 2)
+        self.subtotal = round(precio_con_descuento * Decimal(str(self.cantidad)), 2)
 
         super().save(*args, **kwargs)
+
 
     def __str__(self):
         return f"{self.servicio_adicional} - Cantidad: {self.cantidad} - Subtotal: {self.subtotal}"

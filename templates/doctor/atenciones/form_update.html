@@ -855,6 +855,8 @@ body, html, input, textarea, select, button {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+
 </style>
 
  <script>
@@ -2093,7 +2095,7 @@ function crearPrescripcionesHTML(prescripciones) {
                         <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
                 </div>
                 <div class="ml-3 flex-1">
-                    <h6 class="text-sm font-semibold text-orange-800">${prescripcion.medicamento || 'Medicamento no especificado'}</h6>
+                    <h6 class="text-sm font-semibold text-orange-800 mb-1">${prescripcion.medicamento || 'Medicamento no especificado'}</h6>
                     <p class="text-sm text-orange-700 mt-1">${prescripcion.prescripcion || 'Sin instrucciones'}</p>
                     <div class="mt-2 text-xs text-orange-600 space-x-4">
                         ${prescripcion.cantidad ? `<span>Cantidad: ${prescripcion.cantidad}</span>` : ''}
@@ -2250,311 +2252,407 @@ function getCookie(name) {
 }
 
 // ==============================
-// 7. FUNCIONES GLOBALES SEGURAS
+// 7. MODAL PARA NUEVO MEDICAMENTO
 // ==============================
 
+let currentMedicamentoTab = 'informacion';
+
 /**
- * Función para inicializar de forma segura
- * @returns {boolean} - True si se inicializó correctamente
+ * Función para abrir el modal de medicamento
  */
-function inicializarAtencion() {
-    try {
-        console.log('🔄 Intentando inicializar el sistema...');
-        atencionMedica = new GestorAtencionMedica();
-        console.log('✅ Sistema de atención médica inicializado correctamente');
-        console.log('📋 Instancia creada:', atencionMedica);
-        return true;
-    } catch (error) {
-        console.error('❌ Error al inicializar:', error);
-        alert('Error al inicializar el sistema: ' + error.message);
-        return false;
+function abrirModalMedicamento() {
+    console.log('🔥 Abriendo modal de medicamento...');
+    document.getElementById('createMedicamentoModal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+    showMedicamentoTab('informacion');
+}
+
+/**
+ * Función para cerrar el modal de medicamento
+ */
+function closeMedicamentoModal() {
+    console.log('🔒 Cerrando modal de medicamento...');
+    const modal = document.getElementById('createMedicamentoModal');
+    const form = document.getElementById('createMedicamentoForm');
+    
+    if (modal) {
+        modal.classList.add('hidden');
+        document.body.style.overflow = 'auto';
+    }
+    
+    if (form) {
+        form.reset();
+        updateMedicamentoSummary();
     }
 }
 
 /**
- * Función global para agregar medicamento
+ * Función para mostrar tabs en el modal de medicamento
  */
-function agregarMedicamento() {
-    console.log('🔄 Función agregarMedicamento() llamada');
-
-    if (!atencionMedica) {
-        console.log('⚠️ Sistema no inicializado, intentando inicializar...');
-        if (!inicializarAtencion()) {
-            return;
-        }
-    }
-
-    try {
-        atencionMedica.agregarMedicamento();
-    } catch (error) {
-        console.error('❌ Error en agregarMedicamento:', error);
-        alert('Error al agregar medicamento: ' + error.message);
-    }
-}
-
-/**
- * Función global para eliminar medicamento de forma segura
- * @param {number} index - Índice del medicamento a eliminar
- */
-function eliminarMedicamentoSeguro(index) {
-    if (atencionMedica) {
-        atencionMedica.eliminarMedicamento(index);
-    } else {
-        console.error('❌ Sistema no inicializado');
-    }
-}
-
-/**
- * Función global para grabar atención
- */
-function grabarAtencion() {
-    console.log('🔄 Función grabarAtencion() llamada');
-
-    if (!atencionMedica) {
-        console.log('⚠️ Sistema no inicializado, intentando inicializar...');
-        if (!inicializarAtencion()) {
-            return;
-        }
-    }
-
-    try {
-        atencionMedica.grabarAtencion();
-    } catch (error) {
-        console.error('❌ Error en grabarAtencion:', error);
-        alert('Error al grabar atención: ' + error.message);
-    }
-}
-
-/**
- * Función global para agregar diagnóstico
- */
-function agregarDiagnostico() {
-    console.log('🔄 Función agregarDiagnostico() llamada');
-
-    if (!atencionMedica) {
-        console.log('⚠️ Sistema no inicializado, intentando inicializar...');
-        if (!inicializarAtencion()) {
-            return;
-        }
-    }
-
-    try {
-        atencionMedica.agregarDiagnostico();
-    } catch (error) {
-        console.error('❌ Error en agregarDiagnostico:', error);
-        alert('Error al agregar diagnóstico: ' + error.message);
-    }
-}
-
-/**
- * Función global para ver datos
- */
-function verDatos() {
-    if (!atencionMedica) {
-        console.log('⚠️ Sistema no inicializado, intentando inicializar...');
-        if (!inicializarAtencion()) {
-            return;
-        }
-    }
-
-    atencionMedica.verDatos();
-}
-
-/**
- * Función para verificar el estado del sistema
- * @returns {boolean} - Estado del sistema
- */
-function verificarSistema() {
-    console.log('🔍 Estado del sistema:');
-    console.log('   atencionMedica:', atencionMedica);
-    console.log('   Tipo:', typeof atencionMedica);
-    console.log('   DOM ready:', document.readyState);
-    return atencionMedica !== null;
-}
-
-// ==============================
-// 8. INICIALIZACIÓN Y EVENTOS CONSOLIDADOS
-// ==============================
-
-/**
- * Función principal de inicialización cuando el DOM está listo
- */
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('📄 DOM cargado, inicializando sistema completo...');
-
-    // ============================================
-    // 8.1 INICIALIZAR SISTEMA DE ATENCIÓN MÉDICA
-    // ============================================
-    inicializarAtencion();
-
-    // ============================================
-    // 8.2 INICIALIZAR SELECTOR DE PACIENTES
-    // ============================================
-    // Obtener elementos DOM
-    searchInput = document.getElementById('paciente-search-input');
-    dropdown = document.getElementById('pacientes-dropdown');
-    pacientesList = document.getElementById('pacientes-list');
-    loadingIndicator = document.getElementById('loading-indicator');
-    searchIcon = document.getElementById('search-icon');
-    clearButton = document.getElementById('clear-button');
-    noResults = document.getElementById('no-results');
-    minCharsMessage = document.getElementById('min-chars-message');
-    datosContainer = document.getElementById('datos-paciente-container');
-    noMensaje = document.getElementById('no-paciente-mensaje');
-
-    // Configurar Event Listeners para selector de pacientes
-    if (searchInput) {
-        searchInput.addEventListener('input', handleSearchInput);
-        searchInput.addEventListener('focus', handleInputFocus);
-        searchInput.addEventListener('blur', handleInputBlur);
-    }
-
-    document.addEventListener('click', handleDocumentClick);
-     // ============================================
-    // 8.2.1 CARGAR PACIENTE EN MODO EDICIÓN
-    // ============================================
-    // Si estamos editando una atención, cargar el paciente automáticamente
-    if (typeof pacienteDesdeServidor !== 'undefined' && pacienteDesdeServidor !== null) {
-        console.log('🔄 Cargando paciente para edición:', pacienteDesdeServidor.nombres, pacienteDesdeServidor.apellidos);
-        seleccionarPaciente(pacienteDesdeServidor);
-    }
-    // Fin de cargar paciente en modo edicion
-
-
-    // ============================================
-    // 8.3 INICIALIZAR MODAL DE NUEVO PACIENTE
-    // ============================================
-    const formNuevoPaciente = document.getElementById('form-nuevo-paciente');
-    if (formNuevoPaciente) {
-        formNuevoPaciente.addEventListener('submit', function(e) {
-            e.preventDefault();
-
-            // Obtener datos del formulario
-            const formData = new FormData(this);
-            const pacienteData = {};
-
-            // Convertir FormData a objeto
-            for (let [key, value] of formData.entries()) {
-                pacienteData[key] = value;
-            }
-
-            // Validaciones básicas
-            if (!validarFormulario(pacienteData)) {
-                return;
-            }
-
-            // Aquí iría la lógica para enviar al backend
-            console.log('Datos del nuevo paciente:', pacienteData);
-
-            // Simulación de guardado exitoso
-            alert('✅ Paciente agregado exitosamente!\n\nNombre: ' + pacienteData.nombres + ' ' + pacienteData.apellidos + '\nCédula: ' + pacienteData.cedula_ecuatoriana);
-
-            // Cerrar modal y limpiar formulario
-            cerrarModalPaciente();
-        });
-    }
-
-    // ============================================
-
-    // Cerrar modal al hacer clic fuera de él
-    const modalAgregarPaciente = document.getElementById('modal-agregar-paciente');
-    if (modalAgregarPaciente) {
-        modalAgregarPaciente.addEventListener('click', function(e) {
-            if (e.target === this) {
-                cerrarModalPaciente();
-            }
-        });
-    }
-
-    // Formatear cédula mientras se escribe (solo números)
-    const cedulaInput = document.getElementById('cedula_ecuatoriana');
-    if (cedulaInput) {
-        cedulaInput.addEventListener('input', function(e) {
-            this.value = this.value.replace(/\D/g, '');
-        });
-    }
-
-    // Mostrar/ocultar campo gineco-obstétrico según el sexo
-    const sexoSelect = document.getElementById('sexo');
-    if (sexoSelect) {
-        sexoSelect.addEventListener('change', function() {
-            const ginecoField = document.getElementById('antecedentes_gineco_obstetricos');
-            if (ginecoField) {
-                const ginecoContainer = ginecoField.closest('div');
-                if (this.value === 'FEMENINO') {
-                    ginecoContainer.style.display = 'block';
-                } else {
-                    ginecoContainer.style.display = 'none';
-                    ginecoField.value = '';
-                }
-            }
-        });
-    }
-
-    // JavaScript para manejar el checkbox de consulta de control
-    const consultaControlCheckbox = document.getElementById('consulta-control');
-    if (consultaControlCheckbox) {
-        consultaControlCheckbox.addEventListener('change', function() {
-            const label = this.nextElementSibling.nextElementSibling;
-            if (this.checked) {
-                label.textContent = '✓ Sí, es consulta de control';
-                label.classList.remove('text-teal-700');
-                label.classList.add('text-teal-800', 'font-semibold');
-            } else {
-                label.textContent = '¿Es consulta de control?';
-                label.classList.remove('text-teal-800', 'font-semibold');
-                label.classList.add('text-teal-700');
-            }
-        });
-    }
-
-    // ============================================
-    // 8.5 ANIMACIONES SUAVES AL CARGAR
-    // ============================================
-    const cards = document.querySelectorAll('.card-hover');
-    cards.forEach((card, index) => {
-        card.style.animationDelay = `${index * 0.1}s`;
+function showMedicamentoTab(tabName) {
+    // Ocultar todos los contenidos de tabs
+    document.querySelectorAll('#createMedicamentoModal .tab-content').forEach(tab => {
+        tab.classList.add('hidden');
     });
+    
+    // Remover clase activa de todos los tabs
+    document.querySelectorAll('.medicamento-tab').forEach(tab => {
+        tab.classList.remove('active-tab');
+        tab.classList.add('bg-white', 'bg-opacity-10', 'text-white');
+    });
+    
+    // Mostrar el tab seleccionado
+    document.getElementById(`tab-content-${tabName}`).classList.remove('hidden');
+    document.querySelector(`button[onclick="showMedicamentoTab('${tabName}')"]`).classList.add('active-tab');
+    
+    currentMedicamentoTab = tabName;
+    updateMedicamentoNavigation();
+    
+    if (tabName === 'adicional') {
+        updateMedicamentoSummary();
+    }
+}
 
-    console.log('✅ Sistema completo inicializado correctamente');
-});
+/**
+ * Función para navegación entre tabs
+ */
+function nextMedicamentoTab() {
+    if (currentMedicamentoTab === 'informacion') {
+        showMedicamentoTab('inventario');
+    } else if (currentMedicamentoTab === 'inventario') {
+        showMedicamentoTab('adicional');
+    }
+}
 
-// ============================================
-// 8.6 EVENTOS ADICIONALES DE RESPALDO
-// ============================================
+function previousMedicamentoTab() {
+    if (currentMedicamentoTab === 'inventario') {
+        showMedicamentoTab('informacion');
+    } else if (currentMedicamentoTab === 'adicional') {
+        showMedicamentoTab('inventario');
+    }
+}
 
-// Cerrar modal con tecla Escape
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-        const modal = document.getElementById('modal-agregar-paciente');
-        if (modal && !modal.classList.contains('hidden')) {
-            cerrarModalPaciente();
+/**
+ * Función para actualizar la navegación de botones
+ */
+function updateMedicamentoNavigation() {
+    const prevBtn = document.getElementById('prevMedicamentoTabBtn');
+    const nextBtn = document.getElementById('nextMedicamentoTabBtn');
+    const submitBtn = document.getElementById('submitMedicamentoBtn');
+    
+    if (currentMedicamentoTab === 'informacion') {
+        prevBtn.classList.add('hidden');
+        nextBtn.classList.remove('hidden');
+        submitBtn.classList.add('hidden');
+    } else if (currentMedicamentoTab === 'inventario') {
+        prevBtn.classList.remove('hidden');
+        nextBtn.classList.remove('hidden');
+        submitBtn.classList.add('hidden');
+    } else if (currentMedicamentoTab === 'adicional') {
+        prevBtn.classList.remove('hidden');
+        nextBtn.classList.add('hidden');
+        submitBtn.classList.remove('hidden');
+    }
+}
+
+/**
+ * Función para actualizar el resumen del medicamento
+ */
+function updateMedicamentoSummary() {
+    const form = document.getElementById('createMedicamentoForm');
+    const formData = new FormData(form);
+    
+    document.getElementById('summary-nombre').textContent = formData.get('nombre') || '-';
+    
+    const tipoSelect = form.querySelector('[name="tipo"]');
+    document.getElementById('summary-tipo').textContent = 
+        tipoSelect.selectedOptions[0]?.textContent || '-';
+    
+    const viaSelect = form.querySelector('[name="via_administracion"]');
+    document.getElementById('summary-via').textContent = 
+        viaSelect.selectedOptions[0]?.textContent || '-';
+    
+    const precio = formData.get('precio');
+    document.getElementById('summary-precio').textContent = 
+        precio ? `$${precio}` : '-';
+    
+    document.getElementById('summary-stock').textContent = formData.get('cantidad') || '-';
+    
+    document.getElementById('summary-activo').textContent = 
+        formData.get('activo') ? 'Activo' : 'Inactivo';
+    
+    document.getElementById('summary-comercial').textContent = 
+        formData.get('comercial') === 'true' ? 'Comercial' : 'Genérico';
+}
+
+/**
+ * Función para crear medicamento desde el modal
+ */
+async function crearMedicamentoDesdeModal() {
+    console.log('📝 Creando medicamento desde modal...');
+    
+    const form = document.getElementById('createMedicamentoForm');
+    if (!form) {
+        alert('❌ Error: Formulario no encontrado');
+        return;
+    }
+    
+    const formData = new FormData(form);
+    
+    // Validar campos básicos antes de enviar
+    const nombre = formData.get('nombre');
+    const tipo = formData.get('tipo');
+    const via_administracion = formData.get('via_administracion');
+    const precio = formData.get('precio');
+    const cantidad = formData.get('cantidad');
+    
+    if (!nombre || !tipo || !via_administracion || !precio || !cantidad) {
+        alert('❌ Por favor complete todos los campos obligatorios (*)');
+        return;
+    }
+    
+    // Mostrar indicador de carga
+    mostrarIndicadorCargaMedicamento(true);
+    
+    try {
+        const response = await fetch('{% url "core:medicamento_create" %}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': getCookie('csrftoken')
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            alert('✅ ' + data.message);
+            
+            // Agregar el medicamento al select
+            agregarMedicamentoAlSelect(data.medicamento);
+            
+            // Cerrar modal
+            closeMedicamentoModal();
+            
+            // Opcional: Seleccionar automáticamente el medicamento recién creado
+            const select = document.getElementById('medicamento-select');
+            if (select && data.medicamento) {
+                select.value = data.medicamento.id;
+            }
+            
+        } else {
+            if (data.errors) {
+                let errores = [];
+                for (const campo in data.errors) {
+                    errores.push(`${getCampoNombreMedicamento(campo)}: ${data.errors[campo].join(', ')}`);
+                }
+                alert('❌ Errores de validación:\n' + errores.join('\n'));
+                marcarCamposConErroresMedicamento(data.errors);
+            } else {
+                alert('❌ ' + (data.message || 'Error desconocido al crear el medicamento'));
+            }
+        }
+        
+    } catch (error) {
+        console.error('Error:', error);
+        alert('❌ Error de conexión. Verifique su internet e intente nuevamente.');
+    } finally {
+        mostrarIndicadorCargaMedicamento(false);
+    }
+}
+
+/**
+ * Función para agregar medicamento al select
+ */
+function agregarMedicamentoAlSelect(medicamento) {
+    const select = document.getElementById('medicamento-select');
+    if (select) {
+        const option = document.createElement('option');
+        option.value = medicamento.id;
+        option.textContent = `${medicamento.nombre} (${medicamento.concentracion || 'Sin concentración'}) - $${medicamento.precio}`;
+        option.setAttribute('data-precio', medicamento.precio);
+        option.setAttribute('data-stock', medicamento.cantidad);
+        option.setAttribute('data-concentracion', medicamento.concentracion || '');
+        option.setAttribute('data-via', medicamento.via_administracion_value || '');
+        
+        // Agregar antes de la última opción (que puede ser "Agregar nuevo")
+        const ultimaOpcion = select.lastElementChild;
+        if (ultimaOpcion && ultimaOpcion.textContent.includes('Agregar')) {
+            select.insertBefore(option, ultimaOpcion);
+        } else {
+            select.appendChild(option);
+        }
+        
+        console.log('✅ Medicamento agregado al select exitosamente');
+    }
+}
+
+/**
+ * Funciones auxiliares para medicamentos
+ */
+function mostrarIndicadorCargaMedicamento(mostrar) {
+    const botonGuardar = document.getElementById('submitMedicamentoBtn');
+    
+    if (!botonGuardar) return;
+    
+    if (mostrar) {
+        botonGuardar.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Guardando...';
+        botonGuardar.disabled = true;
+    } else {
+        botonGuardar.innerHTML = '<i class="fas fa-save mr-2"></i>Guardar Medicamento';
+        botonGuardar.disabled = false;
+    }
+}
+
+function getCampoNombreMedicamento(field) {
+    const campos = {
+        'nombre': 'Nombre',
+        'tipo': 'Tipo',
+        'via_administracion': 'Vía de administración',
+        'precio': 'Precio',
+        'cantidad': 'Stock',
+        'concentracion': 'Concentración',
+        'descripcion': 'Descripción'
+    };
+    return campos[field] || field;
+}
+
+function marcarCamposConErroresMedicamento(errores) {
+    // Limpiar errores anteriores
+    document.querySelectorAll('#createMedicamentoModal .campo-error').forEach(el => {
+        el.classList.remove('campo-error', 'border-red-500');
+        el.classList.add('border-gray-300');
+    });
+    
+    // Marcar campos con errores
+    for (const campo in errores) {
+        const input = document.querySelector(`#createMedicamentoModal [name="${campo}"]`);
+        if (input) {
+            input.classList.add('campo-error', 'border-red-500');
+            input.classList.remove('border-gray-300');
         }
     }
-});
+}
 
-// Inicialización de respaldo cuando la ventana termine de cargar
-window.addEventListener('load', function() {
-    console.log('🪟 Ventana cargada');
-    if (!atencionMedica) {
-        console.log('🔄 Inicialización de respaldo...');
-        inicializarAtencion();
-    }
-});
+// Funciones para crear tipos y marcas (simplificadas)
+function toggleTipoForm() {
+    const form = document.getElementById('nuevoTipoForm');
+    form.classList.toggle('hidden');
+}
 
-// Inicialización por timeout como último recurso
-setTimeout(function() {
-    if (!atencionMedica && document.readyState === 'complete') {
-        console.log('⏰ Inicialización por timeout...');
-        inicializarAtencion();
+function cancelarNuevoTipo() {
+    document.getElementById('nuevoTipoForm').classList.add('hidden');
+    document.getElementById('nuevoTipoNombre').value = '';
+    document.getElementById('nuevoTipoDescripcion').value = '';
+}
+
+function crearNuevoTipo() {
+    const nombre = document.getElementById('nuevoTipoNombre').value.trim();
+    const descripcion = document.getElementById('nuevoTipoDescripcion').value.trim();
+    
+    if (!nombre) {
+        alert('Por favor ingrese el nombre del tipo.');
+        return;
     }
-}, 500);
+    
+    // Aquí puedes hacer la petición AJAX para crear el tipo
+    // Por simplicidad, solo agregamos al select
+    const select = document.getElementById('tipoMedicamentoSelect');
+    const option = document.createElement('option');
+    option.value = 'temp_' + Date.now(); // ID temporal
+    option.textContent = nombre;
+    option.selected = true;
+    
+    // Insertar antes de "Crear nuevo tipo"
+    const createOption = select.querySelector('option[value="nuevo"]');
+    select.insertBefore(option, createOption);
+    
+    cancelarNuevoTipo();
+    alert('Tipo creado temporalmente. Se guardará al crear el medicamento.');
+}
+
+function toggleMarcaForm() {
+    const form = document.getElementById('nuevaMarcaForm');
+    form.classList.toggle('hidden');
+}
+
+function cancelarNuevaMarca() {
+    document.getElementById('nuevaMarcaForm').classList.add('hidden');
+    document.getElementById('nuevaMarcaNombre').value = '';
+    document.getElementById('nuevaMarcaDescripcion').value = '';
+}
+
+function crearNuevaMarca() {
+    const nombre = document.getElementById('nuevaMarcaNombre').value.trim();
+    const descripcion = document.getElementById('nuevaMarcaDescripcion').value.trim();
+    
+    if (!nombre) {
+        alert('Por favor ingrese el nombre de la marca.');
+        return;
+    }
+    
+    // Aquí puedes hacer la petición AJAX para crear la marca
+    // Por simplicidad, solo agregamos al select
+    const select = document.getElementById('marcaMedicamentoSelect');
+    const option = document.createElement('option');
+    option.value = 'temp_' + Date.now(); // ID temporal
+    option.textContent = nombre;
+    option.selected = true;
+    
+    // Insertar antes de "Crear nueva marca"
+    const createOption = select.querySelector('option[value="nueva"]');
+    select.insertBefore(option, createOption);
+    
+    cancelarNuevaMarca();
+    alert('Marca creada temporalmente. Se guardará al crear el medicamento.');
+}
 
 // ==============================
-// 9. EXPOSICIÓN DE FUNCIONES GLOBALES
+// 8. INICIALIZACIÓN DE MEDICAMENTOS
 // ==============================
 
-// Hacer funciones disponibles globalmente para el HTML
+document.addEventListener('DOMContentLoaded', function() {
+    // Configurar formulario de nuevo medicamento
+    const formNuevoMedicamento = document.getElementById('createMedicamentoForm');
+    if (formNuevoMedicamento) {
+        formNuevoMedicamento.addEventListener('submit', function(e) {
+            e.preventDefault();
+            crearMedicamentoDesdeModal();
+        });
+    }
+    
+    // Event listeners para actualizar resumen en tiempo real
+    const form = document.getElementById('createMedicamentoForm');
+    if (form) {
+        form.addEventListener('input', updateMedicamentoSummary);
+        form.addEventListener('change', updateMedicamentoSummary);
+    }
+    
+    // Cerrar modal con ESC
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const modal = document.getElementById('createMedicamentoModal');
+            if (modal && !modal.classList.contains('hidden')) {
+                closeMedicamentoModal();
+            }
+        }
+    });
+});
+
+// Exponer funciones globalmente
+window.abrirModalMedicamento = abrirModalMedicamento;
+window.closeMedicamentoModal = closeMedicamentoModal;
+window.crearMedicamentoDesdeModal = crearMedicamentoDesdeModal;
+window.showMedicamentoTab = showMedicamentoTab;
+window.nextMedicamentoTab = nextMedicamentoTab;
+window.previousMedicamentoTab = previousMedicamentoTab;
+window.toggleTipoForm = toggleTipoForm;
+window.toggleMarcaForm = toggleMarcaForm;
+window.crearNuevoTipo = crearNuevoTipo;
+window.crearNuevaMarca = crearNuevaMarca;
+window.cancelarNuevoTipo = cancelarNuevoTipo;
+window.cancelarNuevaMarca = cancelarNuevaMarca;
 window.verificarSistema = verificarSistema;
 window.inicializarAtencion = inicializarAtencion;
 window.agregarMedicamento = agregarMedicamento;
@@ -2571,4 +2669,324 @@ window.limpiarSeleccion = limpiarSeleccion;
 console.log('📜 Sistema de Atención Médica - Código organizado cargado y esperando inicialización...');
 </script>
 
-{% endblock %}
+<!-- Modal de creación de medicamento -->
+<div id="createMedicamentoModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden modal-content">
+        <!-- Header del modal -->
+        <div class="bg-green-600 px-6 py-4 border-b border-green-700">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-pills text-white"></i>
+                    </div>
+                    <h2 id="modalMedicamentoTitle" class="text-xl font-bold text-white">Nuevo Medicamento</h2>
+                </div>
+                <button onclick="closeMedicamentoModal()" 
+                        class="text-white hover:text-red-200 transition-colors duration-200">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <!-- Tabs de navegación -->
+            <div class="flex space-x-4 mt-4">
+                <button onclick="showMedicamentoTab('informacion')" 
+                        class="medicamento-tab active-tab px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200">
+                    <i class="fas fa-info-circle mr-2"></i>Información
+                </button>
+                <button onclick="showMedicamentoTab('inventario')" 
+                        class="medicamento-tab px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200">
+                    <i class="fas fa-box mr-2"></i>Inventario
+                </button>
+                <button onclick="showMedicamentoTab('adicional')" 
+                        class="medicamento-tab px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200">
+                    <i class="fas fa-plus-circle mr-2"></i>Adicional
+                </button>
+            </div>
+        </div>
+        
+        <!-- Contenido del modal -->
+        <div class="p-6 max-h-[60vh] overflow-y-auto">
+            <form id="createMedicamentoForm" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <!-- Tab: Información Básica -->
+                <div id="tab-content-informacion" class="tab-content">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Nombre -->
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-bold text-gray-700 mb-2">
+                                Nombre del Medicamento *
+                            </label>
+                            <input type="text" name="nombre" id="medicamento-nombre" required
+                                   class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                   placeholder="Ej: Ibuprofeno, Paracetamol, Amoxicilina...">
+                        </div>
+
+                        <!-- Tipo de Medicamento -->
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">
+                                Tipo de Medicamento *
+                            </label>
+                            <div class="flex space-x-2">
+                                <select name="tipo" id="tipoMedicamentoSelect" required
+                                        class="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                                    <option value="">Seleccione un tipo...</option>
+                                    {% for tipo in tipos_medicamento %}
+                                        <option value="{{ tipo.id }}">{{ tipo.nombre }}</option>
+                                    {% endfor %}
+                                    <option value="nuevo">➕ Crear nuevo tipo</option>
+                                </select>
+                                <button type="button" onclick="toggleTipoForm()" 
+                                        class="px-4 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                            
+                            <!-- Mini formulario para nuevo tipo -->
+                            <div id="nuevoTipoForm" class="mt-3 p-4 bg-blue-50 border border-blue-200 rounded-lg hidden">
+                                <h5 class="font-bold text-blue-800 mb-3">Crear Nuevo Tipo</h5>
+                                <div class="space-y-3">
+                                    <input type="text" id="nuevoTipoNombre" placeholder="Nombre del tipo" 
+                                           class="w-full p-2 border border-blue-300 rounded focus:ring-2 focus:ring-blue-500">
+                                    <textarea id="nuevoTipoDescripcion" placeholder="Descripción (opcional)" rows="2"
+                                              class="w-full p-2 border border-blue-300 rounded focus:ring-2 focus:ring-blue-500"></textarea>
+                                </div>
+                                <div class="flex space-x-2 mt-3">
+                                    <button type="button" onclick="crearNuevoTipo()" 
+                                            class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm">
+                                        Crear
+                                    </button>
+                                    <button type="button" onclick="cancelarNuevoTipo()" 
+                                            class="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 rounded text-sm">
+                                        Cancelar
+                                    </button>
+                                </div>
+                                <div id="nuevoTipoMessage" class="mt-2 hidden"></div>
+                            </div>
+                        </div>
+
+                        <!-- Marca -->
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">
+                                Marca del Medicamento
+                            </label>
+                            <div class="flex space-x-2">
+                                <select name="marca_medicamento" id="marcaMedicamentoSelect"
+                                        class="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                                    <option value="">Seleccione una marca...</option>
+                                    {% for marca in marcas_medicamento %}
+                                        <option value="{{ marca.id }}">{{ marca.nombre }}</option>
+                                    {% endfor %}
+                                    <option value="nueva">➕ Crear nueva marca</option>
+                                </select>
+                                <button type="button" onclick="toggleMarcaForm()" 
+                                        class="px-4 py-3 bg-purple-500 hover:bg-purple-600 text-white rounded-lg transition-colors">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                            
+                            <!-- Mini formulario para nueva marca -->
+                            <div id="nuevaMarcaForm" class="mt-3 p-4 bg-purple-50 border border-purple-200 rounded-lg hidden">
+                                <h5 class="font-bold text-purple-800 mb-3">Crear Nueva Marca</h5>
+                                <div class="space-y-3">
+                                    <input type="text" id="nuevaMarcaNombre" placeholder="Nombre de la marca" 
+                                           class="w-full p-2 border border-purple-300 rounded focus:ring-2 focus:ring-purple-500">
+                                    <textarea id="nuevaMarcaDescripcion" placeholder="Descripción (opcional)" rows="2"
+                                              class="w-full p-2 border border-purple-300 rounded focus:ring-2 focus:ring-purple-500"></textarea>
+                                </div>
+                                <div class="flex space-x-2 mt-3">
+                                    <button type="button" onclick="crearNuevaMarca()" 
+                                            class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded text-sm">
+                                        Crear
+                                    </button>
+                                    <button type="button" onclick="cancelarNuevaMarca()" 
+                                            class="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 rounded text-sm">
+                                        Cancelar
+                                    </button>
+                                </div>
+                                <div id="nuevaMarcaMessage" class="mt-2 hidden"></div>
+                            </div>
+                        </div>
+
+                        <!-- Concentración -->
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">
+                                Concentración
+                            </label>
+                            <input type="text" name="concentracion" 
+                                   class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                   placeholder="Ej: 500mg, 1g, 5%">
+                        </div>
+
+                        <!-- Vía de Administración -->
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">
+                                Vía de Administración *
+                            </label>
+                            <select name="via_administracion" required
+                                    class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                                <option value="">Seleccione una vía...</option>
+                                <option value="oral">Oral</option>
+                                <option value="topica">Tópica</option>
+                                <option value="intravenosa">Intravenosa</option>
+                                <option value="intramuscular">Intramuscular</option>
+                                <option value="subcutanea">Subcutánea</option>
+                                <option value="inhalatoria">Inhalatoria</option>
+                                <option value="oftalmica">Oftálmica</option>
+                                <option value="otica">Ótica</option>
+                                <option value="nasal">Nasal</option>
+                                <option value="rectal">Rectal</option>
+                                <option value="vaginal">Vaginal</option>
+                            </select>
+                        </div>
+
+                        <!-- Descripción -->
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-bold text-gray-700 mb-2">
+                                Descripción
+                            </label>
+                            <textarea name="descripcion" rows="3"
+                                      class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                      placeholder="Indicaciones, precauciones o información adicional..."></textarea>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Tab: Inventario y Precio -->
+                <div id="tab-content-inventario" class="tab-content hidden">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Precio -->
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">
+                                Precio Unitario * ($)
+                            </label>
+                            <input type="number" name="precio" step="0.01" min="0" required
+                                   class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                   placeholder="0.00">
+                        </div>
+
+                        <!-- Stock -->
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">
+                                Stock Inicial *
+                            </label>
+                            <input type="number" name="cantidad" min="0" required
+                                   class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                   placeholder="0">
+                        </div>
+
+                        <!-- Tipo de medicamento -->
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">
+                                Tipo de Medicamento
+                            </label>
+                            <div class="flex space-x-4">
+                                <label class="flex items-center">
+                                    <input type="radio" name="comercial" value="true" checked
+                                           class="form-radio h-4 w-4 text-green-600">
+                                    <span class="ml-2 text-sm text-gray-700">Comercial</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="radio" name="comercial" value="false"
+                                           class="form-radio h-4 w-4 text-green-600">
+                                    <span class="ml-2 text-sm text-gray-700">Genérico</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Estado -->
+                        <div>
+                            <label class="flex items-center">
+                                <input type="checkbox" name="activo" checked
+                                       class="form-checkbox h-5 w-5 text-green-600 rounded">
+                                <span class="ml-2 text-sm font-bold text-gray-700">Medicamento Activo</span>
+                            </label>
+                        </div>
+
+                        <!-- Foto -->
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-bold text-gray-700 mb-2">
+                                Foto del Medicamento
+                            </label>
+                            <input type="file" name="foto" accept="image/*"
+                                   class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Tab: Información Adicional -->
+                <div id="tab-content-adicional" class="tab-content hidden">
+                    <div class="bg-green-50 border border-green-200 rounded-lg p-6">
+                        <h4 class="font-bold text-green-800 mb-4">
+                            <i class="fas fa-check-circle mr-2"></i>Resumen del Medicamento
+                        </h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                            <div>
+                                <span class="font-semibold text-gray-600">Nombre:</span>
+                                <span id="summary-nombre" class="text-gray-800 ml-2">-</span>
+                            </div>
+                            <div>
+                                <span class="font-semibold text-gray-600">Tipo:</span>
+                                <span id="summary-tipo" class="text-gray-800 ml-2">-</span>
+                            </div>
+                            <div>
+                                <span class="font-semibold text-gray-600">Vía:</span>
+                                <span id="summary-via" class="text-gray-800 ml-2">-</span>
+                            </div>
+                            <div>
+                                <span class="font-semibold text-gray-600">Precio:</span>
+                                <span id="summary-precio" class="text-gray-800 ml-2">-</span>
+                            </div>
+                            <div>
+                                <span class="font-semibold text-gray-600">Stock:</span>
+                                <span id="summary-stock" class="text-gray-800 ml-2">-</span>
+                            </div>
+                            <div>
+                                <span class="font-semibold text-gray-600">Estado:</span>
+                                <span id="summary-activo" class="text-gray-800 ml-2">-</span>
+                            </div>
+                            <div>
+                                <span class="font-semibold text-gray-600">Comercial:</span>
+                                <span id="summary-comercial" class="text-gray-800 ml-2">-</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Footer del modal -->
+        <div class="bg-gray-50 px-6 py-4 flex flex-col sm:flex-row justify-between items-center space-y-3 sm:space-y-0 border-t border-gray-200">
+            <button onclick="closeMedicamentoModal()" 
+                    class="w-full sm:w-auto px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg font-medium flex items-center justify-center transition-all duration-300">
+                <i class="fas fa-times mr-2"></i>
+                <span>Cancelar</span>
+            </button>
+            <div class="flex space-x-3">
+                <button type="button" onclick="previousMedicamentoTab()" id="prevMedicamentoTabBtn" 
+                        class="hidden px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium flex items-center transition-all duration-300">
+                    <i class="fas fa-chevron-left mr-2"></i>
+                    <span>Anterior</span>
+                </button>
+                <button type="button" onclick="nextMedicamentoTab()" id="nextMedicamentoTabBtn" 
+                        class="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium flex items-center transition-all duration-300">
+                    <span>Siguiente</span>
+                    <i class="fas fa-chevron-right ml-2"></i>
+                </button>
+                <button type="submit" form="createMedicamentoForm" id="submitMedicamentoBtn" 
+                        class="hidden px-8 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium flex items-center shadow-lg transition-all duration-300">
+                    <i class="fas fa-save mr-2"></i>
+                    <span>Guardar Medicamento</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- También agregar el botón para abrir el modal en la sección de medicamentos -->
+<!-- Busca donde está la sección de agregar medicamentos y reemplaza o agrega este botón -->
+<button type="button" onclick="abrirModalMedicamento()" 
+        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium flex items-center space-x-2 transition-all duration-300">
+    <i class="fas fa-plus"></i>
+    <span>Nuevo Medicamento</span>
+</button>

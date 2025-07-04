@@ -1,8 +1,10 @@
 from django.http import JsonResponse
 from django.urls import reverse_lazy
+from django.shortcuts import redirect, get_object_or_404
 from django.db.models import Q
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required
+from applications.security.components.mixin_crud import CreateViewMixin, DeleteViewMixin, ListViewMixin, PermissionMixin, UpdateViewMixin
 from django.views.generic import ListView, CreateView, DeleteView, UpdateView
 from django.contrib import messages
 from django.shortcuts import redirect
@@ -14,7 +16,7 @@ from applications.core.forms.doctor import DoctorForm
 
 #VISTAS DE DOCTOR
 
-class DoctorListView(ListView):
+class DoctorListView(PermissionMixin, ListViewMixin, ListView):
     model = Doctor
     template_name = 'core/doctor/doctorlistview.html'
     context_object_name = 'doctor'
@@ -56,7 +58,7 @@ class DoctorListView(ListView):
         return context
 
 
-class DoctorCreateView(CreateView):
+class DoctorCreateView(PermissionMixin, CreateViewMixin, CreateView):
     model = Doctor
     form_class = DoctorForm
     template_name = 'core/doctor/doctor_create.html'
@@ -78,7 +80,7 @@ class DoctorCreateView(CreateView):
         return context
 
 
-class DoctorUpdateView(UpdateView):
+class DoctorUpdateView(PermissionMixin, UpdateViewMixin, UpdateView):
     model = Doctor
     form_class = DoctorForm
     template_name = 'core/doctor/doctor_update.html'
@@ -95,33 +97,25 @@ class DoctorUpdateView(UpdateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['title'] = f'Editar Doctor: {self.object.nombre_completo}'
+        context['title'] = 'Editar Doctor'
         context['list_url'] = reverse_lazy('core:doctor_list')
         return context
 
-
-class DoctorDeleteView(DeleteView):
+class DoctorDeleteView(PermissionMixin, DeleteViewMixin, DeleteView):
     model = Doctor
-    template_name = 'core/doctor/doctor_delete.html'
+    template_name = 'core/delete.html'
     success_url = reverse_lazy('core:doctor_list')
     permission_required = 'delete_doctor'
 
-    def delete(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        success_url = self.get_success_url()
-        
-        # En lugar de eliminar, desactivar el doctor
-        self.object.activo = False
-        self.object.save()
-        
-        messages.success(request, f'Doctor {self.object.nombre_completo} desactivado exitosamente.')
-        return redirect(success_url)
+    def post(self, request, pk):
+        doctor = get_object_or_404(Doctor, pk=pk)
+        doctor.delete()
+        messages.success(request, f'Doctor {doctor.nombre_completo} eliminado exitosamente.')
+        return redirect(reverse_lazy('core:doctor_list'))
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['title'] = f'Desactivar Doctor: {self.object.nombre_completo}'
-        context['list_url'] = reverse_lazy('core:doctor_list')
-        return context
+    def get(self, request, pk):
+        # Si alguien entra por GET, simplemente redirige a la lista
+        return redirect(reverse_lazy('core:doctor_list'))
 
 
 @login_required
@@ -151,3 +145,47 @@ def doctor_create_ajax(request):
             'errors': errors,
             'message': 'Por favor corrige los errores en el formulario.'
         }, status=400)
+        
+@login_required
+@require_http_methods(["POST"])
+def doctor_update_ajax(request, pk):
+    doctor = get_object_or_404(Doctor, pk=pk)
+    form = DoctorForm(request.POST, request.FILES, instance=doctor)
+    if form.is_valid():
+        doctor = form.save()
+        messages.success(request, f'Doctor {doctor.nombre_completo} actualizado exitosamente.')
+        return JsonResponse({
+            'success': True,
+            'message': f'Doctor {doctor.nombre_completo} actualizado exitosamente.',
+            'doctor_id': doctor.pk,
+            'redirect_url': reverse_lazy('core:doctor_list')
+        })
+    else:
+        errors = {field: error_list for field, error_list in form.errors.items()}
+        return JsonResponse({
+            'success': False,
+            'errors': errors,
+            'message': 'Por favor corrige los errores en el formulario.'
+        }, status=400)
+        
+@login_required
+@require_http_methods(["GET"])
+def doctor_detail_ajax(request, pk):
+    doctor = get_object_or_404(Doctor, pk=pk)
+    # Si el campo especialidad es ManyToMany, usa .all()
+    especialidades = [e.nombre for e in doctor.especialidad.all()] if hasattr(doctor, 'especialidad') else []
+    return JsonResponse({
+        'nombre_completo': getattr(doctor, 'nombre_completo', ''),
+        'codigo_unico_doctor': getattr(doctor, 'codigo_unico_doctor', ''),
+        'ruc': getattr(doctor, 'ruc', ''),
+        'email': getattr(doctor, 'email', ''),
+        'telefonos': getattr(doctor, 'telefonos', ''),
+        'duracion_atencion': getattr(doctor, 'duracion_atencion', ''),
+        'activo': getattr(doctor, 'activo', False),
+        'especialidades': especialidades,
+        'fecha_nacimiento': doctor.fecha_nacimiento.strftime('%Y-%m-%d') if getattr(doctor, 'fecha_nacimiento', None) else '',
+        'direccion': getattr(doctor, 'direccion', ''),
+        'horario_atencion': getattr(doctor, 'horario_atencion', ''),
+        'descripcion': getattr(doctor, 'descripcion', ''),
+        'foto_url': doctor.foto.url if getattr(doctor, 'foto', None) else '',
+    })

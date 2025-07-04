@@ -1,0 +1,164 @@
+{% extends 'home.html' %}
+{% block title %}Nueva Factura{% endblock %}
+{% block content %}
+<div class="max-w-4xl mx-auto py-10">
+  <div class="bg-white rounded-xl shadow-lg p-8">
+    <h1 class="text-3xl font-bold text-blue-800 mb-8 flex items-center gap-3">
+      <i class="fas fa-file-invoice text-blue-600"></i> Crear Nueva Factura
+    </h1>
+    
+    <form method="post" id="facturaForm">
+      {% csrf_token %}
+      
+      <!-- Selección de paciente -->
+      <div class="mb-6">
+        <label class="block text-lg font-bold text-gray-700 mb-2">
+          <i class="fas fa-user-injured text-blue-600"></i> Paciente
+        </label>
+        {{ form.paciente }}
+      </div>
+      
+      <!-- Información del pagador -->
+      <div class="mb-6">
+        <label class="block text-lg font-bold text-gray-700 mb-2">
+          <i class="fas fa-user text-blue-600"></i> Nombre del Pagador
+        </label>
+        {{ form.nombre_pagador }}
+      </div>
+      
+      <!-- Monto de consulta -->
+      <div class="mb-6">
+        <label class="block text-lg font-bold text-gray-700 mb-2">
+          <i class="fas fa-stethoscope text-blue-600"></i> Monto de Consulta (opcional)
+        </label>
+        {{ form.monto_consulta }}
+      </div>
+      
+      <!-- Servicios adicionales -->
+      <div class="mb-6">
+        <label class="block text-lg font-bold text-gray-700 mb-2">
+          <i class="fas fa-medical-bag text-blue-600"></i> Servicios Adicionales
+        </label>
+        <div id="servicios-container" class="border rounded-lg p-4 bg-gray-50">
+          <div class="servicio-row flex gap-3 mb-3 items-center">
+            <select name="servicio_id[]" class="border rounded px-3 py-2 flex-1">
+              <option value="">Seleccione un servicio...</option>
+              {% for servicio in servicios %}
+              <option value="{{ servicio.id }}" data-precio="{{ servicio.costo_servicio }}">
+                {{ servicio.nombre_servicio }} - ${{ servicio.costo_servicio }}
+              </option>
+              {% endfor %}
+            </select>
+            <input type="number" name="cantidad[]" class="border rounded px-3 py-2 w-24" min="1" value="1" placeholder="Cant.">
+            <input type="number" name="descuento[]" class="border rounded px-3 py-2 w-24" min="0" max="100" value="0" placeholder="% Desc.">
+            <button type="button" class="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded remove-servicio">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+        </div>
+        <button type="button" id="add-servicio" class="mt-3 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded flex items-center gap-2">
+          <i class="fas fa-plus"></i> Agregar Servicio
+        </button>
+      </div>
+      
+      <!-- Observaciones -->
+      <div class="mb-6">
+        <label class="block text-lg font-bold text-gray-700 mb-2">
+          <i class="fas fa-comment text-blue-600"></i> Observaciones
+        </label>
+        {{ form.observaciones }}
+      </div>
+      
+      <!-- Total calculado -->
+      <div class="mb-6 bg-blue-50 p-4 rounded-lg">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+          <div>
+            <label class="block text-sm font-bold text-gray-700 mb-1">Consulta</label>
+            <input type="text" id="consulta-display" class="w-full bg-white border rounded px-3 py-2 text-lg font-bold text-green-700" readonly value="$0.00">
+          </div>
+          <div>
+            <label class="block text-sm font-bold text-gray-700 mb-1">Servicios</label>
+            <input type="text" id="servicios-display" class="w-full bg-white border rounded px-3 py-2 text-lg font-bold text-blue-700" readonly value="$0.00">
+          </div>
+          <div>
+            <label class="block text-sm font-bold text-gray-700 mb-1">TOTAL</label>
+            <input type="text" id="total-display" class="w-full bg-white border rounded px-3 py-2 text-xl font-bold text-red-700" readonly value="$0.00">
+          </div>
+        </div>
+      </div>
+      
+      <!-- Botones -->
+      <div class="flex gap-4">
+        <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-lg font-bold shadow-lg flex items-center gap-2">
+          <i class="fas fa-arrow-right"></i> Siguiente - Procesar Pago
+        </button>
+        <a href="{% url 'doctor:pago_list' %}" class="bg-gray-500 hover:bg-gray-600 text-white px-8 py-3 rounded-lg font-bold shadow-lg">
+          Cancelar
+        </a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function calcularTotal() {
+  // Calcular monto de consulta
+  const montoConsulta = parseFloat(document.querySelector('input[name="monto_consulta"]').value) || 0;
+  
+  // Calcular servicios
+  let totalServicios = 0;
+  document.querySelectorAll('.servicio-row').forEach(row => {
+    const select = row.querySelector('select');
+    const precio = parseFloat(select.selectedOptions[0]?.getAttribute('data-precio') || 0);
+    const cantidad = parseInt(row.querySelector('input[name="cantidad[]"]').value) || 1;
+    const descuento = parseFloat(row.querySelector('input[name="descuento[]"]').value) || 0;
+    
+    if (precio > 0) {
+      const subtotal = (precio * cantidad) * (1 - descuento / 100);
+      totalServicios += subtotal;
+    }
+  });
+  
+  // Actualizar displays
+  document.getElementById('consulta-display').value = `$${montoConsulta.toFixed(2)}`;
+  document.getElementById('servicios-display').value = `$${totalServicios.toFixed(2)}`;
+  document.getElementById('total-display').value = `$${(montoConsulta + totalServicios).toFixed(2)}`;
+}
+
+document.getElementById('add-servicio').addEventListener('click', function() {
+  const container = document.getElementById('servicios-container');
+  const firstRow = container.querySelector('.servicio-row');
+  const newRow = firstRow.cloneNode(true);
+  
+  // Resetear valores
+  newRow.querySelectorAll('input, select').forEach(input => {
+    if (input.type === 'number') {
+      input.value = input.name === 'cantidad[]' ? 1 : 0;
+    } else {
+      input.value = '';
+    }
+  });
+  
+  container.appendChild(newRow);
+  calcularTotal();
+});
+
+document.addEventListener('click', function(e) {
+  if (e.target.classList.contains('remove-servicio') || e.target.closest('.remove-servicio')) {
+    const rows = document.querySelectorAll('.servicio-row');
+    if (rows.length > 1) {
+      e.target.closest('.servicio-row').remove();
+      calcularTotal();
+    }
+  }
+});
+
+// Event listeners
+document.getElementById('servicios-container').addEventListener('change', calcularTotal);
+document.getElementById('servicios-container').addEventListener('input', calcularTotal);
+document.querySelector('input[name="monto_consulta"]').addEventListener('input', calcularTotal);
+
+// Calcular total inicial
+calcularTotal();
+</script>
+{% endblock %}

@@ -1,0 +1,150 @@
+{% extends 'home.html' %}
+{% block title %}Factura #{{ pago.id }}{% endblock %}
+{% block content %}
+<div class="max-w-4xl mx-auto py-10">
+  <div class="bg-white rounded-xl shadow-lg p-8" id="factura-content">
+    
+    <!-- Header de la factura -->
+    <div class="border-b pb-6 mb-6">
+      <div class="flex justify-between items-start">
+        <div>
+          <h1 class="text-3xl font-bold text-blue-800">Consultorio SaludTotal</h1>
+          <p class="text-gray-600">Factura #{{ pago.id }}</p>
+          <p class="text-gray-600">{{ pago.fecha_creacion|date:"d/m/Y H:i" }}</p>
+        </div>
+        <div class="text-right">
+          {% if pago.estado == 'pagado' %}
+            <span class="bg-green-100 text-green-800 px-4 py-2 rounded-full font-bold text-lg">
+              ✓ PAGADO
+            </span>
+            {% if pago.metodo_pago %}
+              <p class="text-sm text-gray-600 mt-1">
+                Método: {{ pago.get_metodo_pago_display }}
+              </p>
+            {% endif %}
+          {% else %}
+            <span class="bg-yellow-100 text-yellow-800 px-4 py-2 rounded-full font-bold text-lg">
+              PENDIENTE
+            </span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    
+    <!-- Información del pago -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+      <div>
+        <h3 class="font-bold text-gray-700 mb-2">Información del Pago</h3>
+        {% if pago.get_paciente %}
+          <p><strong>Paciente:</strong> {{ pago.get_paciente.nombre_completo }}</p>
+        {% endif %}
+        <p><strong>Pagador:</strong> {{ pago.nombre_pagador|default:"No especificado" }}</p>
+        {% if pago.metodo_pago %}
+          <p><strong>Método de pago:</strong> {{ pago.get_metodo_pago_display }}</p>
+        {% endif %}
+        {% if pago.fecha_pago %}
+          <p><strong>Fecha de pago:</strong> {{ pago.fecha_pago|date:"d/m/Y H:i" }}</p>
+        {% endif %}
+        {% if pago.referencia_externa %}
+          <p><strong>Referencia:</strong> {{ pago.referencia_externa }}</p>
+        {% endif %}
+      </div>
+      <div>
+        {% if pago.observaciones %}
+          <h3 class="font-bold text-gray-700 mb-2">Observaciones</h3>
+          <p>{{ pago.observaciones }}</p>
+        {% endif %}
+        {% if pago.evidencia_pago %}
+          <h3 class="font-bold text-gray-700 mb-2">Comprobante</h3>
+          <a href="{{ pago.evidencia_pago.url }}" target="_blank" class="text-blue-600 hover:text-blue-800">
+            Ver comprobante
+          </a>
+        {% endif %}
+      </div>
+    </div>
+    
+    <!-- Detalle de servicios -->
+    <div class="mb-6">
+      <h3 class="font-bold text-gray-700 mb-4">Detalle de Facturación</h3>
+      <div class="overflow-x-auto">
+        <table class="w-full border-collapse border border-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="border border-gray-200 px-4 py-2 text-left">Concepto</th>
+              <th class="border border-gray-200 px-4 py-2 text-center">Cantidad</th>
+              <th class="border border-gray-200 px-4 py-2 text-right">Precio Unit.</th>
+              <th class="border border-gray-200 px-4 py-2 text-right">Descuento</th>
+              <th class="border border-gray-200 px-4 py-2 text-right">Subtotal</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% if pago.monto_consulta %}
+            <tr class="bg-green-50">
+              <td class="border border-gray-200 px-4 py-2 font-bold">Consulta Médica</td>
+              <td class="border border-gray-200 px-4 py-2 text-center">1</td>
+              <td class="border border-gray-200 px-4 py-2 text-right">${{ pago.monto_consulta|floatformat:2 }}</td>
+              <td class="border border-gray-200 px-4 py-2 text-right">0%</td>
+              <td class="border border-gray-200 px-4 py-2 text-right font-bold text-green-700">${{ pago.monto_consulta|floatformat:2 }}</td>
+            </tr>
+            {% endif %}
+            {% for detalle in pago.detalles.all %}
+            <tr>
+              <td class="border border-gray-200 px-4 py-2">{{ detalle.servicio_adicional.nombre_servicio }}</td>
+              <td class="border border-gray-200 px-4 py-2 text-center">{{ detalle.cantidad }}</td>
+              <td class="border border-gray-200 px-4 py-2 text-right">${{ detalle.precio_unitario|floatformat:2 }}</td>
+              <td class="border border-gray-200 px-4 py-2 text-right">{{ detalle.descuento_porcentaje }}%</td>
+              <td class="border border-gray-200 px-4 py-2 text-right font-bold">${{ detalle.subtotal|floatformat:2 }}</td>
+            </tr>
+            {% empty %}
+            {% if not pago.monto_consulta %}
+            <tr>
+              <td colspan="5" class="border border-gray-200 px-4 py-2 text-center text-gray-500">No hay servicios registrados</td>
+            </tr>
+            {% endif %}
+            {% endfor %}
+          </tbody>
+          <tfoot class="bg-blue-50">
+            <tr>
+              <th colspan="4" class="border border-gray-200 px-4 py-2 text-right">TOTAL:</th>
+              <th class="border border-gray-200 px-4 py-2 text-right text-xl text-blue-800">${{ pago.monto_total|floatformat:2 }}</th>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+    
+    <!-- Botones de acción -->
+    <div class="flex gap-4 print:hidden">
+      {% if pago.estado == 'pagado' %}
+        <button onclick="window.print()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-bold shadow-lg">
+          <i class="fas fa-print"></i> Imprimir Factura
+        </button>
+      {% else %}
+        <a href="{% url 'doctor:pago_facturacion' pago.id %}" class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-bold shadow-lg">
+          <i class="fas fa-credit-card"></i> Procesar Pago
+        </a>
+      {% endif %}
+      <a href="{% url 'doctor:pago_list' %}" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg font-bold shadow-lg">
+        <i class="fas fa-arrow-left"></i> Volver al Listado
+      </a>
+    </div>
+  </div>
+</div>
+
+<style>
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #factura-content, #factura-content * {
+    visibility: visible;
+  }
+  #factura-content {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+}
+</style>
+{% endblock %}

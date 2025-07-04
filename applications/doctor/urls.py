@@ -13,7 +13,7 @@ from applications.doctor.views.horario_atencion import (
 )
 
 from applications.doctor.views.pago import (
-    PagoListView, PagoFacturacionView, PagoProcesarPagoView, PayPalConfirmView, PagoDetailView
+    PagoListView, PagoFacturacionView, PagoProcesarPagoView, PayPalConfirmView, PagoDetailView, PagoCreateView
 )
 
 from applications.doctor.views.servicios_adicionales import (
@@ -30,6 +30,7 @@ urlpatterns = [
     path('atencion_update/<int:pk>/', AtencionUpdateView.as_view(), name="atencion_update"),
     path('atencion_delete/<int:pk>/', AtencionDeleteView.as_view(), name="atencion_delete"),
 
+
     # Rutas CITA MEDICA
     path('citas_list/', CitaMedicaListView.as_view(), name="cita_medica_list"),
     path('citas_create/', CitaMedicaCreateView.as_view(), name="cita_medica_create"),
@@ -42,6 +43,7 @@ urlpatterns = [
     path('ajax/crear_cita/', crear_cita_ajax, name="crear_cita_ajax"),
 
 
+
     # Rutas HORARIO ATENCION
     path('horario_atencion_list/', HorarioAtencionListView.as_view(), name="horario_atencion_list"),
     path('horario_atencion_create/', HorarioAtencionCreateView.as_view(), name="horario_atencion_create"),
@@ -50,9 +52,12 @@ urlpatterns = [
 
     # Rutas  PAGO
     path('pago_list/', PagoListView.as_view(), name="pago_list"),
-    path('pago_fact/', PagoFacturacionView.as_view(), name="pago_facturacion"),
+    path('pago_fact/<int:pk>/', PagoFacturacionView.as_view(), name="pago_facturacion"),
     #path('pago_delete/<int:pk>/', PagoDeleteView.as_view(), name="pago_delete"),
-    path('pago_/<int:pk>/', PagoProcesarPagoView.as_view(), name="pago_procesar_pago"),
+    path('pago_procesar/<int:pk>/', PagoProcesarPagoView.as_view(), name="pago_procesar_pago"),
+    path('pago_create/', PagoCreateView.as_view(), name="pago_create"),
+    path('pago_detail/<int:pk>/', PagoDetailView.as_view(), name="pago_detail"),
+    path('paypal_confirm/<int:pk>/', PayPalConfirmView.as_view(), name="paypal_confirm"),
     
 
 

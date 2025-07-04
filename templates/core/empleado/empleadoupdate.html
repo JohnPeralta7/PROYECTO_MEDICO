@@ -1,0 +1,111 @@
+{% extends 'home.html' %}
+{% load static %}
+{% load widget_tweaks %}
+{% block title %}Editar Empleado{% endblock %}
+{% block css %}
+<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+<style>
+    .glass {
+        background: rgba(255,255,255,0.85);
+        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.10);
+        border-radius: 1.5rem;
+        border: 1px solid rgba(255,255,255,0.18);
+    }
+    .input-glass {
+        background: rgba(255,255,255,0.7);
+        border: 1.5px solid #e0e7ef;
+        border-radius: 1rem;
+        padding-left: 2.5rem;
+        transition: border 0.2s, box-shadow 0.2s;
+        box-shadow: 0 2px 8px 0 rgba(31, 38, 135, 0.06);
+    }
+    .input-glass:focus {
+        border-color: #38bdf8;
+        box-shadow: 0 0 0 3px #bae6fd;
+        outline: none;
+    }
+    .input-icon {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #38bdf8;
+        opacity: 0.7;
+    }
+    .card-hover:hover {
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        transform: translateY(-2px) scale(1.01);
+        transition: all 0.2s;
+    }
+</style>
+{% endblock %}
+{% block content %}
+<section class="min-h-screen bg-gradient-to-br from-cyan-50 to-blue-100 py-12">
+    <div class="container mx-auto px-4">
+        <div class="max-w-3xl mx-auto glass p-10 shadow-2xl card-hover">
+            <h2 class="text-3xl font-extrabold text-cyan-700 mb-8 flex items-center gap-3">
+                <svg class="w-8 h-8 text-cyan-400 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                </svg>
+                {{ view.title|default:"Nuevo Empleado" }}
+            </h2>
+            <form method="post" enctype="multipart/form-data" class="space-y-8">
+                {% csrf_token %}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    {% for field in form.visible_fields %}
+                    <div class="relative">
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">
+                            {{ field.label }}{% if field.field.required %}<span class="text-red-500">*</span>{% endif %}
+                        </label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-cyan-400">
+                                {% if field.name == "nombres" %}
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                {% elif field.name == "apellidos" %}
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 15s1.5-2 4-2 4 2 4 2"></path></svg>
+                                {% elif field.name == "cedula_ecuatoriana" or field.name == "dni" %}
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2" stroke="currentColor" stroke-width="2" fill="none"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 3v4M8 3v4"></path></svg>
+                                {% elif field.name == "fecha_nacimiento" or field.name == "fecha_ingreso" %}
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                {% elif field.name == "cargo" %}
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c0-1.104.896-2 2-2s2 .896 2 2-.896 2-2 2-2-.896-2-2zm0 0V7m0 4v4"></path></svg>
+                                {% elif field.name == "sueldo" %}
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-2.21 0-4 1.343-4 3s1.79 3 4 3 4-1.343 4-3-1.79-3-4-3zm0 0V4m0 4v4"></path></svg>
+                                {% elif field.name == "direccion" %}
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 12.414a4 4 0 10-5.657 5.657l4.243 4.243a8 8 0 1011.314-11.314l-4.243-4.243a4 4 0 00-5.657 5.657l4.243 4.243"></path></svg>
+                                {% elif field.name == "latitud" or field.name == "longitud" %}
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3"></path></svg>
+                                {% elif field.name == "foto" %}
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2" stroke="currentColor" stroke-width="2" fill="none"/><circle cx="12" cy="13" r="4" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+                                {% endif %}
+                            </span>
+                            {{ field|add_class:"input-glass w-full pl-10 py-2" }}
+                        </div>
+                        {% if field.help_text %}
+                        <p class="text-xs text-gray-400 mt-1">{{ field.help_text }}</p>
+                        {% endif %}
+                        {% for error in field.errors %}
+                        <p class="text-xs text-red-500 mt-1">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="flex justify-center gap-6 mt-8">
+                    <button type="submit" class="bg-cyan-500 hover:bg-cyan-600 text-white px-8 py-4 rounded-xl text-lg font-semibold transition-all duration-200 flex items-center gap-3 shadow-lg">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        Guardar
+                    </button>
+                    <a href="{% url 'core:empleado_list' %}" class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-8 py-4 rounded-xl text-lg font-semibold transition-all duration-200 flex items-center gap-2 shadow">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                        Cancelar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+{% endblock %}

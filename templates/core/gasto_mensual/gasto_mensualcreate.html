@@ -1,0 +1,119 @@
+{% extends 'home.html' %}
+{% load static %}
+
+<title>{% block title %}{% if object %}Editar{% else %}Crear{% endif %} Gasto Mensual{% endblock %}</title>
+
+{% block content %}
+    {% include 'fragments/messages.html' %}
+    
+    <div class="max-w-2xl mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="bg-white shadow-sm border-b border-gray-200 rounded-t-xl">
+            <div class="px-6 py-4">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="p-2 bg-red-100 rounded-lg">
+                            <i class="fas fa-receipt text-red-600 text-lg"></i>
+                        </div>
+                        <div>
+                            <h1 class="text-xl font-semibold text-gray-900">{{ title }}</h1>
+                            <p class="text-gray-600 text-sm">
+                                {% if object %}
+                                    Modifica la información del gasto
+                                {% else %}
+                                    Completa la información del nuevo gasto
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                    <a href="{% url 'core:gasto_mensual_list' %}" 
+                       class="text-gray-400 hover:text-gray-600 p-2 rounded-lg hover:bg-gray-50 transition-all duration-200">
+                        <i class="fas fa-times text-lg"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Formulario -->
+        <div class="bg-white shadow-sm border-x border-b border-gray-200 rounded-b-xl">
+            <div class="p-6">
+                <form method="post" class="space-y-6">
+                    {% csrf_token %}
+                    
+                    <!-- Tipo de gasto -->
+                    <div>
+                        <label class="block mb-2 text-sm font-medium text-gray-700">
+                            Tipo de Gasto <span class="text-red-500">*</span>
+                        </label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                <i class="fas fa-tag text-gray-400"></i>
+                            </div>
+                            {{ form.tipo_gasto }}
+                        </div>
+                        {% if form.tipo_gasto.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.tipo_gasto.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Fecha -->
+                    <div>
+                        <label class="block mb-2 text-sm font-medium text-gray-700">
+                            Fecha del Gasto <span class="text-red-500">*</span>
+                        </label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                <i class="fas fa-calendar text-gray-400"></i>
+                            </div>
+                            {{ form.fecha }}
+                        </div>
+                        {% if form.fecha.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.fecha.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Valor -->
+                    <div>
+                        <label class="block mb-2 text-sm font-medium text-gray-700">
+                            Valor (USD) <span class="text-red-500">*</span>
+                        </label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                <i class="fas fa-dollar-sign text-gray-400"></i>
+                            </div>
+                            {{ form.valor }}
+                        </div>
+                        {% if form.valor.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.valor.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Observación -->
+                    <div>
+                        <label class="block mb-2 text-sm font-medium text-gray-700">
+                            Observación
+                        </label>
+                        {{ form.observacion }}
+                        {% if form.observacion.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.observacion.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Botones -->
+                    <div class="flex justify-end space-x-4 pt-4">
+                        <a href="{% url 'core:gasto_mensual_list' %}" 
+                           class="px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg font-medium transition-all duration-300">
+                            <i class="fas fa-times mr-2"></i>
+                            Cancelar
+                        </a>
+                        <button type="submit" 
+                                class="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-all duration-300">
+                            <i class="fas fa-save mr-2"></i>
+                            {% if object %}Actualizar{% else %}Guardar{% endif %} Gasto
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}

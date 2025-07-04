@@ -1,0 +1,1088 @@
+{% extends 'home.html' %}
+{% load static %}
+
+<title>{% block title %}Gestión de Gastos Mensuales{% endblock %}</title>
+
+{% block content %}
+    {% include 'fragments/messages.html' %}
+    
+    <!-- Header principal -->
+    <div class="relative mb-8">
+        <div class="bg-white shadow-sm border-b border-gray-200">
+            <div class="max-w-7xl mx-auto px-4 py-6">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <div class="p-3 bg-red-100 rounded-xl">
+                            <i class="fas fa-chart-line text-2xl text-red-600"></i>
+                        </div>
+                        <div>
+                            <h1 class="text-2xl font-bold text-gray-900">Gestión de Gastos Mensuales</h1>
+                            <p class="text-gray-600">Administra y controla los gastos operativos de la clínica</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <a href="{% url 'home' %}"
+                           class="bg-esmerald-perso hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium flex items-center space-x-2 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                            <i class="fas fa-home"></i>
+                            <span>Volver al Inicio</span>
+                        </a>
+                        <button onclick="openCreateGastoModal()" 
+                                class="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-medium flex items-center space-x-2 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                            <i class="fas fa-plus"></i>
+                            <span>Nuevo Gasto</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Vista principal -->
+    <div class="max-w-7xl mx-auto px-4">
+        <!-- Estadísticas rápidas -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover-card transition-all duration-300">
+                <div class="flex items-center">
+                    <div class="p-3 bg-blue-100 rounded-lg">
+                        <i class="fas fa-receipt text-xl text-blue-600"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Total Gastos</p>
+                        <p class="text-2xl font-bold text-gray-900">{{ total_gastos }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover-card transition-all duration-300">
+                <div class="flex items-center">
+                    <div class="p-3 bg-green-100 rounded-lg">
+                        <i class="fas fa-dollar-sign text-xl text-green-600"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Valor Total</p>
+                        <p class="text-2xl font-bold text-gray-900">${{ total_valor|floatformat:2 }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover-card transition-all duration-300">
+                <div class="flex items-center">
+                    <div class="p-3 bg-purple-100 rounded-lg">
+                        <i class="fas fa-tags text-xl text-purple-600"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Tipos de Gasto</p>
+                        <p class="text-2xl font-bold text-gray-900">{{ tipos_gasto.count }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover-card transition-all duration-300">
+                <div class="flex items-center">
+                    <div class="p-3 bg-orange-100 rounded-lg">
+                        <i class="fas fa-calendar-day text-xl text-orange-600"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Promedio Mensual</p>
+                        <p class="text-2xl font-bold text-gray-900">${{ total_valor|floatformat:2 }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gráfica de gastos -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <h2 class="text-xl font-semibold text-gray-900">Evolución de Gastos</h2>
+                    <p class="text-gray-600">Tendencia de gastos mensuales a lo largo del tiempo</p>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                        <span class="text-sm text-gray-600">Gastos Mensuales</span>
+                    </div>
+                </div>
+            </div>
+            <div class="chart-container">
+                <canvas id="gastosChart"></canvas>
+                <div id="chartLoading" class="loading-spinner" style="display: none;"></div>
+            </div>
+        </div>
+
+        <!-- Filtros y búsqueda -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+            <form method="get" class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                    <!-- Búsqueda general -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Buscar gasto</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-search text-gray-400"></i>
+                            </div>
+                            <input type="text" name="q" value="{{ request.GET.q }}"
+                                   class="pl-10 block w-full py-3 px-4 border border-gray-200 rounded-lg bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm shadow-sm"
+                                   placeholder="Buscar por tipo o observación...">
+                        </div>
+                    </div>
+                    
+                    <!-- Filtro por tipo -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Tipo de Gasto</label>
+                        <select name="tipo_gasto" class="block w-full py-3 px-4 border border-gray-200 rounded-lg bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm shadow-sm">
+                            <option value="">Todos los tipos</option>
+                            {% for tipo in tipos_gasto %}
+                                <option value="{{ tipo.id }}" {% if request.GET.tipo_gasto == tipo.id|stringformat:"s" %}selected{% endif %}>
+                                    {{ tipo.nombre }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <!-- Fecha desde -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Desde</label>
+                        <input type="date" name="fecha_desde" value="{{ request.GET.fecha_desde }}"
+                               class="block w-full py-3 px-4 border border-gray-200 rounded-lg bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm shadow-sm">
+                    </div>
+                    
+                    <!-- Fecha hasta -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Hasta</label>
+                        <input type="date" name="fecha_hasta" value="{{ request.GET.fecha_hasta }}"
+                               class="block w-full py-3 px-4 border border-gray-200 rounded-lg bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm shadow-sm">
+                    </div>
+                    
+                    <!-- Botones -->
+                    <div class="flex items-end space-x-2">
+                        <button type="submit" 
+                                class="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-medium flex items-center space-x-2 transition-all duration-300 shadow-sm hover:shadow-md">
+                            <i class="fas fa-filter"></i>
+                            <span>Filtrar</span>
+                        </button>
+                        <a href="{% url 'core:gasto_mensual_list' %}" 
+                           class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-3 rounded-lg font-medium flex items-center space-x-2 transition-all duration-300 shadow-sm hover:shadow-md">
+                            <i class="fas fa-times"></i>
+                            <span>Limpiar</span>
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Tabla de gastos -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-lg font-semibold text-gray-900">Lista de Gastos</h3>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-sm text-gray-600">{{ gastos.count }} gastos encontrados</span>
+                    </div>
+                </div>
+            </div>
+            
+            {% if gastos %}
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Tipo de Gasto
+                                </th>
+                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Fecha
+                                </th>
+                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Valor
+                                </th>
+                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Observación
+                                </th>
+                                <th class="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Acciones
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for gasto in gastos %}
+                                <tr class="hover:bg-gray-50 transition-colors duration-200">
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="flex items-center">
+                                            <div class="p-2 bg-red-100 rounded-lg mr-3">
+                                                <i class="fas fa-tag text-red-600"></i>
+                                            </div>
+                                            <div>
+                                                <div class="text-sm font-medium text-gray-900">
+                                                    {{ gasto.tipo_gasto.nombre }}
+                                                </div>
+                                                <div class="text-sm text-gray-500">
+                                                    {{ gasto.tipo_gasto.descripcion|truncatechars:30 }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-gray-900">{{ gasto.fecha|date:"d/m/Y" }}</div>
+                                        <div class="text-sm text-gray-500">{{ gasto.fecha|date:"l" }}</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm font-semibold text-gray-900">${{ gasto.valor }}</div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="text-sm text-gray-900">
+                                            {% if gasto.observacion %}
+                                                {{ gasto.observacion|truncatechars:50 }}
+                                            {% else %}
+                                                <span class="text-gray-400 italic">Sin observación</span>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                        <div class="flex items-center justify-end space-x-2">
+                                            <button onclick="openEditGastoModal({{ gasto.id }})"
+                                                    class="text-green-600 hover:text-green-900 p-2 hover:bg-green-50 rounded-lg transition-all duration-200"
+                                                    title="Editar">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button onclick="confirmDeleteGasto({{ gasto.id }}, '{{ gasto.tipo_gasto.nombre }}', '{{ gasto.fecha|date:"d/m/Y" }}')"
+                                                    class="text-red-600 hover:text-red-900 p-2 hover:bg-red-50 rounded-lg transition-all duration-200"
+                                                    title="Eliminar">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-12">
+                    <div class="p-4 bg-gray-100 rounded-full w-16 h-16 mx-auto mb-4">
+                        <i class="fas fa-receipt text-2xl text-gray-400"></i>
+                    </div>
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">No hay gastos registrados</h3>
+                    <p class="text-gray-600 mb-4">Comienza agregando tu primer gasto mensual</p>
+                    <button onclick="openCreateGastoModal()" 
+                            class="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-medium flex items-center space-x-2 transition-all duration-300 shadow-lg hover:shadow-xl mx-auto">
+                        <i class="fas fa-plus"></i>
+                        <span>Agregar Primer Gasto</span>
+                    </button>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Paginación -->
+        {% if is_paginated %}
+            <div class="flex items-center justify-between mt-8">
+                <div class="text-sm text-gray-700">
+                    Mostrando {{ page_obj.start_index }} a {{ page_obj.end_index }} de {{ page_obj.paginator.count }} gastos
+                </div>
+                <div class="flex items-center space-x-2">
+                    {% if page_obj.has_previous %}
+                        <a href="?page={{ page_obj.previous_page_number }}" 
+                           class="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all duration-200">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                    {% endif %}
+                    
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                            <span class="px-4 py-2 bg-red-600 text-white rounded-lg">{{ num }}</span>
+                        {% else %}
+                            <a href="?page={{ num }}" 
+                               class="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all duration-200">
+                                {{ num }}
+                            </a>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if page_obj.has_next %}
+                        <a href="?page={{ page_obj.next_page_number }}" 
+                           class="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all duration-200">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Modal de creación/edición de gasto -->
+    <div id="createGastoModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden modal-content">
+            <!-- Header del modal -->
+            <div class="bg-red-600 px-6 py-4 border-b border-red-700">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="p-2 bg-red-500 rounded-lg">
+                            <i class="fas fa-receipt text-white text-lg"></i>
+                        </div>
+                        <div>
+                            <h2 id="gastoModalTitle" class="text-xl font-semibold text-white">Nuevo Gasto</h2>
+                            <p class="text-red-100 text-sm">Registra un nuevo gasto mensual</p>
+                        </div>
+                    </div>
+                    <button onclick="closeCreateGastoModal()" 
+                            class="text-red-100 hover:text-white p-2 rounded-lg hover:bg-red-500 transition-all duration-200">
+                        <i class="fas fa-times text-lg"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Contenido del modal -->
+            <div class="p-6 max-h-[60vh] overflow-y-auto">
+                <form id="createGastoForm" method="post">
+                    {% csrf_token %}
+                    
+                    <div class="space-y-6">
+                        <!-- Tipo de gasto -->
+                        <div>
+                            <label class="block mb-2 text-sm font-medium text-gray-700">
+                                Tipo de Gasto <span class="text-red-500">*</span>
+                            </label>
+                            <div class="flex space-x-2">
+                                <div class="relative flex-1">
+                                    <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                        <i class="fas fa-tag text-gray-400"></i>
+                                    </div>
+                                    <select name="tipo_gasto" id="tipoGastoSelect" required
+                                            class="pl-10 block w-full py-3 px-4 border border-gray-200 rounded-lg bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm shadow-sm">
+                                        <option value="">Selecciona un tipo de gasto</option>
+                                        {% for tipo in tipos_gasto %}
+                                            <option value="{{ tipo.id }}">{{ tipo.nombre }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <button type="button" onclick="openTipoGastoModal()" 
+                                        class="flex-shrink-0 bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-lg font-medium transition-all duration-200"
+                                        title="Crear nuevo tipo de gasto">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Fecha -->
+                        <div>
+                            <label class="block mb-2 text-sm font-medium text-gray-700">
+                                Fecha del Gasto <span class="text-red-500">*</span>
+                            </label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                    <i class="fas fa-calendar text-gray-400"></i>
+                                </div>
+                                <input type="date" name="fecha" required
+                                       class="pl-10 block w-full py-3 px-4 border border-gray-200 rounded-lg bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm shadow-sm">
+                            </div>
+                        </div>
+                        
+                        <!-- Valor -->
+                        <div>
+                            <label class="block mb-2 text-sm font-medium text-gray-700">
+                                Valor (USD) <span class="text-red-500">*</span>
+                            </label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                    <i class="fas fa-dollar-sign text-gray-400"></i>
+                                </div>
+                                <input type="number" name="valor" step="0.01" min="0" required
+                                       class="pl-10 block w-full py-3 px-4 border border-gray-200 rounded-lg bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm shadow-sm"
+                                       placeholder="0.00">
+                            </div>
+                        </div>
+                        
+                        <!-- Observación -->
+                        <div>
+                            <label class="block mb-2 text-sm font-medium text-gray-700">
+                                Observación
+                            </label>
+                            <textarea name="observacion" rows="3"
+                                      class="block w-full py-3 px-4 border border-gray-200 rounded-lg bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm shadow-sm resize-none"
+                                      placeholder="Comentario adicional sobre este gasto (opcional)"></textarea>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Footer del modal -->
+            <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end space-x-4">
+                <button onclick="closeCreateGastoModal()" class="px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg font-medium transition-all duration-300">
+                    <i class="fas fa-times mr-2"></i>
+                    Cancelar
+                </button>
+                <button onclick="submitGastoForm()" class="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-all duration-300">
+                    <i class="fas fa-save mr-2"></i>
+                    <span id="gastoSubmitText">Guardar Gasto</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de eliminación -->
+    <div id="deleteGastoModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-2xl max-w-md w-full">
+            <div class="p-6">
+                <div class="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 rounded-full mb-4">
+                    <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
+                </div>
+                <h3 class="text-lg font-medium text-gray-900 text-center mb-2">Confirmar Eliminación</h3>
+                <p class="text-gray-600 text-center mb-6">
+                    ¿Estás seguro de que deseas eliminar este gasto?
+                    <br>
+                    <strong id="deleteGastoInfo"></strong>
+                </p>
+                <div class="flex justify-center space-x-4">
+                    <button onclick="closeDeleteGastoModal()" 
+                            class="px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg font-medium transition-all duration-300">
+                        Cancelar
+                    </button>
+                    <button onclick="deleteGasto()" 
+                            class="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-all duration-300">
+                        Eliminar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para crear tipo de gasto -->
+    <div id="createTipoGastoModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-2xl max-w-md w-full modal-content">
+            <!-- Header del modal -->
+            <div class="bg-green-600 px-6 py-4 rounded-t-xl">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="p-2 bg-green-500 rounded-lg">
+                            <i class="fas fa-tag text-white text-lg"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-xl font-semibold text-white">Nuevo Tipo de Gasto</h2>
+                            <p class="text-green-100 text-sm">Crea un nuevo tipo de gasto</p>
+                        </div>
+                    </div>
+                    <button onclick="closeTipoGastoModal()" 
+                            class="text-green-100 hover:text-white p-2 rounded-lg hover:bg-green-500 transition-all duration-200">
+                        <i class="fas fa-times text-lg"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Contenido del modal -->
+            <div class="p-6">
+                <form id="createTipoGastoForm" class="space-y-4">
+                    {% csrf_token %}
+                    
+                    <!-- Nombre del tipo de gasto -->
+                    <div>
+                        <label class="block mb-2 text-sm font-medium text-gray-700">
+                            Nombre del Tipo de Gasto <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" name="nombre" id="tipoGastoNombre" required maxlength="100"
+                               class="block w-full py-3 px-4 border border-gray-200 rounded-lg bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm shadow-sm"
+                               placeholder="Ej: Arriendo, Luz, Agua, Internet..."
+                               oninput="validateTipoGastoName(this)">
+                        <div id="tipoGastoNameError" class="mt-1 text-sm text-red-600 hidden"></div>
+                        <div class="mt-1 text-xs text-gray-500">
+                            <span id="nombreCounter">0</span>/100 caracteres
+                        </div>
+                    </div>
+                    
+                    <!-- Descripción -->
+                    <div>
+                        <label class="block mb-2 text-sm font-medium text-gray-700">
+                            Descripción
+                        </label>
+                        <textarea name="descripcion" id="tipoGastoDescripcion" rows="3" maxlength="500"
+                                  class="block w-full py-3 px-4 border border-gray-200 rounded-lg bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm shadow-sm resize-none"
+                                  placeholder="Descripción opcional del tipo de gasto..."
+                                  oninput="updateDescriptionCounter(this)"></textarea>
+                        <div class="mt-1 text-xs text-gray-500">
+                            <span id="descripcionCounter">0</span>/500 caracteres
+                        </div>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Footer del modal -->
+            <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 rounded-b-xl flex justify-end space-x-4">
+                <button onclick="closeTipoGastoModal()" 
+                        class="px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg font-medium transition-all duration-300">
+                    <i class="fas fa-times mr-2"></i>
+                    Cancelar
+                </button>
+                <button onclick="submitTipoGastoForm()" 
+                        class="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-all duration-300">
+                    <i class="fas fa-save mr-2"></i>
+                    <span id="tipoGastoSubmitText">Crear Tipo</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .modal-content {
+            animation: modalFadeIn 0.3s ease-out;
+        }
+        
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        
+        .hover-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .animate-pulse-slow {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 320px;
+            width: 100%;
+        }
+        
+        .loading-spinner {
+            border: 4px solid #f3f4f6;
+            border-top: 4px solid #dc2626;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+    <script>
+        // Variables globales
+        let gastoChart;
+        let currentGastoId = null;
+        let isEditMode = false;
+
+        // Inicializar gráfica
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeGastosChart();
+        });
+
+        // Función para inicializar la gráfica
+        function initializeGastosChart() {
+            const ctx = document.getElementById('gastosChart').getContext('2d');
+            const loadingElement = document.getElementById('chartLoading');
+            
+            // Mostrar loading
+            loadingElement.style.display = 'block';
+            
+            // Cargar datos reales del servidor
+            fetch('{% url "core:gasto_mensual_chart_data" %}')
+                .then(response => response.json())
+                .then(chartData => {
+                    // Ocultar loading
+                    loadingElement.style.display = 'none';
+                    
+                    const gastosData = {
+                        labels: chartData.labels.length > 0 ? chartData.labels : ['Sin datos'],
+                        datasets: [{
+                            label: 'Gastos Mensuales',
+                            data: chartData.data.length > 0 ? chartData.data : [0],
+                            borderColor: 'rgb(220, 38, 38)',
+                            backgroundColor: 'rgba(220, 38, 38, 0.1)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.4,
+                            pointBackgroundColor: 'rgb(220, 38, 38)',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2,
+                            pointRadius: 6,
+                            pointHoverRadius: 8
+                        }]
+                    };
+
+                    gastoChart = new Chart(ctx, {
+                        type: 'line',
+                        data: gastosData,
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        callback: function(value) {
+                                            return '$' + value.toLocaleString();
+                                        }
+                                    }
+                                }
+                            },
+                            plugins: {
+                                legend: {
+                                    display: false
+                                },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(context) {
+                                            return 'Gastos: $' + context.parsed.y.toLocaleString();
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                })
+                .catch(error => {
+                    console.error('Error loading chart data:', error);
+                    loadingElement.style.display = 'none';
+                    
+                    // Mostrar gráfica con datos de ejemplo en caso de error
+                    const gastosData = {
+                        labels: ['Sin datos'],
+                        datasets: [{
+                            label: 'Gastos Mensuales',
+                            data: [0],
+                            borderColor: 'rgb(220, 38, 38)',
+                            backgroundColor: 'rgba(220, 38, 38, 0.1)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.4,
+                            pointBackgroundColor: 'rgb(220, 38, 38)',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2,
+                            pointRadius: 6,
+                            pointHoverRadius: 8
+                        }]
+                    };
+
+                    gastoChart = new Chart(ctx, {
+                        type: 'line',
+                        data: gastosData,
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        callback: function(value) {
+                                            return '$' + value.toLocaleString();
+                                        }
+                                    }
+                                }
+                            },
+                            plugins: {
+                                legend: {
+                                    display: false
+                                },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(context) {
+                                            return 'Gastos: $' + context.parsed.y.toLocaleString();
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                });
+        }
+
+        // Funciones del modal
+        function openCreateGastoModal() {
+            isEditMode = false;
+            currentGastoId = null;
+            document.getElementById('gastoModalTitle').textContent = 'Nuevo Gasto';
+            document.getElementById('gastoSubmitText').textContent = 'Guardar Gasto';
+            document.getElementById('createGastoForm').reset();
+            document.getElementById('createGastoModal').classList.remove('hidden');
+            
+            // Establecer fecha actual
+            const today = new Date().toISOString().split('T')[0];
+            document.querySelector('input[name="fecha"]').value = today;
+        }
+
+        function closeCreateGastoModal() {
+            document.getElementById('createGastoModal').classList.add('hidden');
+        }
+
+        function openEditGastoModal(gastoId) {
+            isEditMode = true;
+            currentGastoId = gastoId;
+            document.getElementById('gastoModalTitle').textContent = 'Editar Gasto';
+            document.getElementById('gastoSubmitText').textContent = 'Actualizar Gasto';
+            
+            // Limpiar formulario primero
+            document.getElementById('createGastoForm').reset();
+            
+            // Cargar datos del gasto
+            fetch(`{% url "core:gasto_mensual_json" %}?id=${gastoId}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Error al cargar los datos');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.gastos && data.gastos.length > 0) {
+                        const gasto = data.gastos[0];
+                        
+                        // Llenar los campos del formulario
+                        const tipoGastoSelect = document.querySelector('#tipoGastoSelect');
+                        const fechaInput = document.querySelector('input[name="fecha"]');
+                        const valorInput = document.querySelector('input[name="valor"]');
+                        const observacionTextarea = document.querySelector('textarea[name="observacion"]');
+                        
+                        if (tipoGastoSelect) tipoGastoSelect.value = gasto.tipo_gasto_id;
+                        if (fechaInput) fechaInput.value = gasto.fecha;
+                        if (valorInput) valorInput.value = gasto.valor;
+                        if (observacionTextarea) observacionTextarea.value = gasto.observacion || '';
+                        
+                        // Mostrar el modal
+                        document.getElementById('createGastoModal').classList.remove('hidden');
+                    } else {
+                        throw new Error('No se encontraron datos del gasto');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showNotification('Error al cargar los datos del gasto', 'error');
+                });
+        }
+
+        function submitGastoForm() {
+            const form = document.getElementById('createGastoForm');
+            const formData = new FormData(form);
+            const submitBtn = document.querySelector('#createGastoModal button[onclick="submitGastoForm()"]');
+            const originalText = submitBtn.innerHTML;
+            
+            // Validar campos requeridos
+            const tipoGasto = document.querySelector('#tipoGastoSelect').value;
+            const fecha = document.querySelector('input[name="fecha"]').value;
+            const valor = document.querySelector('input[name="valor"]').value;
+            
+            if (!tipoGasto || !fecha || !valor) {
+                showNotification('Por favor complete todos los campos requeridos', 'error');
+                return;
+            }
+            
+            // Mostrar estado de carga
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Guardando...';
+            submitBtn.disabled = true;
+            
+            let url = '{% url "core:gasto_mensual_create" %}';
+            if (isEditMode && currentGastoId) {
+                url = '{% url "core:gasto_mensual_update" pk=0 %}'.replace('0', currentGastoId);
+            }
+            
+            fetch(url, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.json().then(data => {
+                        const action = isEditMode ? 'actualizado' : 'creado';
+                        showNotification(`Gasto ${action} exitosamente`, 'success');
+                        closeCreateGastoModal();
+                        
+                        // Recargar la página después de un breve delay
+                        setTimeout(() => {
+                            location.reload();
+                        }, 1000);
+                    }).catch(() => {
+                        // Si no es JSON, asumir que fue exitoso
+                        const action = isEditMode ? 'actualizado' : 'creado';
+                        showNotification(`Gasto ${action} exitosamente`, 'success');
+                        closeCreateGastoModal();
+                        
+                        setTimeout(() => {
+                            location.reload();
+                        }, 1000);
+                    });
+                } else {
+                    // Manejar errores del servidor
+                    return response.json().then(data => {
+                        if (data.errors) {
+                            let errorMessage = 'Error de validación:\n';
+                            for (const field in data.errors) {
+                                errorMessage += `${field}: ${data.errors[field].join(', ')}\n`;
+                            }
+                            showNotification(errorMessage, 'error');
+                        } else {
+                            showNotification(data.message || 'Error al procesar la solicitud', 'error');
+                        }
+                    }).catch(() => {
+                        showNotification('Error al procesar la solicitud', 'error');
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                const action = isEditMode ? 'actualizar' : 'crear';
+                showNotification(`Error al ${action} el gasto. Intente nuevamente.`, 'error');
+            })
+            .finally(() => {
+                // Restaurar botón
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            });
+        }
+
+        function deleteGasto() {
+            if (!currentGastoId) return;
+            
+            const deleteBtn = document.querySelector('#deleteGastoModal button[onclick="deleteGasto()"]');
+            const originalText = deleteBtn.innerHTML;
+            
+            deleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Eliminando...';
+            deleteBtn.disabled = true;
+            
+            fetch(`/core/gastos_mensual_delete/${currentGastoId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    showNotification('Gasto eliminado exitosamente', 'success');
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1000);
+                } else {
+                    throw new Error('Error al eliminar');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('Error al eliminar el gasto', 'error');
+                deleteBtn.innerHTML = originalText;
+                deleteBtn.disabled = false;
+            });
+        }
+
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg max-w-sm transform transition-all duration-300 ${
+                type === 'success' ? 'bg-green-500 text-white' : 
+                type === 'error' ? 'bg-red-500 text-white' : 
+                'bg-blue-500 text-white'
+            }`;
+            
+            notification.innerHTML = `
+                <div class="flex items-center">
+                    <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'} mr-3"></i>
+                    <span>${message}</span>
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Fade in
+            setTimeout(() => {
+                notification.style.transform = 'translateX(0)';
+                notification.style.opacity = '1';
+            }, 100);
+            
+            // Fade out and remove
+            setTimeout(() => {
+                notification.style.transform = 'translateX(100%)';
+                notification.style.opacity = '0';
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 300);
+            }, 4000);
+        }
+
+        function confirmDeleteGasto(gastoId, tipoGasto, fecha) {
+            currentGastoId = gastoId;
+            document.getElementById('deleteGastoInfo').textContent = `${tipoGasto} - ${fecha}`;
+            document.getElementById('deleteGastoModal').classList.remove('hidden');
+        }
+
+        function closeDeleteGastoModal() {
+            document.getElementById('deleteGastoModal').classList.add('hidden');
+        }
+
+
+
+        // Funciones para el modal de tipo de gasto
+        function openTipoGastoModal() {
+            const form = document.getElementById('createTipoGastoForm');
+            form.reset();
+            
+            // Resetear contadores
+            document.getElementById('nombreCounter').textContent = '0';
+            document.getElementById('descripcionCounter').textContent = '0';
+            
+            // Ocultar errores
+            hideFieldError('tipoGastoNameError');
+            
+            document.getElementById('createTipoGastoModal').classList.remove('hidden');
+            
+            // Enfocar el campo nombre
+            setTimeout(() => {
+                document.getElementById('tipoGastoNombre').focus();
+            }, 100);
+        }
+
+        function closeTipoGastoModal() {
+            document.getElementById('createTipoGastoModal').classList.add('hidden');
+        }
+
+        function submitTipoGastoForm() {
+            const form = document.getElementById('createTipoGastoForm');
+            const formData = new FormData(form);
+            const submitBtn = document.querySelector('#createTipoGastoModal button[onclick="submitTipoGastoForm()"]');
+            const originalText = submitBtn.innerHTML;
+            
+            // Validar campos requeridos
+            const nombre = document.getElementById('tipoGastoNombre').value.trim();
+            if (!nombre) {
+                showFieldError('tipoGastoNameError', 'El nombre del tipo de gasto es requerido');
+                return;
+            }
+            
+            if (nombre.length < 3) {
+                showFieldError('tipoGastoNameError', 'El nombre debe tener al menos 3 caracteres');
+                return;
+            }
+            
+            // Limpiar errores
+            hideFieldError('tipoGastoNameError');
+            
+            // Mostrar estado de carga
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Creando...';
+            submitBtn.disabled = true;
+            
+            // Enviar datos al servidor
+            fetch('{% url "core:tipo_gasto_create_ajax" %}', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Agregar nueva opción al select con animación
+                    const select = document.getElementById('tipoGastoSelect');
+                    const option = document.createElement('option');
+                    option.value = data.tipo_gasto.id;
+                    option.textContent = data.tipo_gasto.nombre;
+                    option.selected = true;
+                    select.appendChild(option);
+                    
+                    // Agregar efecto visual al select
+                    select.classList.add('ring-2', 'ring-green-400');
+                    setTimeout(() => {
+                        select.classList.remove('ring-2', 'ring-green-400');
+                    }, 2000);
+                    
+                    // Cerrar modal y mostrar notificación
+                    closeTipoGastoModal();
+                    showNotification(`Tipo de gasto "${data.tipo_gasto.nombre}" creado y seleccionado`, 'success');
+                } else {
+                    if (data.message.includes('ya existe')) {
+                        showFieldError('tipoGastoNameError', data.message);
+                    } else {
+                        showNotification(data.message || 'Error al crear el tipo de gasto', 'error');
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('Error al crear el tipo de gasto', 'error');
+            })
+            .finally(() => {
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            });
+        }
+
+        // Funciones de validación para el mini form
+        function validateTipoGastoName(input) {
+            const errorDiv = document.getElementById('tipoGastoNameError');
+            const counter = document.getElementById('nombreCounter');
+            const value = input.value.trim();
+            
+            counter.textContent = input.value.length;
+            
+            if (value.length > 0 && value.length < 3) {
+                showFieldError('tipoGastoNameError', 'El nombre debe tener al menos 3 caracteres');
+            } else {
+                hideFieldError('tipoGastoNameError');
+            }
+        }
+
+        function updateDescriptionCounter(textarea) {
+            const counter = document.getElementById('descripcionCounter');
+            counter.textContent = textarea.value.length;
+        }
+
+        function showFieldError(errorId, message) {
+            const errorDiv = document.getElementById(errorId);
+            errorDiv.textContent = message;
+            errorDiv.classList.remove('hidden');
+        }
+
+        function hideFieldError(errorId) {
+            const errorDiv = document.getElementById(errorId);
+            errorDiv.classList.add('hidden');
+        }
+
+        // Cerrar modal al hacer clic fuera
+        window.onclick = function(event) {
+            const createModal = document.getElementById('createGastoModal');
+            const deleteModal = document.getElementById('deleteGastoModal');
+            const tipoGastoModal = document.getElementById('createTipoGastoModal');
+            
+            if (event.target === createModal) {
+                closeCreateGastoModal();
+            }
+            if (event.target === deleteModal) {
+                closeDeleteGastoModal();
+            }
+            if (event.target === tipoGastoModal) {
+                closeTipoGastoModal();
+            }
+        }
+
+        // Manejar Enter en el formulario de tipo de gasto
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Enter') {
+                const tipoGastoModal = document.getElementById('createTipoGastoModal');
+                if (!tipoGastoModal.classList.contains('hidden')) {
+                    event.preventDefault();
+                    submitTipoGastoForm();
+                }
+            }
+        });
+    </script>
+{% endblock %}

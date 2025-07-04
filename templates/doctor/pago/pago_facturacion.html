@@ -1,0 +1,177 @@
+{% extends 'home.html' %}
+{% block title %}Procesar Pago{% endblock %}
+{% block content %}
+<div class="max-w-4xl mx-auto py-10">
+  <div class="bg-white rounded-xl shadow-lg p-8">
+    <h1 class="text-3xl font-bold text-blue-800 mb-8 flex items-center gap-3">
+      <i class="fas fa-cash-register text-blue-600"></i> Procesar Pago
+    </h1>
+    
+    <!-- Resumen de la factura -->
+    <div class="bg-blue-50 p-6 rounded-lg mb-8">
+      <h2 class="text-xl font-bold text-blue-800 mb-4">Resumen de la Factura</h2>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <p class="text-gray-600">Factura #{{ pago.id }}</p>
+          <p class="text-gray-600">Pagador: {{ pago.nombre_pagador }}</p>
+          {% if pago.get_paciente %}
+            <p class="text-gray-600">Paciente: {{ pago.get_paciente.nombre_completo }}</p>
+          {% endif %}
+        </div>
+        <div class="text-right">
+          <p class="text-3xl font-bold text-blue-800">${{ pago.monto_total|floatformat:2 }}</p>
+          <p class="text-gray-600">Total a pagar</p>
+        </div>
+      </div>
+      
+      <!-- Servicios -->
+      <div class="mt-4">
+        <h3 class="font-bold text-blue-800 mb-2">Servicios incluidos:</h3>
+        {% for detalle in pago.detalles.all %}
+          <div class="flex justify-between bg-white p-2 rounded mb-1 border">
+            <span>{{ detalle.servicio_adicional.nombre_servicio }} x{{ detalle.cantidad }}</span>
+            <span class="font-bold">${{ detalle.subtotal|floatformat:2 }}</span>
+          </div>
+        {% empty %}
+          <p class="text-gray-500 text-center py-2">No hay servicios registrados</p>
+        {% endfor %}
+      </div>
+    </div>
+    
+    <!-- Métodos de pago -->
+    <form method="post" enctype="multipart/form-data" action="{% url 'doctor:pago_procesar_pago' pago.id %}">
+      {% csrf_token %}
+      
+      <div class="mb-8">
+        <h3 class="text-xl font-bold text-gray-700 mb-4">Seleccione el método de pago:</h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          
+          <!-- Efectivo -->
+          <div class="metodo-pago-card border-2 border-gray-200 rounded-lg p-4 cursor-pointer hover:border-blue-500 transition-colors">
+            <input type="radio" name="metodo_pago" value="efectivo" class="hidden metodo-pago-input">
+            <div class="text-center">
+              <i class="fas fa-money-bill-wave text-4xl text-green-600 mb-2"></i>
+              <h4 class="font-bold text-gray-800">Efectivo</h4>
+              <p class="text-sm text-gray-600">Pago inmediato en efectivo</p>
+            </div>
+          </div>
+          
+          <!-- Transferencia -->
+          <div class="metodo-pago-card border-2 border-gray-200 rounded-lg p-4 cursor-pointer hover:border-blue-500 transition-colors">
+            <input type="radio" name="metodo_pago" value="transferencia" class="hidden metodo-pago-input">
+            <div class="text-center">
+              <i class="fas fa-university text-4xl text-blue-600 mb-2"></i>
+              <h4 class="font-bold text-gray-800">Transferencia</h4>
+              <p class="text-sm text-gray-600">Transferencia bancaria</p>
+            </div>
+          </div>
+          
+          <!-- PayPal -->
+          <div class="metodo-pago-card border-2 border-gray-200 rounded-lg p-4 cursor-pointer hover:border-blue-500 transition-colors">
+            <input type="radio" name="metodo_pago" value="paypal" class="hidden metodo-pago-input">
+            <div class="text-center">
+              <i class="fab fa-paypal text-4xl text-blue-800 mb-2"></i>
+              <h4 class="font-bold text-gray-800">PayPal</h4>
+              <p class="text-sm text-gray-600">Pago seguro online</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Información de transferencia -->
+      <div id="transferencia-info" class="mb-6 hidden">
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-6">
+          <h4 class="font-bold text-blue-800 mb-4">Datos para Transferencia</h4>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <p><strong>Banco:</strong> Banco Nacional</p>
+              <p><strong>Cuenta:</strong> 1234567890</p>
+            </div>
+            <div>
+              <p><strong>Titular:</strong> Consultorio SaludTotal</p>
+              <p><strong>Concepto:</strong> Factura #{{ pago.id }}</p>
+            </div>
+          </div>
+          <div class="mt-4">
+            <label class="block font-bold mb-2">Subir comprobante:</label>
+            <input type="file" name="evidencia_pago" accept="image/*,application/pdf" class="w-full border rounded px-3 py-2">
+          </div>
+        </div>
+      </div>
+      
+      <!-- PayPal -->
+      <div id="paypal-info" class="mb-6 hidden">
+        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+          <h4 class="font-bold text-yellow-800 mb-4">🔒 Pagar con PayPal</h4>
+          <div class="text-center mb-4">
+            <p class="text-sm text-gray-600">Serás redirigido a PayPal para completar el pago</p>
+          </div>
+          <!-- Botón simple que redirige a PayPal -->
+          <div class="text-center">
+            <a href="https://www.paypal.com/signin?country.x=US&locale.x=en_US" 
+               target="_blank" 
+               class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-colors">
+              <i class="fab fa-paypal mr-2"></i>
+              Iniciar sesión en PayPal
+            </a>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Botón procesar -->
+      <button type="submit" id="btn-procesar" class="w-full bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-lg font-bold shadow-lg text-xl transition-colors">
+        <i class="fas fa-check-circle mr-2"></i> Procesar Pago
+      </button>
+    </form>
+  </div>
+</div>
+
+<script>
+// Event listeners para métodos de pago
+document.addEventListener('DOMContentLoaded', function() {
+  // Agregar event listeners a las tarjetas de método de pago
+  document.querySelectorAll('.metodo-pago-card').forEach(card => {
+    card.addEventListener('click', function() {
+      const radio = this.querySelector('.metodo-pago-input');
+      const metodo = radio.value;
+      
+      // Marcar como seleccionado
+      radio.checked = true;
+      
+      // Resetear estilos
+      document.querySelectorAll('.metodo-pago-card').forEach(c => {
+        c.classList.remove('border-blue-500', 'bg-blue-50');
+      });
+      
+      // Aplicar estilo seleccionado
+      this.classList.add('border-blue-500', 'bg-blue-50');
+      
+      // Mostrar/ocultar secciones
+      document.getElementById('transferencia-info').classList.toggle('hidden', metodo !== 'transferencia');
+      document.getElementById('paypal-info').classList.toggle('hidden', metodo !== 'paypal');
+      document.getElementById('btn-procesar').classList.toggle('hidden', metodo === 'paypal');
+    });
+  });
+  
+  // Validar formulario
+  document.querySelector('form').addEventListener('submit', function(e) {
+    const metodoSeleccionado = document.querySelector('input[name="metodo_pago"]:checked');
+    
+    if (!metodoSeleccionado) {
+      e.preventDefault();
+      alert('Por favor seleccione un método de pago');
+      return;
+    }
+    
+    if (metodoSeleccionado.value === 'transferencia') {
+      const archivo = document.querySelector('input[name="evidencia_pago"]');
+      if (!archivo.files.length) {
+        e.preventDefault();
+        alert('Por favor suba el comprobante de transferencia');
+        return;
+      }
+    }
+  });
+});
+</script>
+{% endblock %}

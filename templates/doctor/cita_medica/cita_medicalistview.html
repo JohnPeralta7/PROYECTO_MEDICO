@@ -29,11 +29,6 @@
                         <i class="fas fa-home"></i>
                         <span>Inicio</span>
                     </a>
-                    <a href="{{ create_cita_medica }}" 
-                       class="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-6 py-3 rounded-xl font-medium flex items-center space-x-2 transition-all duration-300 transform hover:scale-105 hover:shadow-lg">
-                        <i class="fas fa-plus"></i>
-                        <span>Nueva Cita</span>
-                    </a>
                 </div>
             </div>
         </div>
@@ -184,6 +179,11 @@
                             <div id="availableHours" class="grid grid-cols-3 gap-3">
                                 <!-- Los horarios se cargarán dinámicamente -->
                             </div>
+                            <!-- Mensaje cuando no hay horarios disponibles -->
+                            <div id="noAvailableHours" class="hidden text-center py-6 bg-gray-50 rounded-lg">
+                                <i class="fas fa-clock text-gray-400 text-3xl mb-2"></i>
+                                <p class="text-gray-600">Todos los horarios están ocupados para este día</p>
+                            </div>
                         </div>
 
                         <div id="occupiedSection" class="hidden">
@@ -329,6 +329,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         selectedDateEl.textContent = formattedDate;
         
+        // Si no hay horarios configurados, mostrar mensaje
         if (!hasSchedule) {
             setTimeout(() => {
                 loadingSchedule.classList.add('hidden');
@@ -337,11 +338,17 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        // Realizar petición AJAX
+        // Realizar petición AJAX para obtener horarios disponibles y citas
         const ajaxUrl = '{% url "doctor:get_day_schedule_ajax" %}';
         fetch(ajaxUrl + '?fecha=' + date)
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
             .then(data => {
+                console.log('Datos recibidos:', data); // Debug
                 setTimeout(() => {
                     loadingSchedule.classList.add('hidden');
                     displaySchedule(data);
@@ -353,12 +360,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     loadingSchedule.classList.add('hidden');
                     noScheduleDay.classList.remove('hidden');
                 }, 500);
-                showNotification('Error al cargar horarios', 'error');
+                showNotification('Error al cargar horarios del día', 'error');
             });
     }
 
     // Función para mostrar horarios
     function displaySchedule(data) {
+        console.log('Mostrando horarios:', data); // Debug
+        
         scheduleGrid.classList.remove('hidden');
         
         // Limpiar contenido anterior
@@ -366,14 +375,27 @@ document.addEventListener('DOMContentLoaded', function() {
         occupiedHours.innerHTML = '';
         citasList.innerHTML = '';
         
-        // Mostrar horarios disponibles
-        data.horarios_disponibles.forEach(hora => {
-            const hourBtn = createHourButton(hora, 'available');
-            availableHours.appendChild(hourBtn);
-        });
+        // Ocultar secciones opcionales inicialmente
+        document.getElementById('occupiedSection').classList.add('hidden');
+        document.getElementById('citasSection').classList.add('hidden');
+        document.getElementById('noAvailableHours').classList.add('hidden');
         
-        // Mostrar horarios ocupados
-        if (data.horarios_ocupados.length > 0) {
+        // Mostrar horarios disponibles
+        if (data.horarios_disponibles && data.horarios_disponibles.length > 0) {
+            console.log('Horarios disponibles:', data.horarios_disponibles); // Debug
+            data.horarios_disponibles.forEach(hora => {
+                const hourBtn = createHourButton(hora, 'available');
+                availableHours.appendChild(hourBtn);
+            });
+        } else {
+            console.log('No hay horarios disponibles'); // Debug
+            // Si no hay horarios disponibles pero hay horarios configurados
+            document.getElementById('noAvailableHours').classList.remove('hidden');
+        }
+        
+        // Mostrar horarios ocupados solo si existen
+        if (data.horarios_ocupados && data.horarios_ocupados.length > 0) {
+            console.log('Horarios ocupados:', data.horarios_ocupados); // Debug
             document.getElementById('occupiedSection').classList.remove('hidden');
             data.horarios_ocupados.forEach(hora => {
                 const hourBtn = createHourButton(hora, 'occupied');
@@ -381,13 +403,26 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
         
-        // Mostrar citas existentes
-        if (data.citas.length > 0) {
+        // Mostrar citas existentes solo si existen
+        if (data.citas && data.citas.length > 0) {
+            console.log('Citas existentes:', data.citas); // Debug
             document.getElementById('citasSection').classList.remove('hidden');
             data.citas.forEach(cita => {
                 const citaItem = createCitaItem(cita);
                 citasList.appendChild(citaItem);
             });
+        }
+        
+        // Solo mostrar "sin horarios configurados" si no hay datos del backend
+        if ((!data.horarios_disponibles || data.horarios_disponibles.length === 0) && 
+            (!data.horarios_ocupados || data.horarios_ocupados.length === 0) &&
+            (!data.citas || data.citas.length === 0)) {
+            // Verificar si realmente no hay horarios configurados
+            if (!data.has_schedule) {
+                console.log('No hay horarios configurados para este día'); // Debug
+                scheduleGrid.classList.add('hidden');
+                noScheduleDay.classList.remove('hidden');
+            }
         }
     }
 
@@ -489,6 +524,10 @@ document.addEventListener('DOMContentLoaded', function() {
         scheduleGrid.classList.add('hidden');
         document.getElementById('occupiedSection').classList.add('hidden');
         document.getElementById('citasSection').classList.add('hidden');
+        const noAvailableHours = document.getElementById('noAvailableHours');
+        if (noAvailableHours) {
+            noAvailableHours.classList.add('hidden');
+        }
     }
 
     function showNotification(message, type) {

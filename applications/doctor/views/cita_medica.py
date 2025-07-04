@@ -192,13 +192,23 @@ def get_day_schedule_ajax(request):
     # Obtener el día de la semana
     weekday = fecha.weekday()
     
-    # Buscar horario de atención para este día
+    # Mapear el día de la semana a texto
+    dias_semana = {
+        0: 'lunes',
+        1: 'martes', 
+        2: 'miércoles',
+        3: 'jueves',
+        4: 'viernes',
+        5: 'sábado',
+        6: 'domingo'
+    }
+    
+    dia_nombre = dias_semana[weekday]
+    
+    # Buscar horario de atención para este día específico
     horario = HorarioAtencion.objects.filter(
         activo=True,
-        dia_semana__in=[
-            'lunes', 'martes', 'miércoles', 'jueves', 
-            'viernes', 'sábado', 'domingo'
-        ]
+        dia_semana=dia_nombre
     ).first()
     
     if not horario:
@@ -207,7 +217,8 @@ def get_day_schedule_ajax(request):
             'has_schedule': False,
             'horarios_disponibles': [],
             'horarios_ocupados': [],
-            'message': 'No hay horario de atención configurado para este día'
+            'citas': [],
+            'message': f'No hay horario de atención configurado para {dia_nombre}'
         })
     
     # Obtener citas existentes para esta fecha
@@ -239,7 +250,14 @@ def get_day_schedule_ajax(request):
         'has_schedule': True,
         'horarios_disponibles': horarios_disponibles_str,
         'horarios_ocupados': horarios_ocupados_str,
-        'citas': citas_info
+        'citas': citas_info,
+        'debug_info': {
+            'dia_semana': dia_nombre,
+            'horario_id': horario.id if horario else None,
+            'total_horarios_disponibles': len(horarios_disponibles_str),
+            'total_horarios_ocupados': len(horarios_ocupados_str),
+            'total_citas': len(citas_info)
+        }
     })
 
 
