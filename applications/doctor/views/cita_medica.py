@@ -320,3 +320,4 @@ class CitaMedicaDeleteView(DeleteView):
     def delete(self, request, *args, **kwargs):
         messages.success(request, 'Cita médica eliminada exitosamente.')
         return super().delete(request, *args, **kwargs)
+    

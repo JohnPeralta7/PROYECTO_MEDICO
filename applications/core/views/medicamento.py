@@ -376,3 +376,64 @@ def eliminar_medicamento_ajax(request, pk):
             'success': False, 
             'message': 'Error interno del servidor'
         }, status=500)
+        
+
+
+class MedicamentoCreateModalView(MedicamentoCreateView):
+    """Vista que extiende MedicamentoCreateView para trabajar con AJAX desde modales"""
+    
+    def dispatch(self, request, *args, **kwargs):
+        """Override dispatch para manejar requests AJAX"""
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return self.ajax_post(request)
+        return super().dispatch(request, *args, **kwargs)
+    
+    def ajax_post(self, request):
+        """Maneja requests POST via AJAX"""
+        try:
+            form = self.form_class(request.POST, request.FILES)
+            
+            if form.is_valid():
+                # Usar el método form_valid heredado que mantiene la lógica de permisos
+                self.object = form.save()
+                
+                # Crear respuesta JSON con los datos del medicamento
+                medicamento_data = self.get_medicamento_json_data(self.object)
+                
+                return JsonResponse({
+                    'success': True,
+                    'message': f'Medicamento {self.object.nombre} creado exitosamente',
+                    'medicamento': medicamento_data
+                })
+            else:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Error en la validación del formulario',
+                    'errors': form.errors
+                }, status=400)
+                
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'message': f'Error interno: {str(e)}'
+            }, status=500)
+    
+    def get_medicamento_json_data(self, medicamento):
+        """Convierte el medicamento a formato JSON para la respuesta"""
+        return {
+            'id': medicamento.id,
+            'nombre': medicamento.nombre,
+            'tipo': medicamento.tipo.nombre if medicamento.tipo else None,
+            'tipo_id': medicamento.tipo.id if medicamento.tipo else None,
+            'marca_medicamento': medicamento.marca_medicamento.nombre if medicamento.marca_medicamento else None,
+            'marca_id': medicamento.marca_medicamento.id if medicamento.marca_medicamento else None,
+            'concentracion': medicamento.concentracion,
+            'via_administracion': medicamento.get_via_administracion_display(),
+            'via_administracion_value': medicamento.via_administracion,
+            'descripcion': medicamento.descripcion,
+            'precio': str(medicamento.precio),
+            'cantidad': medicamento.cantidad,
+            'activo': medicamento.activo,
+            'comercial': medicamento.comercial,
+            'foto_url': medicamento.foto.url if medicamento.foto else None,
+        }

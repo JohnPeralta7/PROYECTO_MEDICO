@@ -223,6 +223,9 @@
 
             <!-- Modal Agregar Paciente si no existe -->
             {% include "fragments/modal_paciente.html"  %}
+            
+            <!-- Modal Agregar Medicamento -->
+            {% include "fragments/modal_medicamento.html"  %}
         </div>
         <!-- Consultas Anteriores -->
           <div id="content-consultas" class="tab-content p-8">
@@ -495,8 +498,11 @@
                 </svg>
                 <span>Add Prescripcion</span>
             </button>
-            <button type="button" onclick="verDatos()" class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg transition-colors duration-200">
-                Crear Medicamentos
+            <button type="button" onclick="abrirModalMedicamento()" class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg transition-colors duration-200 flex items-center space-x-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                </svg>
+                <span>Nuevo Medicamento</span>
             </button>
         </div>
     </div>
@@ -2183,6 +2189,258 @@ function mostrarFormularioNuevoPaciente() {
     document.body.style.overflow = 'hidden'; // Prevenir scroll del body
 }
 
+
+// ...existing code...
+
+/**
+ * Función para crear paciente desde el modal usando PacienteCreateModalView
+ */
+async function crearPacienteDesdeModal() {
+    console.log('📝 Creando paciente desde modal...');
+    
+    const form = document.getElementById('form-nuevo-paciente');
+    if (!form) {
+        console.error('❌ No se encontró el formulario de nuevo paciente');
+        alert('Error: No se encontró el formulario');
+        return;
+    }
+    
+    const formData = new FormData(form);
+    
+    // Validar campos básicos antes de enviar
+    const nombres = formData.get('nombres');
+    const apellidos = formData.get('apellidos');
+    const cedula = formData.get('cedula_ecuatoriana');
+    
+    if (!nombres || !apellidos || !cedula) {
+        alert('❌ Por favor complete los campos obligatorios: Nombres, Apellidos y Cédula');
+        return;
+    }
+    
+    // Mostrar indicador de carga
+    mostrarIndicadorCargaModal(true);
+    
+    try {
+        const response = await fetch("{% url 'core:paciente_create_modal' %}", {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok && data.success) {
+            console.log('✅ Paciente creado exitosamente:', data.paciente);
+            
+            // Mostrar mensaje de éxito
+            mostrarNotificacion('✅ ' + data.message, 'success');
+            
+            // Seleccionar automáticamente el paciente creado
+            seleccionarPaciente(data.paciente);
+            
+            // Actualizar el input de búsqueda con los datos del nuevo paciente
+            const searchInput = document.getElementById('paciente-search-input');
+            if (searchInput) {
+                const displayText = `${data.paciente.id} - ${data.paciente.nombres} ${data.paciente.apellidos}`;
+                if (data.paciente.cedula_ecuatoriana) {
+                    displayText += ` - CI: ${data.paciente.cedula_ecuatoriana}`;
+                } else if (data.paciente.dni) {
+                    displayText += ` - DNI: ${data.paciente.dni}`;
+                }
+                searchInput.value = displayText;
+            }
+            
+            // Cerrar modal y limpiar formulario
+            cerrarModalPaciente();
+            
+            // Opcional: Cambiar automáticamente a la pestaña de consultas anteriores
+            setTimeout(() => {
+                showTab('consultas');
+            }, 1000);
+            
+        } else {
+            console.error('❌ Error al crear paciente:', data);
+            
+            if (data.errors) {
+                // Mostrar errores específicos de validación
+                let errorMessage = 'Errores de validación encontrados:\n\n';
+                for (const [field, errors] of Object.entries(data.errors)) {
+                    const fieldName = getCampoNombre(field);
+                    errorMessage += `• ${fieldName}: ${errors.join(', ')}\n`;
+                }
+                alert(errorMessage);
+                
+                // Marcar campos con errores en el formulario
+                marcarCamposConErrores(data.errors);
+            } else {
+                alert('❌ ' + (data.message || 'Error desconocido al crear el paciente'));
+            }
+        }
+        
+    } catch (error) {
+        console.error('❌ Error de conexión:', error);
+        alert('❌ Error de conexión. Verifique su internet e intente nuevamente.');
+    } finally {
+        mostrarIndicadorCargaModal(false);
+    }
+}
+
+/**
+ * Función para mostrar indicador de carga en el modal
+ */
+function mostrarIndicadorCargaModal(mostrar) {
+    const botonGuardar = document.querySelector('#modal-agregar-paciente button[type="submit"]');
+    
+    if (!botonGuardar) return;
+    
+    if (mostrar) {
+        botonGuardar.disabled = true;
+        botonGuardar.innerHTML = `
+            <svg class="animate-spin -ml-1 mr-3 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Guardando paciente...
+        `;
+    } else {
+        botonGuardar.disabled = false;
+        botonGuardar.innerHTML = `
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+            Guardar Paciente
+        `;
+    }
+}
+
+/**
+ * Función para obtener nombre legible del campo
+ */
+function getCampoNombre(field) {
+    const campos = {
+        'nombres': 'Nombres',
+        'apellidos': 'Apellidos',
+        'cedula_ecuatoriana': 'Cédula Ecuatoriana',
+        'dni': 'DNI',
+        'fecha_nacimiento': 'Fecha de Nacimiento',
+        'telefono': 'Teléfono',
+        'email': 'Email',
+        'sexo': 'Sexo',
+        'estado_civil': 'Estado Civil',
+        'direccion': 'Dirección',
+        'tipo_sangre': 'Tipo de Sangre',
+        // Agrega más campos según tu formulario
+    };
+    return campos[field] || field;
+}
+
+/**
+ * Función para marcar campos con errores
+ */
+function marcarCamposConErrores(errores) {
+    // Limpiar errores anteriores
+    document.querySelectorAll('.campo-error').forEach(el => {
+        el.classList.remove('campo-error', 'border-red-500');
+    });
+    
+    // Marcar campos con errores
+    for (const campo in errores) {
+        const elemento = document.getElementById(campo) || document.querySelector(`[name="${campo}"]`);
+        if (elemento) {
+            elemento.classList.add('campo-error', 'border-red-500');
+            // Enfocar el primer campo con error
+            if (Object.keys(errores)[0] === campo) {
+                elemento.focus();
+                elemento.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+    }
+}
+
+/**
+ * Función para mostrar notificaciones
+ */
+function mostrarNotificacion(mensaje, tipo = 'info') {
+    // Implementación simple con alert, puedes mejorarla con toasts
+    if (tipo === 'success') {
+        // Crear una notificación verde
+        console.log('✅ ' + mensaje);
+    } else if (tipo === 'error') {
+        console.error('❌ ' + mensaje);
+    }
+    
+    // Por ahora usar alert, luego puedes implementar toasts más sofisticados
+    alert(mensaje);
+}
+
+/**
+ * Función para cerrar el modal y limpiar
+ */
+function cerrarModalPaciente() {
+    const modal = document.getElementById('modal-agregar-paciente');
+    const form = document.getElementById('form-nuevo-paciente');
+    
+    if (modal) {
+        modal.classList.add('hidden');
+        document.body.style.overflow = 'auto'; // Restaurar scroll
+    }
+    
+    if (form) {
+        form.reset(); // Limpiar formulario
+        
+        // Limpiar errores visuales
+        document.querySelectorAll('.campo-error').forEach(el => {
+            el.classList.remove('campo-error', 'border-red-500');
+        });
+    }
+}
+
+// ============================================
+// INICIALIZACIÓN Y EVENT LISTENERS
+// ============================================
+
+document.addEventListener('DOMContentLoaded', function() {
+    // ...existing code...
+    
+    // Configurar formulario de nuevo paciente
+    const formNuevoPaciente = document.getElementById('form-nuevo-paciente');
+    if (formNuevoPaciente) {
+        formNuevoPaciente.addEventListener('submit', function(e) {
+            e.preventDefault();
+            crearPacienteDesdeModal();
+        });
+    }
+    
+    // Configurar botón de cerrar modal
+    const btnCerrarModal = document.querySelector('#modal-agregar-paciente .btn-cerrar');
+    if (btnCerrarModal) {
+        btnCerrarModal.addEventListener('click', cerrarModalPaciente);
+    }
+    
+    // Cerrar modal con ESC
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const modal = document.getElementById('modal-agregar-paciente');
+            if (modal && !modal.classList.contains('hidden')) {
+                cerrarModalPaciente();
+            }
+        }
+    });
+    
+    // ...existing code...
+});
+
+// Exponer funciones globalmente
+window.crearPacienteDesdeModal = crearPacienteDesdeModal;
+window.cerrarModalPaciente = cerrarModalPaciente;
+window.mostrarFormularioNuevoPaciente = mostrarFormularioNuevoPaciente;
+
+// ...existing code...
+
+
 /**
  * Función para cerrar modal
  */
@@ -2595,6 +2853,253 @@ setTimeout(function() {
         inicializarAtencion();
     }
 }, 500);
+
+
+// ==============================
+// 7. MODAL PARA NUEVO MEDICAMENTO
+// ==============================
+
+let currentMedicamentoTab = 'informacion';
+
+/**
+ * Función para abrir el modal de medicamento
+ */
+function abrirModalMedicamento() {
+    console.log('🔥 Abriendo modal de medicamento...');
+    document.getElementById('createMedicamentoModal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+}
+
+/**
+ * Función para cerrar el modal de medicamento
+ */
+function closeMedicamentoModal() {
+    console.log('🔒 Cerrando modal de medicamento...');
+    const modal = document.getElementById('createMedicamentoModal');
+    const form = document.getElementById('createMedicamentoForm');
+    
+    if (modal) {
+        modal.classList.add('hidden');
+        document.body.style.overflow = 'auto';
+    }
+    
+    if (form) {
+        form.reset();
+        // Limpiar errores visuales
+        document.querySelectorAll('.campo-error').forEach(el => {
+            el.classList.remove('campo-error', 'border-red-500');
+        });
+    }
+}
+
+/**
+ * Función para crear medicamento desde el modal
+ */
+async function crearMedicamentoDesdeModal() {
+    console.log('📝 Creando medicamento desde modal...');
+    
+    const form = document.getElementById('createMedicamentoForm');
+    if (!form) {
+        console.error('❌ No se encontró el formulario de nuevo medicamento');
+        alert('Error: No se encontró el formulario');
+        return;
+    }
+    
+    const formData = new FormData(form);
+    
+    // Validar campos básicos antes de enviar
+    const nombre = formData.get('nombre');
+    const tipo = formData.get('tipo');
+    const via_administracion = formData.get('via_administracion');
+    const precio = formData.get('precio');
+    const cantidad = formData.get('cantidad');
+    
+    console.log('📋 Datos capturados:', {nombre, tipo, via_administracion, precio, cantidad});
+    
+    if (!nombre || !tipo || !via_administracion || !precio || !cantidad) {
+        alert('❌ Por favor complete los campos obligatorios: Nombre, Tipo, Vía de administración, Precio y Stock inicial');
+        return;
+    }
+    
+    // Mostrar indicador de carga
+    mostrarIndicadorCargaMedicamento(true);
+    
+    try {
+        console.log('🚀 Enviando petición al servidor...');
+        const response = await fetch("{% url 'core:medicamento_create_modal' %}", {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: formData
+        });
+        
+        console.log('📡 Respuesta recibida:', response.status);
+        const data = await response.json();
+        console.log('📦 Datos de respuesta:', data);
+        
+        if (response.ok && data.success) {
+            console.log('✅ Medicamento creado exitosamente:', data.medicamento);
+            
+            // Mostrar mensaje de éxito
+            alert('✅ ' + data.message);
+            
+            // Agregar el nuevo medicamento al select
+            agregarMedicamentoAlSelect(data.medicamento);
+            
+            // Seleccionar automáticamente el medicamento creado
+            const medicamentoSelect = document.getElementById('medicamento-select');
+            if (medicamentoSelect) {
+                medicamentoSelect.value = data.medicamento.id;
+                console.log('🎯 Medicamento seleccionado automáticamente');
+            }
+            
+            // Cerrar modal
+            closeMedicamentoModal();
+            
+        } else {
+            console.error('❌ Error al crear medicamento:', data);
+            
+            if (data.errors) {
+                let errorMessage = 'Errores de validación encontrados:\n\n';
+                for (const [field, errors] of Object.entries(data.errors)) {
+                    const fieldName = getCampoNombreMedicamento(field);
+                    errorMessage += `• ${fieldName}: ${errors.join(', ')}\n`;
+                }
+                alert(errorMessage);
+                
+                marcarCamposConErroresMedicamento(data.errors);
+            } else {
+                alert('❌ ' + (data.message || 'Error desconocido al crear el medicamento'));
+            }
+        }
+        
+    } catch (error) {
+        console.error('❌ Error de conexión:', error);
+        alert('❌ Error de conexión. Verifique su internet e intente nuevamente.');
+    } finally {
+        mostrarIndicadorCargaMedicamento(false);
+    }
+}
+
+/**
+ * Función para agregar medicamento al select
+ */
+function agregarMedicamentoAlSelect(medicamento) {
+    console.log('📋 Agregando medicamento al select:', medicamento);
+    const select = document.getElementById('medicamento-select');
+    if (select) {
+        const option = document.createElement('option');
+        option.value = medicamento.id;
+        option.textContent = `${medicamento.nombre}${medicamento.concentracion ? ' - ' + medicamento.concentracion : ''}`;
+        option.setAttribute('data-precio', medicamento.precio);
+        option.setAttribute('data-tipo', medicamento.tipo || '');
+        option.setAttribute('data-via', medicamento.via_administracion || '');
+        
+        // Agregar al final del select
+        select.appendChild(option);
+        
+        console.log('✅ Medicamento agregado al select exitosamente');
+    } else {
+        console.error('❌ No se encontró el select de medicamentos');
+    }
+}
+
+/**
+ * Funciones auxiliares para medicamentos
+ */
+function mostrarIndicadorCargaMedicamento(mostrar) {
+    const botonGuardar = document.getElementById('submitMedicamentoBtn');
+    
+    if (!botonGuardar) return;
+    
+    if (mostrar) {
+        botonGuardar.disabled = true;
+        botonGuardar.innerHTML = `
+            <svg class="animate-spin -ml-1 mr-3 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Guardando medicamento...
+        `;
+    } else {
+        botonGuardar.disabled = false;
+        botonGuardar.innerHTML = `
+            <i class="fas fa-save mr-2"></i>
+            <span>Crear Medicamento</span>
+        `;
+    }
+}
+
+function getCampoNombreMedicamento(field) {
+    const campos = {
+        'nombre': 'Nombre del medicamento',
+        'tipo': 'Tipo de medicamento',
+        'marca_medicamento': 'Marca',
+        'concentracion': 'Concentración',
+        'via_administracion': 'Vía de administración',
+        'descripcion': 'Descripción',
+        'precio': 'Precio',
+        'cantidad': 'Cantidad/Stock',
+        'foto': 'Foto'
+    };
+    return campos[field] || field;
+}
+
+function marcarCamposConErroresMedicamento(errores) {
+    // Limpiar errores anteriores
+    document.querySelectorAll('.campo-error').forEach(el => {
+        el.classList.remove('campo-error', 'border-red-500');
+    });
+    
+    // Marcar campos con errores
+    for (const campo in errores) {
+        const elemento = document.getElementById(campo) || document.querySelector(`[name="${campo}"]`);
+        if (elemento) {
+            elemento.classList.add('campo-error', 'border-red-500');
+            if (Object.keys(errores)[0] === campo) {
+                elemento.focus();
+                elemento.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+    }
+}
+
+// ==============================
+// 8. INICIALIZACIÓN DE MEDICAMENTOS
+// ==============================
+
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🔧 Inicializando modal de medicamentos...');
+    
+    // Configurar formulario de nuevo medicamento
+    const formNuevoMedicamento = document.getElementById('createMedicamentoForm');
+    if (formNuevoMedicamento) {
+        formNuevoMedicamento.addEventListener('submit', function(e) {
+            e.preventDefault();
+            crearMedicamentoDesdeModal();
+        });
+        console.log('✅ Event listener del formulario configurado');
+    } else {
+        console.warn('⚠️ No se encontró el formulario de medicamentos');
+    }
+    
+    // Cerrar modal con ESC
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const modal = document.getElementById('createMedicamentoModal');
+            if (modal && !modal.classList.contains('hidden')) {
+                closeMedicamentoModal();
+            }
+        }
+    });
+});
+
+// Exponer funciones globalmente
+window.abrirModalMedicamento = abrirModalMedicamento;
+window.closeMedicamentoModal = closeMedicamentoModal;
+window.crearMedicamentoDesdeModal = crearMedicamentoDesdeModal;
 
 // ==============================
 // 9. EXPOSICIÓN DE FUNCIONES GLOBALES

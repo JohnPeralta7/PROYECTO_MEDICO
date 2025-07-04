@@ -218,3 +218,5 @@ class PagoDetailView(PermissionRequiredMixin, View):
         
         return render(request, 'doctor/pago/pago_detail.html', context)
     
+
+

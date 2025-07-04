@@ -326,3 +326,77 @@ def paciente_json(request, pk):
     }
     return JsonResponse(data)
 
+
+class PacienteCreateModalView(PacienteCreateView):
+    """Vista que extiende PacienteCreateView para trabajar con AJAX desde modales"""
+    
+    def dispatch(self, request, *args, **kwargs):
+        """Override dispatch para manejar requests AJAX"""
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.content_type == 'application/json':
+            return self.ajax_post(request)
+        return super().dispatch(request, *args, **kwargs)
+    
+    def ajax_post(self, request):
+        """Maneja requests POST via AJAX"""
+        try:
+            # Si los datos vienen como JSON
+            if request.content_type == 'application/json':
+                import json
+                data = json.loads(request.body)
+                form = self.form_class(data)
+            else:
+                # Si vienen como form-data
+                form = self.form_class(request.POST, request.FILES)
+            
+            if form.is_valid():
+                # Usar el método form_valid heredado que mantiene la lógica de permisos
+                self.object = form.save()
+                
+                # Crear respuesta JSON con los datos del paciente
+                paciente_data = self.get_paciente_json_data(self.object)
+                
+                return JsonResponse({
+                    'success': True,
+                    'message': f'Paciente {self.object.nombres} {self.object.apellidos} creado exitosamente',
+                    'paciente': paciente_data
+                })
+            else:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Error en la validación del formulario',
+                    'errors': form.errors
+                }, status=400)
+                
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'message': f'Error interno: {str(e)}'
+            }, status=500)
+    
+    def get_paciente_json_data(self, paciente):
+        """Convierte el paciente a formato JSON para la respuesta"""
+        return {
+            'id': paciente.id,
+            'nombres': paciente.nombres,
+            'apellidos': paciente.apellidos,
+            'cedula_ecuatoriana': paciente.cedula_ecuatoriana,
+            'dni': paciente.dni,
+            'fecha_nacimiento': paciente.fecha_nacimiento.isoformat() if paciente.fecha_nacimiento else None,
+            'edad': paciente.edad,
+            'telefono': paciente.telefono,
+            'email': paciente.email,
+            'sexo': paciente.sexo,
+            'estado_civil': paciente.estado_civil,
+            'direccion': paciente.direccion,
+            'tipo_sangre': paciente.tipo_sangre.tipo if paciente.tipo_sangre else None,
+            'foto_url': paciente.get_image,
+            'antecedentes_personales': paciente.antecedentes_personales,
+            'antecedentes_quirurgicos': paciente.antecedentes_quirurgicos,
+            'antecedentes_familiares': paciente.antecedentes_familiares,
+            'alergias': paciente.alergias,
+            'medicamentos_actuales': paciente.medicamentos_actuales,
+            'habitos_toxicos': paciente.habitos_toxicos,
+            'vacunas': paciente.vacunas,
+            'antecedentes_gineco_obstetricos': paciente.antecedentes_gineco_obstetricos,
+            'atenciones': []
+        }

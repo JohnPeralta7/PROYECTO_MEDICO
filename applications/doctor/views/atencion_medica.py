@@ -7,7 +7,8 @@ from django.http import JsonResponse
 from django.urls import reverse_lazy
 from django.utils import timezone
 
-from applications.core.models import Paciente, Medicamento, Diagnostico
+from applications.core.models import Paciente, Medicamento, Diagnostico, TipoMedicamento, MarcaMedicamento, TipoSangre
+from applications.core.utils.paciente import SexoChoices, EstadoCivilChoices
 from applications.doctor.forms.atencion import AtencionForm
 from applications.doctor.models import Atencion, DetalleAtencion
 from applications.security.components.mixin_crud import CreateViewMixin, DeleteViewMixin, ListViewMixin, \
@@ -58,6 +59,13 @@ class AtencionCreateView(PermissionMixin, CreateViewMixin, CreateView):
             .only('id', 'nombre', 'concentracion', 'via_administracion',
                   'precio', 'cantidad', 'tipo__nombre', 'marca_medicamento__nombre'
                   ).order_by('nombre'))
+
+        # Para los modales de paciente y medicamento
+        context['sexo_choices'] = SexoChoices.choices
+        context['estado_civil_choices'] = EstadoCivilChoices.choices
+        context['tipos_sangre'] = TipoSangre.objects.all()
+        context['tipos_medicamento'] = TipoMedicamento.objects.filter(activo=True).order_by('nombre')
+        context['marcas_medicamento'] = MarcaMedicamento.objects.filter(activo=True).order_by('nombre')
 
         context['paciente_json'] = 'null'
         context['medicamentos_json'] = '[]'  # Array vacío
@@ -170,6 +178,13 @@ class AtencionUpdateView(PermissionMixin, UpdateViewMixin, UpdateView):
                                    .only('id', 'nombre', 'concentracion', 'via_administracion',
                                          'precio', 'cantidad', 'tipo__nombre', 'marca_medicamento__nombre'
                                          ).order_by('nombre'))
+
+        # Para los modales de paciente y medicamento
+        context['sexo_choices'] = SexoChoices.choices
+        context['estado_civil_choices'] = EstadoCivilChoices.choices
+        context['tipos_sangre'] = TipoSangre.objects.all()
+        context['tipos_medicamento'] = TipoMedicamento.objects.filter(activo=True).order_by('nombre')
+        context['marcas_medicamento'] = MarcaMedicamento.objects.filter(activo=True).order_by('nombre')
 
         # Contexto específico para el update: detalles de atención actual
         atencion = self.get_object()
@@ -426,5 +441,7 @@ def obtener_contexto_paciente(id_paciente):
             'paciente_json': 'null'
 
         }
+        
+
 
 

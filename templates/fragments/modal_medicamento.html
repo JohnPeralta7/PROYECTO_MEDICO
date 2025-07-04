@@ -1,0 +1,227 @@
+<!-- Modal de creación de medicamento -->
+<div id="createMedicamentoModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden modal-content">
+        <!-- Header del modal -->
+        <div class="bg-green-600 px-6 py-4 border-b border-green-700">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="p-2 bg-green-500 rounded-lg">
+                        <i class="fas fa-pills text-white text-lg"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-semibold text-white">Nuevo Medicamento</h2>
+                        <p class="text-green-100 text-sm">Completa la información del medicamento</p>
+                    </div>
+                </div>
+                <button onclick="closeMedicamentoModal()" 
+                        class="text-green-100 hover:text-white p-2 rounded-lg hover:bg-green-500 transition-all duration-200">
+                    <i class="fas fa-times text-lg"></i>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Contenido del modal -->
+        <div class="p-6 max-h-[60vh] overflow-y-auto">
+            <form id="createMedicamentoForm" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Columna izquierda -->
+                    <div class="space-y-4">
+                        <!-- Nombre del medicamento -->
+                        <div>
+                            <label class="block mb-2 text-sm font-medium text-gray-700">
+                                Nombre del medicamento <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" name="nombre" required
+                                class="block w-full py-3 px-4 border border-gray-200 rounded-lg bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm shadow-sm"
+                                placeholder="Ej: Ibuprofeno, Paracetamol">
+                        </div>
+                        
+                        <!-- Tipo de medicamento -->
+                        <div>
+                            <label class="block mb-2 text-sm font-medium text-gray-700">
+                                Tipo de medicamento <span class="text-red-500">*</span>
+                            </label>
+                            <select name="tipo" required
+                                class="block w-full py-3 px-4 border border-gray-200 rounded-lg bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm shadow-sm">
+                                <option value="">Seleccione un tipo</option>
+                                {% for tipo in tipos_medicamento %}
+                                <option value="{{ tipo.id }}">{{ tipo.nombre }}</option>
+                                {% empty %}
+                                <option value="" disabled>No hay tipos disponibles</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <!-- Marca del medicamento -->
+                        <div>
+                            <label class="block mb-2 text-sm font-medium text-gray-700">Marca</label>
+                            <select name="marca_medicamento"
+                                class="block w-full py-3 px-4 border border-gray-200 rounded-lg bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm shadow-sm">
+                                <option value="">Seleccione una marca (opcional)</option>
+                                {% for marca in marcas_medicamento %}
+                                <option value="{{ marca.id }}">{{ marca.nombre }}</option>
+                                {% empty %}
+                                <option value="" disabled>No hay marcas disponibles</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <!-- Concentración -->
+                        <div>
+                            <label class="block mb-2 text-sm font-medium text-gray-700">Concentración</label>
+                            <input type="text" name="concentracion"
+                                class="block w-full py-3 px-4 border border-gray-200 rounded-lg bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm shadow-sm"
+                                placeholder="Ej: 500mg, 1g, 5%">
+                        </div>
+                    </div>
+                    
+                    <!-- Columna derecha -->
+                    <div class="space-y-4">
+                        <!-- Vía de administración -->
+                        <div>
+                            <label class="block mb-2 text-sm font-medium text-gray-700">
+                                Vía de administración <span class="text-red-500">*</span>
+                            </label>
+                            <select name="via_administracion" required
+                                class="block w-full py-3 px-4 border border-gray-200 rounded-lg bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm shadow-sm">
+                                <option value="">Seleccione una vía</option>
+                                <option value="oral">Oral</option>
+                                <option value="sublingual">Sublingual</option>
+                                <option value="topica">Tópica</option>
+                                <option value="inhalatoria">Inhalatoria</option>
+                                <option value="intravenosa">Intravenosa</option>
+                                <option value="intramuscular">Intramuscular</option>
+                                <option value="subcutanea">Subcutánea</option>
+                                <option value="rectal">Rectal</option>
+                                <option value="vaginal">Vaginal</option>
+                                <option value="oftalmica">Oftálmica</option>
+                                <option value="otic">Ótica</option>
+                                <option value="nasal">Nasal</option>
+                                <option value="otra">Otra</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Stock inicial -->
+                        <div>
+                            <label class="block mb-2 text-sm font-medium text-gray-700">
+                                Stock inicial <span class="text-red-500">*</span>
+                            </label>
+                            <input type="number" name="cantidad" required min="0" value="1"
+                                class="block w-full py-3 px-4 border border-gray-200 rounded-lg bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm shadow-sm"
+                                placeholder="Cantidad inicial">
+                        </div>
+                        
+                        <!-- Precio unitario -->
+                        <div>
+                            <label class="block mb-2 text-sm font-medium text-gray-700">
+                                Precio unitario <span class="text-red-500">*</span>
+                            </label>
+                            <input type="number" name="precio" required min="0" step="0.01" value="0.00"
+                                class="block w-full py-3 px-4 border border-gray-200 rounded-lg bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm shadow-sm"
+                                placeholder="0.00">
+                        </div>
+                        
+                        <!-- Descripción -->
+                        <div>
+                            <label class="block mb-2 text-sm font-medium text-gray-700">Descripción</label>
+                            <textarea name="descripcion" rows="2"
+                                class="block w-full py-3 px-4 border border-gray-200 rounded-lg bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm shadow-sm"
+                                placeholder="Descripción breve del medicamento..."></textarea>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Checkboxes -->
+                <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="flex items-start">
+                        <div class="flex items-center h-5">
+                            <input id="activo" name="activo" type="checkbox" checked
+                                class="focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300 rounded">
+                        </div>
+                        <div class="ml-3 text-sm">
+                            <label for="activo" class="font-medium text-gray-700">Medicamento activo</label>
+                            <p class="text-gray-500">Si está desmarcado, no estará disponible</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-start">
+                        <div class="flex items-center h-5">
+                            <input id="comercial" name="comercial" type="checkbox" checked
+                                class="focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300 rounded">
+                        </div>
+                        <div class="ml-3 text-sm">
+                            <label for="comercial" class="font-medium text-gray-700">Es medicamento comercial</label>
+                            <p class="text-gray-500">Marque si es de marca (no genérico)</p>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Footer del modal -->
+        <div class="bg-gray-50 px-6 py-4 flex justify-between items-center border-t border-gray-200">
+            <button onclick="closeMedicamentoModal()" 
+                    class="px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg font-medium transition-all duration-300">
+                <i class="fas fa-times mr-2"></i>
+                Cancelar
+            </button>
+            <button type="submit" form="createMedicamentoForm" id="submitMedicamentoBtn"
+                    class="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-all duration-300">
+                <i class="fas fa-save mr-2"></i>
+                Crear Medicamento
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Animación de entrada del modal */
+#createMedicamentoModal {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+#createMedicamentoModal .modal-content {
+    animation: slideInDown 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Estilos para campos focus mejorados */
+.focus\:ring-2:focus {
+    box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.2);
+}
+
+/* Estilos para validación de campos */
+.campo-error {
+    border-color: #ef4444 !important;
+    box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2) !important;
+}
+
+.campo-error:focus {
+    border-color: #ef4444 !important;
+    box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.3) !important;
+}
+
+/* Indicador visual para campos obligatorios */
+label:has(+ input[required])::after,
+label:has(+ select[required])::after {
+    content: " *";
+    color: #ef4444;
+}
+</style>

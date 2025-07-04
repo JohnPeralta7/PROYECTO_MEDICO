@@ -1,11 +1,11 @@
 from django.urls import path
 from applications.core.views.paciente import (
-    paciente_find, PacienteListView, PacienteCreateView, PacienteDeleteView, PacienteUpdateView
+    paciente_find, PacienteListView, PacienteCreateView, PacienteDeleteView, PacienteUpdateView, PacienteCreateModalView
     )
 from applications.core.views.medicamento import (
      MedicamentoListView, MedicamentoCreateView, MedicamentoDeleteView, MedicamentoUpdateView,
      crear_tipo_medicamento_ajax, crear_marca_medicamento_ajax, recargar_tipos_marcas_medicamento,
-     eliminar_medicamento_ajax
+     eliminar_medicamento_ajax, MedicamentoCreateModalView
 
     )
 from applications.core.views.gasto_mensual import (
@@ -31,7 +31,7 @@ urlpatterns = [
     path('paciente_delete/<int:pk>/', PacienteDeleteView.as_view(), name='paciente_delete'),
     path('paciente_update/<int:pk>/', PacienteUpdateView.as_view(), name='paciente_update'),
     path('paciente/<int:pk>/json/', paciente_json, name='paciente_json'),
-
+    path('paciente/create/modal/', PacienteCreateModalView.as_view(), name='paciente_create_modal'),
 
 
     #RUTAS DE MEDICAMENTO
@@ -45,7 +45,7 @@ urlpatterns = [
     path('crear_tipo_medicamento/', crear_tipo_medicamento_ajax, name='crear_tipo_medicamento'),
     path('crear_marca_medicamento/', crear_marca_medicamento_ajax, name='crear_marca_medicamento'),
     path('recargar_tipos_marcas/', recargar_tipos_marcas_medicamento, name='recargar_tipos_marcas'),
-
+    path('medicamento/create/modal/', MedicamentoCreateModalView.as_view(), name='medicamento_create_modal'),
 
     #RUTAS DE Gasto Mensual
     #path('gasto_mensual_find/', paciente_find, name="paciente_find"),
